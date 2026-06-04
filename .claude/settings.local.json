@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gh repo *)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "PowerShell(claude config set --global autoCompact false 2>&1; \"exit code: $LASTEXITCODE\")",
+      "PowerShell(claude config set --help 2>&1)",
+      "PowerShell(claude --version 2>&1)",
+      "PowerShell(\"---\")",
+      "Bash(docker exec *)",
+      "Bash(docker cp *)",
+      "Read(//c/Users/ACER/.claude/skills/abogado-del-diablo/**)",
+      "Bash(git ls-remote *)",
+      "Read(//tmp/adv-tmp/skills/abogado-del-diablo/**)",
+      "Bash(cp -f /tmp/adv-tmp/skills/abogado-del-diablo/SKILL.md C:/Users/ACER/.claude/skills/abogado-del-diablo/SKILL.md)",
+      "Bash(cp -f /tmp/adv-tmp/skills/abogado-del-diablo/references/angulos.md C:/Users/ACER/.claude/skills/abogado-del-diablo/references/angulos.md)",
+      "Bash(cp -f /tmp/adv-tmp/skills/abogado-del-diablo/references/ejemplos.md C:/Users/ACER/.claude/skills/abogado-del-diablo/references/ejemplos.md)",
+      "Read(//tmp/adv-tmp/commands/**)",
+      "Read(//c/Users/ACER/.claude/commands/**)",
+      "Bash(cp -f /tmp/adv-tmp/commands/abogado-del-diablo.md \"C:/Users/ACER/.claude/commands/abogado-del-diablo.md\")",
+      "Bash(rm -rf /tmp/adv-tmp)",
+      "Bash(grep -rInE 'query\\\\\\([^?]*\\\\$|WHERE[^?]*\\\\$_\\(GET|POST|REQUEST\\)|->query\\\\\\(.*\\\\$' modelos ajax)",
+      "Bash(grep -vE \"//|/\\\\*|\\\\.min\\\\.|select2|data-toggle|class=|id=|var |function|console\\\\.\")"
+    ]
+  }
+}

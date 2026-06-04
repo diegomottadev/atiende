@@ -1,0 +1,74 @@
+body{
+    background-color:  #6c757d17;
+   }
+    .fake-textarea {
+        border: 1px solid #dee2e6;
+        /*width: 30rem;*/
+        padding: .5rem;
+        min-height: 5rem;
+        border-radius: 1em;
+    }
+    .fake-textarea:empty::before {
+        position: absolute;
+        content: "Ingrese su mensaje...";
+    }
+    #resolucion {display: none;}
+    
+    .sombra {
+        box-shadow: 8px 8px 9px 1px rgb(0 0 0 / 35%) !important;
+    }
+    .conversation-list .ctext-wrap{
+        box-shadow: 5px 5px 5px rgb(0 0 0 / 35%) !important;
+    }
+    .odd .ctext-wrap{
+        box-shadow: -3px 5px 5px rgb(0 0 0 / 35%) !important;
+    }
+    .chat-body{
+        overflow-y: auto;       
+        height: calc(62vh);
+      
+    }   
+    @media all and (max-width: 600px){
+        .chat-body{
+            overflow-y: auto;
+            height: calc(58vh); 
+        }   
+        .chat-body.chat-supervisor{
+            overflow-y: auto;
+            height: calc(43vh);
+        }  
+    }
+
+
+    /* .chat-body{
+        overflow-y: auto;
+        /*height: 60vh;   */
+      /*  height: calc(60vh);
+      
+    }    */
+
+   .chat-body::-webkit-scrollbar{
+        width: 1.3rem;
+        background-color: #F5F5F5;
+    }
+    .chat-body::-webkit-scrollbar-track {
+        -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3); 
+        border-radius: 10px;
+    }
+    .chat-body::-webkit-scrollbar-thumb {
+        border-radius: 10px;
+        -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.5);
+        background-color: lightgrey;/* #c5a0ff*/
+    } 
+    .cargando {
+        width: 100%;height: 100%;
+        overflow: hidden; 
+        top: 0px;
+        left: 0px;
+        z-index: 10000;
+        text-align: center;
+        position:absolute; 
+        background-color: #DFF0D8;
+        opacity:0.6;
+        filter:alpha(opacity=40);
+    }

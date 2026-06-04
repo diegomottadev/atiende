@@ -1,0 +1,6 @@
+/vendor/
+/.env
+/pending_hosts.txt
+/.phpunit.result.cache
+/memory/
+/cli/

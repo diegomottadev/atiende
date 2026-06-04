@@ -1,0 +1,74 @@
+[
+  {
+    "trigger": "/turno_nuevo",
+    "content": "Hola {paciente}! Te confirmo tu turno con {profesional}:\n\n📅 Fecha: {fecha}\n🕐 Hora: {hora}\n📍 Consultorio: {direccion}\n\nTe pedimos que llegues 10 minutos antes para completar la ficha. Si necesitás cancelar o reprogramar, avisanos con al menos 24 hs de anticipación.\n\nHasta entonces!",
+    "variables": ["paciente", "profesional", "fecha", "hora", "direccion"],
+    "category": "salud"
+  },
+  {
+    "trigger": "/turno_recordatorio",
+    "content": "Hola {paciente}! Te recordamos que mañana {fecha} a las {hora} tenés turno con {profesional} en {direccion}.\n\n¿Confirmás tu asistencia? Respondé SI o NO.\n\nSi no podés venir, avisanos para cederle el turno a otro paciente. Gracias!",
+    "variables": ["paciente", "fecha", "hora", "profesional", "direccion"],
+    "category": "salud"
+  },
+  {
+    "trigger": "/turno_confirmado_paciente",
+    "content": "Perfecto {paciente}, turno confirmado para el {fecha} a las {hora}. Te esperamos!",
+    "variables": ["paciente", "fecha", "hora"],
+    "category": "salud"
+  },
+  {
+    "trigger": "/cancelacion_turno",
+    "content": "Hola {paciente}:\n\nRecibimos tu solicitud de cancelación del turno del {fecha} a las {hora}.\n\nCancelación registrada. Si querés reprogramar, podés escribirnos para buscar un nuevo horario disponible.\n\nSaludos, {consultorio}",
+    "variables": ["paciente", "fecha", "hora", "consultorio"],
+    "category": "salud"
+  },
+  {
+    "trigger": "/indicaciones_pre",
+    "content": "Hola {paciente}! Antes de tu consulta del {fecha}, te enviamos las indicaciones previas:\n\n{indicaciones}\n\nEs importante que las sigas para aprovechar al máximo la consulta. Cualquier duda, escribinos.\n\nSaludos, {consultorio}",
+    "variables": ["paciente", "fecha", "indicaciones", "consultorio"],
+    "category": "salud"
+  },
+  {
+    "trigger": "/indicaciones_post",
+    "content": "Hola {paciente}! Luego de tu consulta de hoy, te enviamos las indicaciones del {profesional}:\n\n{indicaciones}\n\nRecordá: {recordatorio_importante}\n\nSi presentás algún síntoma o tenés dudas, no dudes en comunicarte con nosotros.\n\nSaludos, {consultorio}",
+    "variables": ["paciente", "profesional", "indicaciones", "recordatorio_importante", "consultorio"],
+    "category": "salud"
+  },
+  {
+    "trigger": "/receta_lista",
+    "content": "Hola {paciente}! Tu receta de {medicamento} ya está lista.\n\nPodés retirarla en {lugar_retiro} en el horario de {horario}.\n\nRecordá presentar tu DNI. Si necesitás que te la enviemos digitalmente, avisanos.\n\nSaludos, {consultorio}",
+    "variables": ["paciente", "medicamento", "lugar_retiro", "horario", "consultorio"],
+    "category": "salud"
+  },
+  {
+    "trigger": "/derivacion_lista",
+    "content": "Hola {paciente}! La derivación para {especialidad} ya está tramitada.\n\nMédico/a de referencia: {medico_derivado}\nContacto: {contacto_derivado}\n{instrucciones_derivacion}\n\nSi tenés dudas sobre cómo proceder, escribinos.\n\nSaludos, {consultorio}",
+    "variables": ["paciente", "especialidad", "medico_derivado", "contacto_derivado", "instrucciones_derivacion", "consultorio"],
+    "category": "salud"
+  },
+  {
+    "trigger": "/resultados_listos",
+    "content": "Hola {paciente}! Los resultados de tus estudios de {tipo_estudio} ya están disponibles.\n\nPodés retirarlos en {lugar} o los tenés disponibles en {plataforma}.\n\nTe recomendamos concurrir a la consulta de seguimiento para que el/la {profesional} los interprete correctamente.\n\nSaludos, {consultorio}",
+    "variables": ["paciente", "tipo_estudio", "lugar", "plataforma", "profesional", "consultorio"],
+    "category": "salud"
+  },
+  {
+    "trigger": "/datos_consultorio",
+    "content": "Hola! Te paso nuestros datos:\n\n🏥 *{nombre_consultorio}*\n📍 {direccion}\n🕐 Horarios: {horarios}\n📞 Teléfono: {telefono}\n🌐 Web: {web}\n\nPara sacar turno podés escribirnos por acá o llamar al teléfono indicado.",
+    "variables": ["nombre_consultorio", "direccion", "horarios", "telefono", "web"],
+    "category": "salud"
+  },
+  {
+    "trigger": "/politica_cancelacion_salud",
+    "content": "Hola {paciente}!\n\nTe informamos nuestra política de cancelación de turnos:\n\n• Podés cancelar o reprogramar hasta *24 hs antes* del turno sin cargo.\n• Cancelaciones con menos de 24 hs de anticipación pueden tener un cargo administrativo de ${cargo}.\n• En caso de no presentarse sin aviso previo, el turno podrá ser reasignado.\n\nEsto nos permite atender a todos los pacientes de manera organizada. Gracias por tu comprensión.",
+    "variables": ["paciente", "cargo"],
+    "category": "salud"
+  },
+  {
+    "trigger": "/sin_turno_disponible",
+    "content": "Hola {paciente}! Lamentablemente no tenemos turnos disponibles con {profesional} hasta el {proxima_fecha}.\n\nSi querés, te anoto en lista de espera y te avisamos ante cualquier cancelación.\n\n¿Te interesa?",
+    "variables": ["paciente", "profesional", "proxima_fecha"],
+    "category": "salud"
+  }
+]

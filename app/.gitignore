@@ -1,0 +1,24 @@
+.DS_Store
+.idea/
+.idea/workspace.xml
+
+# Config generado localmente (copiar de *.docker.dev o *.docker.prod)
+config/global.php
+config/database.php
+
+# Docker compose principal (generado por startup.sh o creado localmente)
+docker-compose.yml
+
+# Scripts de produccion con datos sensibles
+startup-prod.sh
+
+# Archivos generados en runtime
+ajax/excel/*
+!ajax/excel/.gitkeep
+files/*
+!files/.gitkeep
+ws/json_.txt
+csv/*
+
+# Entorno local
+.env

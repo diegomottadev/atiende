@@ -1,0 +1,89 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$cf = Get-Process -Name 'cloudflared' -ErrorAction SilentlyContinue; if ($null -ne $cf) { $msg = \"Cloudflared esta corriendo (PID $($cf.Id)). Tunnel activo en http://localhost:81\" } else { $msg = \"ATENCION: Cloudflared NO esta corriendo. Para el bot de WhatsApp ejecuta: cloudflared tunnel --url http://localhost:81\" }; ConvertTo-Json @{ systemMessage = $msg }",
+            "shell": "powershell"
+          }
+        ]
+      }
+    ]
+  },
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\ACER\\\\Downloads\\\\whatsbus2021-main\\\\whatsbus2021-main\" -Force)",
+      "Bash(Select-Object Name, Mode)",
+      "Bash(xargs wc -l)",
+      "Bash(grep \"^CREATE TABLE\\\\|^INSERT INTO \\\\`empresa\\\\`\\\\|^INSERT INTO \\\\`users\\\\`\\\\|^INSERT INTO \\\\`usuarios\\\\`\" \"axadmin/axbot.sql\")",
+      "Bash(grep ^INSERT INTO \\\\`users\\\\`\\\\|^INSERT INTO \\\\`usuarios\\\\` *)",
+      "Bash(docker exec demo_atiende_app *)",
+      "Bash(docker exec mysql8 *)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\ACER\\\\Downloads\\\\whatsbus2021-main\\\\whatsbus2021-main\" -Directory)",
+      "Bash(Select-Object Name)",
+      "Bash(grep -rn \"like '\\\\$\\\\|like \\\\\"\\\\$\" --include=\"*.php\" modelos/ ajax/)",
+      "Bash(grep -n 'echo.*$_' vistas/cliente.php)",
+      "Bash(Get-ChildItem \"C:\\\\Users\\\\ACER\\\\Documents\\\\Develop\\\\atiende\\\\app\\\\Views\" -Recurse -Directory)",
+      "Bash(Select-Object FullName)",
+      "PowerShell(Get-ChildItem \"C:\\\\Users\\\\ACER\\\\Documents\\\\Develop\\\\atiende\" -Recurse -Depth 3 | Where-Object { $_.PSIsContainer } | Select-Object -ExpandProperty FullName)",
+      "PowerShell(Set-Location \"C:\\\\Users\\\\ACER\\\\Documents\\\\Develop\\\\atiende\"; docker run --rm -v \"${PWD}:/app\" -w /app composer:2 install --no-interaction --ignore-platform-reqs 2>&1 | Select-Object -Last 20)",
+      "PowerShell(Get-Content *)",
+      "PowerShell(docker network ls *)",
+      "PowerShell(docker exec mysql8 *)",
+      "PowerShell(docker exec *)",
+      "PowerShell(Start-Sleep -Seconds 2; $r = Invoke-WebRequest -Uri \"http://localhost:81\" -MaximumRedirection 0 -ErrorAction SilentlyContinue; Write-Host \"Status: $\\($r.StatusCode\\) $\\($r.StatusDescription\\)\"; Write-Host \"Location: $\\($r.Headers.Location\\)\")",
+      "PowerShell($r = Invoke-WebRequest -Uri \"http://localhost:81/login\" -MaximumRedirection 0 -ErrorAction SilentlyContinue; Write-Host \"Status: $\\($r.StatusCode\\)\"; Write-Host \\($r.Content | Select-Object -First 1\\))",
+      "PowerShell($ProgressPreference = 'SilentlyContinue'; $r = Invoke-WebRequest -Uri \"http://localhost:81/login\" -MaximumRedirection 5 -UseBasicParsing -ErrorAction SilentlyContinue; Write-Host \"Status: $\\($r.StatusCode\\)\"; $r.Content.Substring\\(0, [Math]::Min\\(300, $r.Content.Length\\)\\))",
+      "PowerShell(New-Item *)",
+      "Bash(curl -s \"https://graph.facebook.com/v25.0/1053554814514902?access_token=EAANk0ZCZChb54BRa5UwyqHnjZB0ZBB2jDER1A8RdDpUVM5CIBSpRT4nMQn6LcBLT4k7b4kFEffJApjzZCIiy1UcafYC0OnL3JcazI1MDv12g70KgCrPoTFxAZCkV81KJj5yNoLgzRLqAwZAOMlxdvIbDp2ZBkNnkmzIIEBCnUGEzYShZAXeNRXskdLPHP7deSU2kZBL0fmSZAgvUsVVwzZAtbDMViLsFFHiF1cNvqJFdQH3INk3jf1CZBFAZBj2ayEgZBOZCSekXHckfnTM7ZBdABZAtAGIUf7Le6ZCzXcBmx5zHkUZD\")",
+      "Bash(python3 -m json.tool)",
+      "Bash(curl *)",
+      "Bash(cat)",
+      "Bash(docker cp *)",
+      "Skill(superpowers:systematic-debugging)",
+      "Bash(docker compose *)",
+      "Bash(findstr -i maria)",
+      "Skill(update-config)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\ACER\\\\Downloads\\\\whatsbus2021-main\\\\whatsbus2021-main\" -Recurse -Directory)",
+      "Bash(Select-Object -First 20)",
+      "Bash(Format-Table FullName)",
+      "Bash(bash -c 'f=\"$HOME/.claude/prompt-count.txt\"; n=$\\(cat \"$f\" 2>/dev/null || echo 0\\); echo $\\(\\(n+1\\)\\) > \"$f\"; echo \"incremented to $\\(\\(n+1\\)\\)\"')",
+      "Bash(bash *)",
+      "Bash(xargs grep -l \"telefonos\")",
+      "Bash(Select-String -Path \"C:\\\\Users\\\\ACER\\\\Downloads\\\\whatsbus2021-main\\\\whatsbus2021-main\\\\axadmin\\\\axbot.sql\" -Pattern \"permisos|usuario_permiso\")",
+      "PowerShell(Select-String -Path \"C:\\\\Users\\\\ACER\\\\Downloads\\\\whatsbus2021-main\\\\whatsbus2021-main\\\\axadmin\\\\axbot.sql\" -Pattern \"INSERT INTO\" | Select-Object -First 20 | ForEach-Object { $_.Line })",
+      "PowerShell(cd \"C:\\\\Users\\\\ACER\\\\Downloads\\\\whatsbus2021-main\\\\whatsbus2021-main\"; docker compose exec app php -r \"define\\('__ROOT__','/var/www/html'\\); require '/var/www/html/config/global.php'; require '/var/www/html/config/Conexion.php'; \\\\$r = ejecutarConsulta\\('DESCRIBE solicitudes'\\); while\\(\\\\$row = mysqli_fetch_assoc\\(\\\\$r\\)\\) { echo implode\\(' | ', \\\\$row\\) . PHP_EOL; }\")",
+      "Bash(Select-String \"mariadb|mysql\")",
+      "PowerShell(require *)",
+      "Bash(python *)",
+      "Bash(Select-Object Name, PSIsContainer)",
+      "Bash(mkdir -p \"C:\\\\Users\\\\ACER\\\\Downloads\\\\whatsbus2021-main\\\\pedidos-platform\\\\config\")",
+      "Read(//c/Users/ACER/Downloads/whatsbus2021-main/**)",
+      "Bash(composer install *)",
+      "Bash(where php *)",
+      "Bash(php --version)",
+      "Bash(where php8 *)",
+      "Bash(where php81 *)",
+      "Bash(C:\\\\xampp82\\\\php\\\\php.exe *)",
+      "Bash(\"C:\\\\xampp82\\\\php\\\\php.exe\" \"C:\\\\xampp82\\\\php\\\\composer.phar\" install)",
+      "Bash(where composer *)",
+      "Read(//c/xampp82/**)",
+      "Bash(\"C:\\\\xampp82\\\\php\\\\php.exe\" \"C:\\\\composer\\\\composer\" install)",
+      "Bash(docker --version)",
+      "Bash(python3 *)",
+      "Bash(git *)",
+      "Bash(docker run *)",
+      "PowerShell(cd \"C:\\\\Users\\\\ACER\\\\Downloads\\\\whatsbus2021-main\\\\pedidos-platform\"; docker run --rm -v \"${PWD}:/app\" -w /app php:8.1-cli vendor/bin/phpunit tests/EncryptionTest.php 2>&1 | Select-Object -Last 8)",
+      "PowerShell(cd \"C:\\\\Users\\\\ACER\\\\Downloads\\\\whatsbus2021-main\\\\pedidos-platform\"; docker run --rm -v \"${PWD}:/app\" -w /app php:8.1-cli vendor/bin/phpunit tests/EncryptionTest.php 2>&1 | Select-Object -First 20)",
+      "PowerShell(cd \"C:\\\\Users\\\\ACER\\\\Downloads\\\\whatsbus2021-main\\\\pedidos-platform\"; docker run --rm -v \"${PWD}:/app\" -w /app php:8.1-cli vendor/bin/phpunit tests/EncryptionTest.php 2>&1 | Select-Object -First 10)",
+      "PowerShell(cd \"C:\\\\Users\\\\ACER\\\\Downloads\\\\whatsbus2021-main\\\\pedidos-platform\"; docker run --rm -v \"${PWD}:/app\" -w /app php:8.1-cli vendor/bin/phpunit tests/EncryptionTest.php 2>&1)",
+      "PowerShell(cd \"C:\\\\Users\\\\ACER\\\\Downloads\\\\whatsbus2021-main\\\\pedidos-platform\"; docker run --rm -v \"${PWD}:/app\" -w /app php:8.1-cli vendor/bin/phpunit tests/ProvisioningServiceTest.php 2>&1)",
+      "PowerShell(Start-Sleep -Seconds 2; docker exec pedidos_platform_app php -r \"require_once '/var/www/pedidos-platform/config/bootstrap.php'; require_once '/var/www/pedidos-platform/config/database.php'; \\\\$pdo = getPlatformPDO\\(\\); \\\\$r = \\\\$pdo->query\\('SELECT email, rol FROM platform_users'\\)->fetchAll\\(\\); echo json_encode\\(\\\\$r\\);\" 2>&1)",
+      "PowerShell(docker exec demo_atiende_app *)",
+      "Bash(docker exec demo_atiende_mariadb *)",
+      "PowerShell(Select-String *)"
+    ]
+  }
+}

@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="utf-8">
+    <title>Teclazo</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            font-size: 13px;
+            width: 340px;
+            margin: 0;
+            background: #f7f8fa;
+            color: #1f2933;
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 14px;
+            background: #fff;
+            border-bottom: 1px solid #e4e7eb;
+        }
+
+        header h1 {
+            font-size: 14px;
+            margin: 0;
+            font-weight: 600;
+        }
+
+        .plan {
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            background: #eef2ff;
+            color: #3730a3;
+        }
+
+        .plan.limit {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .wrap {
+            padding: 12px 14px;
+        }
+
+        .hint {
+            font-size: 11px;
+            color: #6b7280;
+            margin: 0 0 10px;
+        }
+
+        .hint code {
+            background: #eef2ff;
+            padding: 1px 4px;
+            border-radius: 3px;
+        }
+
+        ul#list {
+            list-style: none;
+            margin: 0 0 12px;
+            padding: 0;
+        }
+
+        li.tpl {
+            background: #fff;
+            border: 1px solid #e4e7eb;
+            border-radius: 6px;
+            padding: 8px 10px;
+            margin-bottom: 6px;
+        }
+
+        li.tpl .trigger {
+            font-weight: 600;
+            color: #2563eb;
+        }
+
+        li.tpl .content {
+            color: #4b5563;
+            font-size: 12px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-top: 2px;
+        }
+
+        li.tpl .actions {
+            margin-top: 6px;
+            display: flex;
+            gap: 8px;
+        }
+
+        button {
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            font-size: 12px;
+            padding: 6px 10px;
+        }
+
+        .link {
+            background: none;
+            color: #2563eb;
+            padding: 0;
+            font-size: 11px;
+        }
+
+        .link.danger {
+            color: #dc2626;
+        }
+
+        form {
+            background: #fff;
+            border: 1px solid #e4e7eb;
+            border-radius: 6px;
+            padding: 10px;
+        }
+
+        form input,
+        form textarea {
+            width: 100%;
+            box-sizing: border-box;
+            border: 1px solid #d1d5db;
+            border-radius: 5px;
+            padding: 7px 9px;
+            font-family: inherit;
+            font-size: 12px;
+            margin-bottom: 8px;
+        }
+
+        form textarea {
+            min-height: 64px;
+            resize: vertical;
+        }
+
+        .row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: #2563eb;
+            color: #fff;
+            flex: 1;
+        }
+
+        .btn-primary:disabled {
+            background: #c7d2fe;
+            cursor: not-allowed;
+        }
+
+        .btn-ghost {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        #upgrade {
+            display: none;
+            width: 100%;
+            margin: 0 0 10px;
+            background: #1a7f37;
+            color: #fff;
+            font-weight: 600;
+            padding: 9px 12px;
+        }
+
+        #upgrade:hover {
+            background: #176c2f;
+        }
+
+        #upgrade:disabled {
+            background: #a7d3b4;
+            cursor: not-allowed;
+        }
+
+        #upgrade-mp {
+            display: none;
+            width: 100%;
+            margin: 0 0 10px;
+            background: #009ee3;
+            color: #fff;
+            font-weight: 600;
+            padding: 9px 12px;
+        }
+
+        #upgrade-mp:hover {
+            background: #008fcc;
+        }
+
+        #upgrade-mp:disabled {
+            background: #9fd5ee;
+            cursor: not-allowed;
+        }
+
+        #msg {
+            font-size: 11px;
+            margin: 8px 0 0;
+            min-height: 14px;
+        }
+
+        #msg.error {
+            color: #dc2626;
+        }
+
+        #msg.ok {
+            color: #059669;
+        }
+
+        .account {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #fff;
+            border: 1px solid #e4e7eb;
+            border-radius: 6px;
+            padding: 8px 10px;
+            font-size: 12px;
+        }
+
+        .account .email {
+            color: #4b5563;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .auth-form {
+            background: #fff;
+            border: 1px solid #e4e7eb;
+            border-radius: 6px;
+            padding: 10px;
+        }
+
+        .auth-form input {
+            width: 100%;
+            box-sizing: border-box;
+            border: 1px solid #d1d5db;
+            border-radius: 5px;
+            padding: 7px 9px;
+            font-size: 12px;
+            margin-bottom: 8px;
+        }
+
+        .auth-form .toggle {
+            text-align: center;
+            margin: 6px 0 0;
+            font-size: 11px;
+            color: #6b7280;
+        }
+
+        #authMsg {
+            font-size: 11px;
+            min-height: 14px;
+            margin: 6px 0 0;
+            color: #dc2626;
+        }
+
+        /* ===== Pack browser ===== */
+        #packs {
+            margin-bottom: 10px;
+        }
+
+        #packs-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            background: #fff;
+            border: 1px solid #e4e7eb;
+            border-radius: 6px;
+            padding: 8px 10px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #374151;
+            text-align: left;
+        }
+
+        #packs-toggle:hover {
+            background: #f9fafb;
+        }
+
+        #packs-toggle .arrow {
+            font-size: 10px;
+            color: #9ca3af;
+            transition: transform 0.15s;
+        }
+
+        #packs-toggle.open .arrow {
+            transform: rotate(180deg);
+        }
+
+        #packs-body {
+            display: none;
+            background: #fff;
+            border: 1px solid #e4e7eb;
+            border-top: none;
+            border-radius: 0 0 6px 6px;
+            padding: 8px 10px;
+        }
+
+        #packs-body.visible {
+            display: block;
+        }
+
+        .pack-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+
+        .pack-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            background: #f3f4f6;
+            border: 1px solid #e4e7eb;
+            border-radius: 6px;
+            padding: 7px 9px;
+            font-size: 11px;
+            color: #374151;
+            text-align: left;
+            gap: 2px;
+        }
+
+        .pack-btn:hover:not(:disabled) {
+            background: #eef2ff;
+            border-color: #c7d2fe;
+            color: #1d4ed8;
+        }
+
+        .pack-btn:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+        }
+
+        .pack-btn .pack-name {
+            font-weight: 600;
+        }
+
+        .pack-btn .pack-count {
+            color: #6b7280;
+            font-size: 10px;
+        }
+
+        #pack-status {
+            font-size: 11px;
+            min-height: 14px;
+            margin: 4px 0 0;
+        }
+
+        #pack-status.ok {
+            color: #059669;
+        }
+
+        #pack-status.warn {
+            color: #d97706;
+        }
+
+        #pack-status.error {
+            color: #dc2626;
+        }
+
+        /* ===== First-run onboarding ===== */
+        #onboarding {
+            display: none;
+            background: #eef2ff;
+            border: 1px solid #c7d2fe;
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+
+        #onboarding p {
+            margin: 0 0 8px;
+            font-size: 12px;
+            color: #1e3a8a;
+            line-height: 1.4;
+        }
+
+        #onboarding .onb-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5px;
+            margin-bottom: 6px;
+        }
+
+        .onb-btn {
+            background: #fff;
+            border: 1px solid #c7d2fe;
+            border-radius: 5px;
+            padding: 6px 8px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #3730a3;
+        }
+
+        .onb-btn:hover:not(:disabled) {
+            background: #e0e7ff;
+        }
+
+        .onb-btn:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+        }
+
+        #onb-skip {
+            background: none;
+            color: #6b7280;
+            font-size: 11px;
+            padding: 0;
+        }
+
+        #onb-skip:hover {
+            color: #374151;
+        }
+
+        #onb-status {
+            font-size: 11px;
+            min-height: 14px;
+            margin: 4px 0 0;
+        }
+
+        #onb-status.ok { color: #059669; }
+        #onb-status.warn { color: #d97706; }
+        #onb-status.error { color: #dc2626; }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>Teclazo</h1>
+        <span id="plan" class="plan">free</span>
+    </header>
+
+    <div class="wrap">
+        <div id="auth" style="margin-bottom:10px"></div>
+
+        <div id="app" style="display:none">
+
+        <button id="upgrade" type="button">Pasate a Pro (USD, tarjeta)</button>
+        <button id="upgrade-mp" type="button">Pagar con Mercado Pago (ARS)</button>
+
+        <!-- First-run onboarding (shown once when there are no templates) -->
+        <div id="onboarding">
+            <p>Bienvenido/a a Teclazo! Para arrancar rapido, instala un pack de plantillas segun tu rubro:</p>
+            <div class="onb-grid">
+                <button type="button" class="onb-btn" data-pack="legal">Estudio juridico</button>
+                <button type="button" class="onb-btn" data-pack="inmobiliaria">Inmobiliaria</button>
+                <button type="button" class="onb-btn" data-pack="ecommerce">Ecommerce</button>
+                <button type="button" class="onb-btn" data-pack="salud">Salud / turnos</button>
+            </div>
+            <p id="onb-status"></p>
+            <button type="button" id="onb-skip">Prefiero crear mis propias plantillas</button>
+        </div>
+
+        <!-- Pack browser (collapsible) -->
+        <div id="packs">
+            <button type="button" id="packs-toggle">
+                <span>Instalar pack de plantillas</span>
+                <span class="arrow">&#9660;</span>
+            </button>
+            <div id="packs-body">
+                <div class="pack-grid" id="pack-grid">
+                    <!-- Populated by popup.js -->
+                </div>
+                <p id="pack-status"></p>
+            </div>
+        </div>
+
+        <p class="hint">
+            Escribi el trigger en cualquier campo y se expande. Variables:
+            <code>{fecha}</code>, <code>{hora}</code> automaticas; el resto
+            (ej. <code>{nombre}</code>) se pregunta al expandir.
+        </p>
+
+        <ul id="list"></ul>
+
+        <form id="form">
+            <input type="hidden" id="editId">
+            <input type="text" id="trigger" placeholder="Trigger (ej. /cotizar)" autocomplete="off">
+            <textarea id="content" placeholder="Contenido. Ej: Hola {nombre}, tu cotizacion del {fecha}..."></textarea>
+            <div class="row">
+                <button type="submit" class="btn-primary" id="saveBtn">Guardar plantilla</button>
+                <button type="button" class="btn-ghost" id="cancelBtn" style="display:none">Cancelar</button>
+            </div>
+            <p id="msg"></p>
+        </form>
+        </div><!-- #app -->
+    </div>
+
+    <script src="config.js"></script>
+    <script src="api.js"></script>
+    <script src="popup.js"></script>
+</body>
+
+</html>

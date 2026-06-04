@@ -1,0 +1,61 @@
+<html>
+
+<head>
+    <title>Ax-ChatBot</title>
+    <style>
+        body {
+            font-family: 'Open Sans', sans-serif;
+            font-size: 100%;
+        }
+
+        p {
+            margin: 0;
+        }
+
+        a {
+            color: #36b432 !important;
+        }
+
+        #wab_popup {
+            width: 250px;
+            text-align: center;
+        }
+
+        .wab_status {
+            text-overflow: ellipsis;
+            overflow: hidden;
+            max-width: 400px;
+            line-height: 1.5em;
+        }
+
+        .wab_status.ko {
+            color: #aa0000 !important;
+        }
+
+        .wab_status.ok {
+            color: #000 !important;
+            display: none;
+        }
+
+        #wab_link {
+            font-size: 90%;
+            line-height: 2.5em;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="wab_popup">
+        <div id="wab_status_ok" class="wab_status ok">
+            <p>Tu cuenta de Ax-ChatBot es validado</p>
+            <br>
+            <p><a href="https://web.whatsapp.com" target="_blank">Ir a web.whatsapp.com</a></p>
+        </div>
+        <div id="wab_status_ko" class="wab_status ko">Tu cuenta de Ax-ChatBot no está validada</div>
+        <div id="wab_link"><a href="settings.html" target="_blank">Ingrese el token Ax-ChatBot</a></div>
+    </div>
+    <script src="settings.js">
+    </script>
+</body>
+
+</html>

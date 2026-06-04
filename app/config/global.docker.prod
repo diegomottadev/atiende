@@ -1,0 +1,15 @@
+<?php
+require_once __DIR__ . '/database.php';
+
+define("TENANT_MODE",       "b2b");
+define("__TENANT_DOMAIN__", "atiende.com");
+define("__TENANT_SCHEME__", "https");
+
+define('WA_VERIFY_TOKEN', 'COMPLETAR');  // string secreto elegido al configurar el webhook en Meta
+define('WA_API_VERSION',  'v25.0');
+define('WA_DEBUG',        false);  // prod: NO volcar PII a ws/json_.txt
+
+// AES-256-GCM — debe coincidir con PLATFORM_ENCRYPTION_KEY en pedidos-platform/.env
+define('PLATFORM_ENCRYPTION_KEY', 'COMPLETAR_64_HEX_CHARS');
+
+// WA_PHONE_NUMBER_ID, WA_ACCESS_TOKEN, WA_APP_SECRET se cargan por tenant en Conexion.php

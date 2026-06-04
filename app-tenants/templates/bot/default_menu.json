@@ -1,0 +1,262 @@
+[
+    {
+        "menuId": "0",
+        "menuIdB": "100",
+        "consigna": "",
+        "finaliza": "false",
+        "menuItem": []
+    },
+    {
+        "menuId": "100",
+        "consigna": "Bienvenido a *<empresa>*, *<nombre>*!!\n\nPara comenzar, elige una opción escribiendo solo el número:\n",
+        "finaliza": "false",
+        "menuItem": [
+            {
+                "opcionId": "1",
+                "opcion": "Ya soy Cliente",
+                "menuId": "101",
+                "guardar": "false",
+                "area": ""
+            },
+            {
+                "opcionId": "2",
+                "opcion": "Quiero ser Cliente",
+                "menuId": "102",
+                "guardar": "false",
+                "area": ""
+            },
+            {
+                "opcionId": "3",
+                "opcion": "No recuerdo mi número de cliente",
+                "menuId": "103",
+                "guardar": "false",
+                "area": ""
+            },
+            {
+                "opcionId": "4",
+                "opcion": "Salir",
+                "menuId": "2.2",
+                "guardar": "false",
+                "area": ""
+            }
+        ]
+    },
+    {
+        "menuId": "101",
+        "consigna": "Por favor ingresa tu *código de cliente*:",
+        "finaliza": "false",
+        "menuItem": [
+            {
+                "opcionId": "",
+                "opcion": "",
+                "menuId": "200",
+                "guardar": "false",
+                "area": "",
+                "accion": "registraNumero"
+            }
+        ]
+    },
+    {
+        "menuId": "103",
+        "consigna": "Sin problema 🙂\n\nEscribime tu *nombre completo* y tu *dirección* así un agente identifica tu cuenta.\n\nRecordá que no puedo escuchar audios, ni ver fotos y videos.",
+        "finaliza": "false",
+        "menuItem": [
+            {
+                "opcionId": "",
+                "opcion": "",
+                "menuId": "104",
+                "guardar": "true",
+                "area": "",
+                "motivo": "Cliente no recuerda su código"
+            }
+        ]
+    },
+    {
+        "menuId": "104",
+        "consigna": "¡Gracias *<nombre>*! Registramos tu solicitud.\n\nUn agente se va a comunicar a la brevedad para ayudarte a identificar tu cuenta.",
+        "finaliza": "true",
+        "menuItem": []
+    },
+    {
+        "menuId": "102",
+        "consigna": "¿Cuál es tu *nombre completo*?\n\nRecordá que no puedo escuchar audios, ni ver fotos y videos.",
+        "finaliza": "false",
+        "menuItem": [
+            {
+                "opcionId": "",
+                "opcion": "",
+                "menuId": "8.1",
+                "guardar": "false",
+                "area": ""
+            }
+        ]
+    },
+    {
+        "menuId": "8.1",
+        "consigna": "Ahora escribí tu *dirección completa*.\n\nRecordá que no puedo escuchar audios, ni ver fotos y videos.",
+        "finaliza": "false",
+        "menuItem": [
+            {
+                "opcionId": "",
+                "opcion": "",
+                "menuId": "802",
+                "guardar": "false",
+                "area": ""
+            }
+        ]
+    },
+    {
+        "menuId": "802",
+        "consigna": "Por último, compartí tu ubicación desde WhatsApp.\n\n📎 Adjuntar › Ubicación › Enviar mi ubicación actual",
+        "finaliza": "false",
+        "menuItem": [
+            {
+                "opcionId": "",
+                "opcion": "",
+                "menuId": "8.2",
+                "guardar": "false",
+                "area": ""
+            }
+        ]
+    },
+    {
+        "menuId": "8.2",
+        "consigna": "¡Ya tenemos tus datos! Enviá *SI* para confirmar el alta.",
+        "finaliza": "false",
+        "menuItem": [
+            {
+                "opcionId": "",
+                "opcion": "",
+                "menuId": "3",
+                "guardar": "false",
+                "accion": "registraClientes"
+            }
+        ]
+    },
+    {
+        "menuId": "200",
+        "consigna": "<saludo> *<nombre>*! ¿En qué podemos ayudarte?\n",
+        "finaliza": "false",
+        "menuItem": [
+            {
+                "opcionId": "1",
+                "opcion": "Hacer un pedido",
+                "menuId": "350",
+                "guardar": "false",
+                "area": ""
+            },
+            {
+                "opcionId": "2",
+                "opcion": "Hacer un reclamo",
+                "menuId": "1",
+                "guardar": "false",
+                "area": ""
+            },
+            {
+                "opcionId": "3",
+                "opcion": "Hacer una consulta",
+                "menuId": "300",
+                "guardar": "false",
+                "area": ""
+            },
+            {
+                "opcionId": "4",
+                "opcion": "Consultar reclamo",
+                "menuId": "400",
+                "guardar": "false",
+                "area": ""
+            },
+            {
+                "opcionId": "5",
+                "opcion": "Salir",
+                "menuId": "2.2",
+                "guardar": "false",
+                "area": ""
+            }
+        ]
+    },
+    {
+        "menuId": "1",
+        "consigna": "Tu reclamo es sobre:\n",
+        "finaliza": "false",
+        "menuItem": []
+    },
+    {
+        "menuId": "5",
+        "consigna": "Escribí el *detalle* de tu reclamo:\n\n*Recordá que no puedo escuchar audios, ni ver fotos y videos.*",
+        "finaliza": "false",
+        "menuItem": [
+            {
+                "opcionId": "",
+                "opcion": "",
+                "menuId": "3",
+                "guardar": "true",
+                "area": ""
+            }
+        ]
+    },
+    {
+        "menuId": "350",
+        "consigna": "Te enviaremos el link para tu pedido. <linkPedidos>",
+        "finaliza": "true",
+        "palabraClave": [
+            "pedido",
+            "comprar"
+        ],
+        "menuItem": []
+    },
+    {
+        "menuId": "400",
+        "consigna": "Ingresa el número de reclamo a consultar:",
+        "finaliza": "false",
+        "menuItem": [
+            {
+                "opcionId": "",
+                "opcion": "",
+                "menuId": "2.2",
+                "guardar": "false",
+                "area": "",
+                "accion": "consultarReclamo"
+            }
+        ]
+    },
+    {
+        "menuId": "3",
+        "consigna": "*<nombre>* Nos estamos ocupando de inmediato.\n¡Hasta pronto!",
+        "finaliza": "true",
+        "menuItem": []
+    },
+    {
+        "menuId": "2.2",
+        "consigna": "Gracias *<nombre>*. ¡Hasta pronto!",
+        "finaliza": "true",
+        "menuItem": []
+    },
+    {
+        "menuId": "4",
+        "consigna": "*Upps!!* Ingresaste una opción no válida, intenta nuevamente.",
+        "finaliza": "false",
+        "menuItem": []
+    },
+    {
+        "menuId": "300",
+        "consigna": "¿Sobre qué necesitás consultar?\n",
+        "finaliza": "false",
+        "menuItem": []
+    },
+    {
+        "menuId": "15",
+        "consigna": "Escribí el *detalle* de tu consulta:\n\nRecordá que no puedo escuchar audios, ni ver fotos y videos.",
+        "finaliza": "false",
+        "menuItem": [
+            {
+                "opcionId": "",
+                "opcion": "",
+                "menuId": "2.2",
+                "guardar": "false",
+                "area": "",
+                "accion": "registrarConsulta"
+            }
+        ]
+    }
+]

@@ -1,0 +1,35 @@
+version: "3.9"
+
+services:
+  pedidos-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pedidos_platform_app
+    restart: unless-stopped
+    volumes:
+      - .:/var/www/pedidos-platform
+    working_dir: /var/www/pedidos-platform
+    networks:
+      - pedidos-network
+      - atiende_net
+
+  pedidos-nginx:
+    image: nginx:stable-alpine
+    container_name: pedidos_platform_nginx
+    restart: unless-stopped
+    ports:
+      - "8082:80"
+    volumes:
+      - .:/var/www/pedidos-platform
+      - ./_docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - pedidos-app
+    networks:
+      - pedidos-network
+
+networks:
+  pedidos-network:
+    driver: bridge
+  atiende_net:
+    external: true

@@ -1,0 +1,41 @@
+version: "3.9"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: atiende-app
+    container_name: atiende-app
+    restart: unless-stopped
+    tty: true
+    volumes:
+      - .:/var/www/atiende
+    working_dir: /var/www/atiende
+    extra_hosts:
+      - "api.atiende.test:${HOST_IP:-host-gateway}"
+      - "pedidos.atiende.test:${HOST_IP:-host-gateway}"
+    networks:
+      - app-network
+      - atiende_net      # red donde vive mysql8
+
+  nginx:
+    image: nginx:stable-alpine
+    restart: unless-stopped
+    container_name: atiende-nginx
+    tty: true
+    ports:
+      - "${APP_PORT:-81}:80"
+    volumes:
+      - .:/var/www/atiende
+      - ./_docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - app
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+  atiende_net:
+    external: true          # red existente donde corre mysql8

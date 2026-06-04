@@ -1,0 +1,15 @@
+<?php
+require_once __DIR__ . '/database.php';
+
+define("TENANT_MODE",       "mix");
+define("__TENANT_DOMAIN__", "atiende.localhost:81");
+define("__TENANT_SCHEME__", "http");
+
+define('WA_VERIFY_TOKEN', 'dev_verify_token_local');
+define('WA_API_VERSION',  'v25.0');
+define('WA_DEBUG',        true);   // dev: vuelca payload a ws/json_.txt
+
+// AES-256-GCM — debe coincidir con PLATFORM_ENCRYPTION_KEY en pedidos-platform/.env
+define('PLATFORM_ENCRYPTION_KEY', '0000000000000000000000000000000000000000000000000000000000000000');
+
+// WA_PHONE_NUMBER_ID, WA_ACCESS_TOKEN, WA_APP_SECRET se cargan por tenant en Conexion.php

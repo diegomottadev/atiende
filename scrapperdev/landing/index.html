@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Teclazo — Respondé en WhatsApp con un atajo</title>
+    <meta name="description"
+        content="Teclazo convierte un atajo como /cotizar en una respuesta profesional completa, al instante, en WhatsApp Web y donde escribas. Plantillas por rubro para abogados, inmobiliarias, ecommerce y salud.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --ink: #15181E;
+            --ink-2: #3a4150;
+            --green: #12b886;
+            --green-d: #0e9e76;
+            --bg: #f7f8f6;
+            --card: #ffffff;
+            --line: #e6e8e4;
+            --muted: #6b7280;
+            --radius: 16px;
+            --shadow: 0 4px 24px rgba(21, 24, 30, .06);
+        }
+
+        * { box-sizing: border-box; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            margin: 0;
+            font-family: 'Inter', system-ui, sans-serif;
+            color: var(--ink);
+            background: var(--bg);
+            line-height: 1.55;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        a { color: inherit; text-decoration: none; }
+
+        .wrap { width: min(1080px, 92vw); margin: 0 auto; }
+
+        h1, h2, h3 { line-height: 1.12; letter-spacing: -.02em; margin: 0; }
+
+        h1 { font-size: clamp(2rem, 5vw, 3.4rem); font-weight: 900; }
+        h2 { font-size: clamp(1.6rem, 3.4vw, 2.4rem); font-weight: 800; }
+
+        .sub { color: var(--ink-2); font-size: clamp(1rem, 1.6vw, 1.18rem); }
+
+        .btn {
+            display: inline-flex; align-items: center; gap: 8px;
+            font-weight: 700; font-size: 1rem; padding: 13px 22px;
+            border-radius: 12px; border: 0; cursor: pointer; transition: .15s;
+        }
+        .btn-primary { background: var(--green); color: #fff; }
+        .btn-primary:hover { background: var(--green-d); transform: translateY(-1px); }
+        .btn-ghost { background: transparent; color: var(--ink); border: 1.5px solid var(--line); }
+        .btn-ghost:hover { border-color: var(--ink); }
+        .btn-ink { background: var(--ink); color: #fff; }
+        .btn-ink:hover { background: #000; }
+
+        /* ===== Logo ===== */
+        .logo { display: inline-flex; align-items: center; gap: 10px; font-weight: 800; }
+        .logo .mark { width: 34px; height: 34px; flex: none; }
+        .logo .word { font-size: 1.5rem; font-weight: 900; letter-spacing: -.04em; color: var(--ink); }
+
+        /* ===== Nav ===== */
+        nav {
+            position: sticky; top: 0; z-index: 50;
+            background: rgba(247, 248, 246, .85); backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--line);
+        }
+        nav .wrap { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; }
+        nav .links { display: flex; align-items: center; gap: 24px; }
+        nav .links a.l { font-size: .95rem; color: var(--ink-2); font-weight: 600; }
+        nav .links a.l:hover { color: var(--ink); }
+        @media (max-width: 720px) { nav .links a.l { display: none; } }
+
+        /* ===== Hero ===== */
+        .hero { padding: 64px 0 40px; }
+        .hero .grid { display: grid; grid-template-columns: 1.1fr .9fr; gap: 48px; align-items: center; }
+        @media (max-width: 860px) { .hero .grid { grid-template-columns: 1fr; gap: 32px; } }
+        .pill {
+            display: inline-flex; align-items: center; gap: 8px; font-size: .82rem; font-weight: 700;
+            color: var(--green-d); background: #e7f7f0; border: 1px solid #bfe9d8;
+            padding: 5px 12px; border-radius: 999px; margin-bottom: 18px;
+        }
+        .hero h1 .hl { color: var(--green); }
+        .hero p.sub { margin: 18px 0 26px; max-width: 30ch; }
+        .hero .cta-row { display: flex; gap: 12px; flex-wrap: wrap; }
+        .hero .trust { margin-top: 16px; font-size: .85rem; color: var(--muted); }
+
+        /* demo card */
+        .demo {
+            background: var(--ink); border-radius: 20px; padding: 22px; color: #fff;
+            box-shadow: 0 20px 50px rgba(21, 24, 30, .25);
+        }
+        .demo .head { font-size: .78rem; color: #8b93a3; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 12px; }
+        .demo .chat { background: #0d0f13; border-radius: 12px; padding: 14px; font-size: .92rem; }
+        .demo .typed { color: #8b93a3; }
+        .demo .trigger { color: var(--green); font-weight: 700; }
+        .demo .arrow { color: #8b93a3; margin: 10px 0; font-size: .8rem; }
+        .demo .out { background: #1c1f27; border-radius: 10px; padding: 12px; line-height: 1.5; }
+        .demo .out b { color: #fff; }
+
+        /* ===== generic section ===== */
+        section { padding: 56px 0; }
+        .center { text-align: center; }
+        .center h2 + .sub { margin: 12px auto 0; max-width: 56ch; }
+        .eyebrow { color: var(--green-d); font-weight: 800; font-size: .82rem; letter-spacing: .1em; text-transform: uppercase; }
+
+        .cards { display: grid; gap: 18px; margin-top: 34px; }
+        .c3 { grid-template-columns: repeat(3, 1fr); }
+        .c4 { grid-template-columns: repeat(4, 1fr); }
+        @media (max-width: 860px) { .c3, .c4 { grid-template-columns: 1fr 1fr; } }
+        @media (max-width: 560px) { .c3, .c4 { grid-template-columns: 1fr; } }
+
+        .card {
+            background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+            padding: 22px; box-shadow: var(--shadow);
+        }
+        .card h3 { font-size: 1.08rem; margin-bottom: 8px; }
+        .card p { color: var(--ink-2); font-size: .95rem; margin: 0; }
+        .step-n {
+            width: 34px; height: 34px; border-radius: 9px; background: #e7f7f0; color: var(--green-d);
+            display: grid; place-items: center; font-weight: 900; margin-bottom: 14px;
+        }
+        .pack-tag { font-size: .72rem; font-weight: 800; color: var(--green-d); letter-spacing: .06em; text-transform: uppercase; }
+
+        /* ===== problem ===== */
+        .problem { background: var(--ink); color: #fff; }
+        .problem h2 { color: #fff; }
+        .problem .sub { color: #aeb6c4; }
+        .problem .cards .card { background: #1c1f27; border-color: #2a2f3a; }
+        .problem .cards .card h3 { color: #fff; }
+        .problem .cards .card p { color: #aeb6c4; }
+
+        /* ===== offer ===== */
+        .offer { background: #fff; }
+        .offer .stack { max-width: 760px; margin: 34px auto 0; }
+        .bonus {
+            display: grid; grid-template-columns: 1fr auto; gap: 16px; align-items: start;
+            background: var(--bg); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; margin-bottom: 12px;
+        }
+        .bonus .belief { font-size: .72rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--green-d); }
+        .bonus h3 { font-size: 1.05rem; margin: 6px 0; }
+        .bonus p { color: var(--ink-2); font-size: .92rem; margin: 0; }
+        .bonus .price { text-align: right; white-space: nowrap; }
+        .bonus .price .val { font-weight: 800; }
+        .bonus .price .free { color: var(--green-d); font-weight: 800; font-size: .8rem; }
+        .totals {
+            background: var(--ink); color: #fff; border-radius: 16px; padding: 24px;
+            margin-top: 10px; text-align: center;
+        }
+        .totals .strike { color: #8b93a3; text-decoration: line-through; font-size: 1.05rem; }
+        .totals .big { font-size: clamp(2rem, 5vw, 2.8rem); font-weight: 900; color: var(--green); margin: 6px 0; }
+        .totals .per { color: #aeb6c4; font-size: .9rem; }
+
+        /* ===== pricing ===== */
+        .price-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; max-width: 760px; margin: 34px auto 0; }
+        @media (max-width: 640px) { .price-cards { grid-template-columns: 1fr; } }
+        .plan { background: #fff; border: 1px solid var(--line); border-radius: 18px; padding: 26px; box-shadow: var(--shadow); }
+        .plan.best { border: 2px solid var(--green); position: relative; }
+        .plan.best .badge {
+            position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+            background: var(--green); color: #fff; font-size: .72rem; font-weight: 800; padding: 4px 12px; border-radius: 999px;
+        }
+        .plan .name { font-weight: 800; }
+        .plan .amt { font-size: 2.4rem; font-weight: 900; margin: 8px 0 2px; }
+        .plan .amt small { font-size: .95rem; color: var(--muted); font-weight: 600; }
+        .plan ul { list-style: none; padding: 0; margin: 16px 0 22px; }
+        .plan li { padding: 6px 0 6px 26px; position: relative; color: var(--ink-2); font-size: .95rem; }
+        .plan li::before { content: ""; position: absolute; left: 0; top: 12px; width: 14px; height: 8px; border-left: 2.5px solid var(--green); border-bottom: 2.5px solid var(--green); transform: rotate(-45deg); }
+        .plan .btn { width: 100%; justify-content: center; }
+
+        /* ===== guarantee ===== */
+        .guarantee { background: #e7f7f0; }
+        .guarantee .box { display: grid; grid-template-columns: auto 1fr; gap: 22px; align-items: center; background: #fff; border: 1px solid #bfe9d8; border-radius: 18px; padding: 26px; box-shadow: var(--shadow); }
+        @media (max-width: 640px) { .guarantee .box { grid-template-columns: 1fr; text-align: center; } }
+        .seal { width: 80px; height: 80px; flex: none; }
+
+        /* ===== faq ===== */
+        details { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 4px 18px; margin-bottom: 10px; }
+        summary { cursor: pointer; font-weight: 700; padding: 14px 0; list-style: none; }
+        summary::-webkit-details-marker { display: none; }
+        summary::after { content: "+"; float: right; color: var(--green-d); font-weight: 900; }
+        details[open] summary::after { content: "–"; }
+        details p { color: var(--ink-2); margin: 0 0 16px; font-size: .95rem; }
+
+        /* ===== final cta ===== */
+        .final { background: var(--ink); color: #fff; text-align: center; border-radius: 24px; padding: 56px 24px; margin: 40px 0; }
+        .final h2 { color: #fff; }
+        .final .sub { color: #aeb6c4; margin: 12px auto 26px; max-width: 50ch; }
+
+        footer { padding: 30px 0 50px; color: var(--muted); font-size: .85rem; border-top: 1px solid var(--line); }
+        footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+    </style>
+</head>
+
+<body>
+    <!-- Reusable logo mark (simplified, legible) -->
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+        <defs>
+            <g id="tcz-arrow">
+                <path d="M32 23 L32 12" stroke="#12b886" stroke-width="3.4" stroke-linecap="round" />
+                <path d="M27.6 16 L32 11.4 L36.4 16" stroke="#12b886" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+            </g>
+            <symbol id="tcz-mark" viewBox="0 0 64 64">
+                <rect x="7" y="7" width="50" height="50" rx="15" fill="none" stroke="#15181e" stroke-width="4" />
+                <use href="#tcz-arrow" transform="rotate(0 32 32)" />
+                <use href="#tcz-arrow" transform="rotate(60 32 32)" />
+                <use href="#tcz-arrow" transform="rotate(120 32 32)" />
+                <use href="#tcz-arrow" transform="rotate(180 32 32)" />
+                <use href="#tcz-arrow" transform="rotate(240 32 32)" />
+                <use href="#tcz-arrow" transform="rotate(300 32 32)" />
+                <circle cx="32" cy="32" r="4.2" fill="#12b886" />
+            </symbol>
+        </defs>
+    </svg>
+
+    <nav>
+        <div class="wrap">
+            <a class="logo" href="#top"><svg class="mark"><use href="#tcz-mark" /></svg><span class="word">teclazo</span></a>
+            <div class="links">
+                <a class="l" href="#como">Cómo funciona</a>
+                <a class="l" href="#packs">Packs</a>
+                <a class="l" href="#oferta">Oferta</a>
+                <a class="l" href="#precios">Precios</a>
+                <a class="btn btn-primary" href="#precios">Probar gratis</a>
+            </div>
+        </div>
+    </nav>
+
+    <div id="top"></div>
+
+    <!-- HERO -->
+    <header class="hero">
+        <div class="wrap grid">
+            <div>
+                <span class="pill">● Para profesionales que viven en WhatsApp</span>
+                <h1>Dejá de escribir el <span class="hl">mismo mensaje</span> 20 veces por día.</h1>
+                <p class="sub">Teclazo convierte un atajo como <b>/cotizar</b> en una respuesta profesional completa, al instante — en WhatsApp Web y en cualquier campo de texto.</p>
+                <div class="cta-row">
+                    <a class="btn btn-primary" href="#precios">Probar gratis 7 días</a>
+                    <a class="btn btn-ghost" href="#como">Ver cómo funciona</a>
+                </div>
+                <p class="trust">Sin tarjeta para empezar · Funciona en WhatsApp Web, Gmail y formularios web</p>
+            </div>
+            <div class="demo">
+                <div class="head">WhatsApp Web</div>
+                <div class="chat">
+                    <div><span class="typed">Escribís&nbsp;</span><span class="trigger">/cotizar</span><span class="typed"> + Tab</span></div>
+                    <div class="arrow">↓ se expande solo</div>
+                    <div class="out">Hola <b>Juan</b>, gracias por tu consulta. Te paso la cotización de honorarios del <b>02/06</b>:<br>• Consulta inicial: $25.000<br>• Gestión completa: $180.000<br>Quedo a disposición.</div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- PROBLEM -->
+    <section class="problem">
+        <div class="wrap center">
+            <span class="eyebrow">El problema</span>
+            <h2 style="margin-top:10px">Tus respuestas se repiten. Tu tiempo no vuelve.</h2>
+            <p class="sub">Cada día contestás lo mismo: cotizaciones, "¿sigue disponible?", confirmaciones, recordatorios. Copiar y pegar desde un bloc de notas es lento, se rompe en el celular y te hace ver improvisado.</p>
+            <div class="cards c3">
+                <div class="card"><h3>Horas perdidas</h3><p>10 a 20 mensajes repetidos por día. Reescribirlos te come el tiempo que deberías cobrar.</p></div>
+                <div class="card"><h3>Clientes que se enfrían</h3><p>El que tarda en responder pierde. La demora cuesta consultas que no vuelven.</p></div>
+                <div class="card"><h3>Imagen despareja</h3><p>Respuestas apuradas, con errores o sin formato. No es la imagen profesional que vendés.</p></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- HOW -->
+    <section id="como">
+        <div class="wrap center">
+            <span class="eyebrow">Cómo funciona</span>
+            <h2 style="margin-top:10px">De un atajo a una respuesta completa, en 3 pasos.</h2>
+            <div class="cards c3" style="text-align:left">
+                <div class="card"><div class="step-n">1</div><h3>Instalás Teclazo</h3><p>Extensión de Chrome, sin configuración técnica. Creás tu cuenta y elegís el pack de tu rubro.</p></div>
+                <div class="card"><div class="step-n">2</div><h3>Escribís el atajo</h3><p>En WhatsApp Web o donde escribas, tipeás <b>/cotizar</b>, <b>/turno</b>, <b>/visita</b>… el que vos definas.</p></div>
+                <div class="card"><div class="step-n">3</div><h3>Se expande solo</h3><p>Aparece el mensaje completo, con variables como <b>{nombre}</b>, <b>{fecha}</b> y <b>{hora}</b> ya resueltas.</p></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- PACKS -->
+    <section id="packs" style="background:#fff">
+        <div class="wrap center">
+            <span class="eyebrow">El diferencial</span>
+            <h2 style="margin-top:10px">Plantillas profesionales por rubro, listas para usar.</h2>
+            <p class="sub">No empezás de cero. Instalás el pack de tu profesión y ya estás respondiendo como un equipo entero.</p>
+            <div class="cards c4" style="text-align:left">
+                <div class="card"><div class="pack-tag">Legal</div><h3>Estudios jurídicos</h3><p>Honorarios, intimaciones, recordatorio de audiencia, pedido de documentación, seguimiento de expediente.</p></div>
+                <div class="card"><div class="pack-tag">Inmobiliaria</div><h3>Agentes</h3><p>Ficha de propiedad, coordinación de visita, reserva/seña, requisitos de alquiler, "¿sigue disponible?".</p></div>
+                <div class="card"><div class="pack-tag">Ecommerce</div><h3>Atención y ventas</h3><p>Estado del pedido, devoluciones, medios de pago, demoras de envío, post-venta.</p></div>
+                <div class="card"><div class="pack-tag">Salud</div><h3>Consultorios</h3><p>Confirmación de turno, recordatorios, indicaciones pre/post consulta, política de cancelación.</p></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- OFFER -->
+    <section id="oferta" class="offer">
+        <div class="wrap center">
+            <span class="eyebrow">La oferta</span>
+            <h2 style="margin-top:10px">Suscribite al plan anual y llevate todo esto.</h2>
+            <p class="sub">Cuatro complementos pensados para que arranques sin dudas, sin esfuerzo técnico y viendo el resultado desde el primer día.</p>
+
+            <div class="stack">
+                <div class="bonus">
+                    <div>
+                        <div class="belief">Derriba: "¿esto realmente me sirve?"</div>
+                        <h3>Bono 1 · Pack de tu rubro, cargado y listo</h3>
+                        <p>20 plantillas profesionales en es-AR de tu profesión, ya instaladas. En 30 segundos estás respondiendo con un atajo y comprobás el ahorro de tiempo vos mismo.</p>
+                    </div>
+                    <div class="price"><div class="val"><span class="strike" style="color:var(--muted);text-decoration:line-through">$12.000</span></div><div class="free">GRATIS</div></div>
+                </div>
+
+                <div class="bonus">
+                    <div>
+                        <div class="belief">Derriba: "no soy técnico / no tengo tiempo"</div>
+                        <h3>Bono 2 · Puesta en marcha en 10 minutos</h3>
+                        <p>Guía express + video de 5 minutos + checklist para dejar Teclazo andando sin saber nada de tecnología. Cero curva de aprendizaje.</p>
+                    </div>
+                    <div class="price"><div class="val"><span style="color:var(--muted);text-decoration:line-through">$15.000</span></div><div class="free">GRATIS</div></div>
+                </div>
+
+                <div class="bonus">
+                    <div>
+                        <div class="belief">Derriba: "¿y mis mensajes, mi equipo, mi otra compu?"</div>
+                        <h3>Bono 3 · Tus mensajes migrados + sincronización</h3>
+                        <p>Convertimos los mensajes que ya usás en plantillas Teclazo y quedan sincronizadas en todas tus computadoras. Cambiás de equipo y están ahí.</p>
+                    </div>
+                    <div class="price"><div class="val"><span style="color:var(--muted);text-decoration:line-through">$10.000</span></div><div class="free">GRATIS</div></div>
+                </div>
+
+                <div class="bonus">
+                    <div>
+                        <div class="belief">Derriba: "lo configuro mal / no voy a ver resultados"</div>
+                        <h3>Bono 4 · Soporte prioritario 30 días + guía "respuestas que convierten"</h3>
+                        <p>Soporte directo por WhatsApp tus primeros 30 días, más una mini-guía para redactar plantillas que cierran clientes, no solo que ahorran tiempo.</p>
+                    </div>
+                    <div class="price"><div class="val"><span style="color:var(--muted);text-decoration:line-through">$8.000</span></div><div class="free">GRATIS</div></div>
+                </div>
+
+                <div class="totals">
+                    <div>Valor total de los bonos: <span class="strike">$45.000</span></div>
+                    <div class="big">Todo incluido en el plan anual</div>
+                    <div class="per">Los 4 bonos van sin cargo al suscribirte por 12 meses.</div>
+                    <a class="btn btn-primary" href="#precios" style="margin-top:16px">Quiero el plan anual</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- PRICING -->
+    <section id="precios" style="background:var(--bg)">
+        <div class="wrap center">
+            <span class="eyebrow">Precios</span>
+            <h2 style="margin-top:10px">Simple. Sin sorpresas. Cancelás cuando quieras.</h2>
+            <p class="sub">Pagás en pesos con Mercado Pago, o con tarjeta internacional vía Stripe.</p>
+
+            <div class="price-cards">
+                <div class="plan">
+                    <div class="name">Mensual</div>
+                    <div class="amt">$6.900 <small>ARS / mes</small></div>
+                    <ul>
+                        <li>Plantillas ilimitadas</li>
+                        <li>Variables automáticas ({fecha}, {hora})</li>
+                        <li>Funciona en WhatsApp Web y todo campo de texto</li>
+                        <li>Sincronización en la nube</li>
+                    </ul>
+                    <a class="btn btn-ghost" href="#">Probar gratis 7 días</a>
+                </div>
+                <div class="plan best">
+                    <span class="badge">MÁS ELEGIDO · 2 MESES GRATIS</span>
+                    <div class="name">Anual</div>
+                    <div class="amt">$69.000 <small>ARS / año</small></div>
+                    <ul>
+                        <li>Todo lo del plan mensual</li>
+                        <li><b>+ Los 4 bonos</b> (valor $45.000) sin cargo</li>
+                        <li>Equivale a ~$5.750/mes</li>
+                        <li>Soporte prioritario</li>
+                    </ul>
+                    <a class="btn btn-primary" href="#">Empezar con el plan anual</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- GUARANTEE -->
+    <section class="guarantee">
+        <div class="wrap">
+            <div class="box">
+                <svg class="seal" viewBox="0 0 80 80" fill="none">
+                    <circle cx="40" cy="40" r="34" stroke="#12b886" stroke-width="4" />
+                    <path d="M26 41 L36 51 L55 31" stroke="#12b886" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+                <div>
+                    <h2 style="font-size:1.5rem">Garantía total de 30 días</h2>
+                    <p class="sub" style="margin-top:8px">Probá Teclazo sin riesgo. Si en 30 días no respondés más rápido y con menos esfuerzo, te devolvemos el 100% de lo que pagaste. Sin formularios, sin preguntas incómodas. El riesgo lo ponemos nosotros, no vos.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ -->
+    <section>
+        <div class="wrap" style="max-width:760px">
+            <div class="center"><span class="eyebrow">Dudas frecuentes</span>
+                <h2 style="margin:10px 0 28px">Antes de que preguntes.</h2></div>
+            <details><summary>¿Funciona de verdad en WhatsApp Web?</summary><p>Sí. Teclazo está pensado primero para WhatsApp Web, donde la mayoría de los profesionales responde. También funciona en Gmail y en cualquier campo de texto de la web. (Editores de canvas como Google Docs son la excepción.)</p></details>
+            <details><summary>¿Necesito saber de tecnología para usarlo?</summary><p>No. Instalás la extensión, elegís el pack de tu rubro y ya está. El Bono 2 te deja todo andando en 10 minutos con una guía paso a paso.</p></details>
+            <details><summary>¿No es lo mismo que copiar y pegar?</summary><p>No. Copiar y pegar es lento, se rompe en el celular y no completa datos. Teclazo expande con un atajo y rellena variables como el nombre y la fecha solo. La diferencia se nota desde el primer día.</p></details>
+            <details><summary>¿Se sincroniza si cambio de computadora?</summary><p>Sí. Tus plantillas quedan en tu cuenta y aparecen en cualquier equipo donde inicies sesión.</p></details>
+            <details><summary>¿Puedo cancelar cuando quiera?</summary><p>Sí, cancelás cuando quieras. Y tenés 30 días de garantía total: si no te sirve, te devolvemos todo.</p></details>
+        </div>
+    </section>
+
+    <!-- FINAL CTA -->
+    <section>
+        <div class="wrap">
+            <div class="final">
+                <h2>Tu próxima respuesta puede salir en un teclazo.</h2>
+                <p class="sub">Sumate a los profesionales que dejaron de reescribir lo mismo todos los días.</p>
+                <a class="btn btn-primary" href="#precios">Probar Teclazo gratis</a>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="wrap">
+            <a class="logo" href="#top"><svg class="mark" style="width:26px;height:26px"><use href="#tcz-mark" /></svg><span class="word" style="font-size:1.1rem">teclazo</span></a>
+            <div>© 2026 Teclazo · Hecho en Argentina · <a href="#" style="color:var(--green-d)">Política de privacidad</a></div>
+        </div>
+    </footer>
+</body>
+
+</html>

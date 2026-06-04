@@ -1,0 +1,6 @@
+<?php
+define("DB_HOST",     "demo_atiende_mysql");
+define("DB_NAME",     "atiende");
+define("DB_USERNAME", "atiende");
+define("DB_PASSWORD", "Atiende#*2022");
+define("DB_ENCODE",   "utf8mb4");

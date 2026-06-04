@@ -1,0 +1,73 @@
+body{
+    background-color: #6c757d17;
+    font-family:'Nunito Sans', sans-serif !important;
+    font-size: 12.5px !important;
+}    
+.page-header{
+    padding-bottom: 5px;
+    border-bottom-width: 2px;
+    border-bottom-color:purple;
+    margin-top: 0;
+}
+.panel-sombra {        
+    box-shadow: -10px -5px 5px rgba(0, 0, 0, 0.35) ;
+}
+.sombra {
+    box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.35) ;
+}
+#estado,#estado2{
+    margin-top: 2px;
+}   
+.bs-callout {
+    padding: 9px;
+    padding-bottom: 0!important;
+    margin: 15px 0;
+    border: 1px solid #9a7bfb24;
+    border-left-width: 5px;
+    border-radius: 3px;
+    font-size: 10px;
+}
+.bs-callout-violeta {
+    border-left-color: #9A7BFB;
+}
+.bs-callout-violeta li strong{
+    color:#6650EA;
+}
+.bs-callout h5 {
+    margin-top: 0;
+    margin-bottom: 5px;
+}
+.cargando {
+    width: 100%;height: 100%;
+    overflow: hidden; 
+    top: 0px;
+    left: 0px;
+    z-index: 10000;
+    text-align: center;
+    position:absolute; 
+    background-color: #DFF0D8;
+    opacity:0.6;
+    filter:alpha(opacity=40);
+}
+
+.btn-gradient{
+    color: #fff;
+    border:#15076E;
+    background-image: -webkit-linear-gradient(left, #15076E, #6650EA, #9A7BFB);            
+}
+.btn-gradient:hover, .btn-gradient:active {
+    background-position: right center; 
+    color: #fff;  
+    border:#15076E !important;
+    background-image: -webkit-linear-gradient(left, #15076E, #6650EA, #9A7BFB);        
+}
+
+.alert .sombra{
+    font-size: 16px!important;
+}
+
+@media all and (max-width: 600px){
+    .button-whatsapp{
+        margin-top:25%!important;
+    }
+}

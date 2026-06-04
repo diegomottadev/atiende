@@ -1,0 +1,9 @@
+services:
+  landing:
+    image: nginx:alpine
+    container_name: atiende-landing
+    ports:
+      - "8083:80"
+    volumes:
+      - ./:/usr/share/nginx/html:ro
+    restart: unless-stopped

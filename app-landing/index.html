@@ -1,0 +1,1923 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Atiende — Gestión de Pedidos por WhatsApp</title>
+  <meta name="description" content="Conectá tu empresa con tus clientes a través de WhatsApp. Pedidos, reclamos y consultas en un solo lugar, automatizados y en tiempo real.">
+  <link rel="icon" href="../whatsbus2021-main/public/img/logo30x30.png" type="image/png">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300;400;600;700;800;900&family=Open+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary:    #6650EA;
+      --primary-d:  #15076E;
+      --accent:     #3AEDCB;
+      --accent2:    #9A7BFB;
+      --success:    #3cd4ac;
+      --orange:     #FD763A;
+      --dark:       #222D32;
+      --dark2:      #1a1a2e;
+      --gray:       #98A6AD;
+      --light:      #f4f6fb;
+      --white:      #ffffff;
+      --gradient:   linear-gradient(135deg, #6650EA 0%, #3AEDCB 100%);
+      --gradient-r: linear-gradient(135deg, #3AEDCB 0%, #6650EA 100%);
+      --gradient-d: linear-gradient(135deg, #15076E 0%, #6650EA 60%, #9A7BFB 100%);
+      --shadow:     0 20px 60px rgba(102,80,234,.18);
+      --shadow-sm:  0 4px 20px rgba(102,80,234,.12);
+      --radius:     16px;
+      --radius-sm:  10px;
+      --ff:         'Nunito Sans', sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--ff);
+      background: var(--white);
+      color: var(--dark);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* ─── NAVBAR ─── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0;
+      z-index: 1000;
+      padding: 0 5%;
+      display: flex; align-items: center; justify-content: space-between;
+      height: 70px;
+      background: rgba(255,255,255,.92);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      box-shadow: 0 2px 20px rgba(102,80,234,.08);
+      transition: all .3s ease;
+    }
+    nav.scrolled { box-shadow: 0 4px 30px rgba(102,80,234,.15); }
+
+    .nav-logo {
+      display: flex; align-items: center; gap: 10px;
+      text-decoration: none;
+    }
+    .nav-logo .logo-icon {
+      width: 38px; height: 38px;
+      background: var(--gradient);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; color: #fff;
+      box-shadow: 0 4px 12px rgba(102,80,234,.4);
+    }
+    .nav-logo span { font-size: 1.35rem; font-weight: 800; color: var(--primary-d); }
+    .nav-logo span em { font-style: normal; color: var(--primary); }
+
+    .nav-links { display: flex; gap: 32px; list-style: none; }
+    .nav-links a { text-decoration: none; color: #555; font-weight: 600; font-size: .92rem; transition: color .2s; }
+    .nav-links a:hover { color: var(--primary); }
+
+    .nav-cta {
+      display: flex; gap: 12px; align-items: center;
+    }
+    .btn-outline-nav {
+      padding: 8px 20px; border: 2px solid var(--primary);
+      border-radius: 8px; color: var(--primary); font-weight: 700; font-size: .88rem;
+      text-decoration: none; transition: all .2s;
+    }
+    .btn-outline-nav:hover { background: var(--primary); color: #fff; }
+    .btn-primary-nav {
+      padding: 9px 22px;
+      background: var(--gradient);
+      border-radius: 8px; color: #fff; font-weight: 700; font-size: .88rem;
+      text-decoration: none; box-shadow: 0 4px 14px rgba(102,80,234,.35);
+      transition: all .25s;
+    }
+    .btn-primary-nav:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(102,80,234,.45); }
+
+    .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; padding: 6px; }
+    .hamburger span { width: 24px; height: 2.5px; background: var(--dark); border-radius: 4px; transition: .3s; }
+
+    /* ─── HERO ─── */
+    #hero {
+      min-height: 100vh;
+      padding: 120px 5% 80px;
+      display: flex; align-items: center;
+      background: #0a0618;
+      position: relative; overflow: hidden;
+    }
+
+    .hero-bg-orbs {
+      position: absolute; inset: 0; pointer-events: none; z-index: 0;
+    }
+    .orb {
+      position: absolute; border-radius: 50%;
+      filter: blur(80px); opacity: .5;
+    }
+    .orb-1 { width: 600px; height: 600px; background: #6650EA; top: -150px; right: -100px; }
+    .orb-2 { width: 400px; height: 400px; background: #3AEDCB; bottom: -100px; left: 5%; opacity: .35; }
+    .orb-3 { width: 250px; height: 250px; background: #9A7BFB; top: 40%; left: 30%; opacity: .2; }
+
+    /* grid particles */
+    .hero-grid {
+      position: absolute; inset: 0; z-index: 0;
+      background-image:
+        linear-gradient(rgba(102,80,234,.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(102,80,234,.06) 1px, transparent 1px);
+      background-size: 60px 60px;
+    }
+
+    .hero-inner {
+      position: relative; z-index: 1;
+      max-width: 1200px; margin: 0 auto;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center;
+      width: 100%;
+    }
+
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(102,80,234,.18); border: 1px solid rgba(154,123,251,.35);
+      color: var(--accent2); border-radius: 40px;
+      padding: 6px 16px; font-size: .82rem; font-weight: 700; margin-bottom: 24px;
+      backdrop-filter: blur(6px);
+    }
+    .hero-badge .dot {
+      width: 7px; height: 7px; background: var(--accent);
+      border-radius: 50%; animation: pulse-dot 2s infinite;
+    }
+    @keyframes pulse-dot {
+      0%,100% { opacity: 1; transform: scale(1); }
+      50% { opacity: .6; transform: scale(1.4); }
+    }
+
+    .hero-title {
+      font-size: clamp(2.4rem, 4.5vw, 3.8rem);
+      font-weight: 900;
+      line-height: 1.1;
+      color: #fff;
+      margin-bottom: 22px;
+    }
+    .hero-title .highlight {
+      background: var(--gradient);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+
+    .hero-subtitle {
+      font-size: 1.12rem; color: rgba(255,255,255,.65);
+      max-width: 520px; margin-bottom: 40px; font-weight: 400; line-height: 1.7;
+    }
+
+    .hero-actions { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 50px; }
+
+    .btn-hero-primary {
+      padding: 16px 34px;
+      background: var(--gradient);
+      color: #fff; font-weight: 800; font-size: 1.05rem;
+      border-radius: var(--radius-sm); text-decoration: none;
+      box-shadow: 0 8px 30px rgba(102,80,234,.45);
+      transition: all .25s; display: flex; align-items: center; gap: 10px;
+    }
+    .btn-hero-primary:hover { transform: translateY(-3px); box-shadow: 0 14px 40px rgba(102,80,234,.55); }
+
+    .btn-hero-ghost {
+      padding: 16px 34px;
+      border: 2px solid rgba(255,255,255,.2);
+      color: rgba(255,255,255,.85); font-weight: 700; font-size: 1.05rem;
+      border-radius: var(--radius-sm); text-decoration: none;
+      backdrop-filter: blur(8px);
+      transition: all .25s; display: flex; align-items: center; gap: 10px;
+    }
+    .btn-hero-ghost:hover { border-color: var(--accent2); color: #fff; }
+
+    .hero-stats {
+      display: flex; gap: 36px; flex-wrap: wrap;
+    }
+    .stat-item { }
+    .stat-num {
+      font-size: 1.9rem; font-weight: 900; color: #fff;
+      background: var(--gradient); -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .stat-label { font-size: .8rem; color: rgba(255,255,255,.5); font-weight: 600; text-transform: uppercase; letter-spacing: .06em; }
+
+    /* ── phone mockup ── */
+    .hero-visual {
+      display: flex; justify-content: center; align-items: center;
+      position: relative;
+    }
+    .phone-wrap {
+      position: relative;
+      animation: float 5s ease-in-out infinite;
+    }
+    @keyframes float {
+      0%,100% { transform: translateY(0); }
+      50% { transform: translateY(-18px); }
+    }
+    .phone {
+      width: 300px;
+      background: #1a1a2e;
+      border-radius: 40px;
+      padding: 14px;
+      box-shadow: 0 40px 100px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.06);
+      position: relative; z-index: 2;
+    }
+    .phone-screen {
+      background: #111827;
+      border-radius: 28px;
+      overflow: hidden;
+    }
+    .phone-header {
+      background: #1f2937;
+      padding: 14px 16px;
+      display: flex; align-items: center; gap: 10px;
+      border-bottom: 1px solid rgba(255,255,255,.05);
+    }
+    .phone-avatar {
+      width: 38px; height: 38px; border-radius: 50%;
+      background: var(--gradient);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; color: #fff; font-weight: 800;
+    }
+    .phone-contact .name { font-size: .88rem; font-weight: 700; color: #fff; }
+    .phone-contact .status { font-size: .72rem; color: var(--accent); }
+
+    .chat-body { padding: 12px; display: flex; flex-direction: column; gap: 8px; min-height: 260px; }
+
+    .msg { max-width: 80%; padding: 9px 13px; border-radius: 14px; font-size: .8rem; line-height: 1.45; }
+    .msg.recv { background: #1f2937; color: rgba(255,255,255,.85); border-bottom-left-radius: 4px; align-self: flex-start; }
+    .msg.sent { background: var(--primary); color: #fff; border-bottom-right-radius: 4px; align-self: flex-end; }
+    .msg.sent.accent { background: linear-gradient(135deg, #6650EA, #9A7BFB); }
+    .msg-time { font-size: .65rem; opacity: .55; margin-top: 3px; text-align: right; }
+
+    .chat-interactive {
+      margin-top: 4px; background: #1f2937;
+      border-radius: 12px; overflow: hidden; font-size: .78rem;
+    }
+    .chat-interactive .ci-body { padding: 10px 12px; color: rgba(255,255,255,.85); }
+    .ci-btn {
+      display: block; padding: 9px 12px; text-align: center;
+      color: #5E9BF5; font-weight: 700; font-size: .78rem;
+      border-top: 1px solid rgba(255,255,255,.06);
+    }
+
+    .phone-glow {
+      position: absolute; inset: -20px; z-index: 1;
+      background: radial-gradient(ellipse at center, rgba(102,80,234,.25) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+
+    /* floating cards on phone */
+    .float-card {
+      position: absolute; z-index: 3;
+      background: rgba(255,255,255,.95);
+      backdrop-filter: blur(12px);
+      border-radius: 12px;
+      padding: 10px 14px;
+      box-shadow: 0 10px 40px rgba(0,0,0,.25);
+      display: flex; align-items: center; gap: 10px;
+      white-space: nowrap;
+    }
+    .float-card .fc-icon {
+      width: 34px; height: 34px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px; flex-shrink: 0;
+    }
+    .float-card .fc-text .fc-title { font-size: .72rem; font-weight: 800; color: var(--dark); }
+    .float-card .fc-text .fc-sub { font-size: .65rem; color: var(--gray); }
+    .fc-1 { top: 10%; right: -130px; animation: float2 4.5s ease-in-out infinite; }
+    .fc-2 { bottom: 15%; left: -130px; animation: float2 4s ease-in-out infinite .8s; }
+    .fc-3 { top: 42%; right: -120px; animation: float2 5s ease-in-out infinite .4s; }
+    @keyframes float2 {
+      0%,100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    /* ─── LOGOS BAR ─── */
+    #logos {
+      background: var(--light);
+      padding: 32px 5%;
+      border-top: 1px solid rgba(102,80,234,.08);
+      border-bottom: 1px solid rgba(102,80,234,.08);
+    }
+    .logos-inner { max-width: 1100px; margin: 0 auto; }
+    .logos-label { text-align: center; font-size: .78rem; font-weight: 700; color: var(--gray); letter-spacing: .1em; text-transform: uppercase; margin-bottom: 22px; }
+    .logos-row { display: flex; gap: 50px; align-items: center; justify-content: center; flex-wrap: wrap; }
+    .logo-item { display: flex; align-items: center; gap: 8px; opacity: .55; filter: grayscale(1); transition: all .25s; }
+    .logo-item:hover { opacity: 1; filter: none; }
+    .logo-item .li-icon { font-size: 1.6rem; }
+    .logo-item .li-name { font-size: .88rem; font-weight: 800; color: var(--dark); }
+
+    /* ─── SECTION SHARED ─── */
+    section { padding: 100px 5%; }
+    .section-tag {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(102,80,234,.08);
+      color: var(--primary); border-radius: 40px;
+      padding: 6px 16px; font-size: .78rem; font-weight: 800; margin-bottom: 16px;
+      text-transform: uppercase; letter-spacing: .07em;
+    }
+    .section-tag i { font-size: .72rem; }
+    .section-title { font-size: clamp(1.8rem, 3vw, 2.8rem); font-weight: 900; line-height: 1.2; margin-bottom: 16px; color: var(--dark); }
+    .section-sub { font-size: 1.05rem; color: #667; max-width: 560px; line-height: 1.7; }
+    .center { text-align: center; }
+    .center .section-sub { margin: 0 auto; }
+
+    /* ─── FEATURES ─── */
+    #features { background: var(--white); }
+    .features-grid {
+      max-width: 1200px; margin: 60px auto 0;
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px;
+    }
+    .feat-card {
+      background: var(--white);
+      border: 1px solid rgba(102,80,234,.1);
+      border-radius: var(--radius);
+      padding: 34px 28px;
+      transition: all .3s;
+      position: relative; overflow: hidden;
+    }
+    .feat-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0;
+      height: 3px; background: var(--gradient); transform: scaleX(0);
+      transform-origin: left; transition: transform .3s;
+    }
+    .feat-card:hover { transform: translateY(-6px); box-shadow: var(--shadow); border-color: rgba(102,80,234,.2); }
+    .feat-card:hover::before { transform: scaleX(1); }
+
+    .feat-icon {
+      width: 56px; height: 56px;
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px; margin-bottom: 22px;
+    }
+    .feat-title { font-size: 1.08rem; font-weight: 800; color: var(--dark); margin-bottom: 10px; }
+    .feat-desc { font-size: .9rem; color: #667; line-height: 1.65; }
+
+    .feat-icon.purple { background: rgba(102,80,234,.1); color: var(--primary); }
+    .feat-icon.teal   { background: rgba(58,237,203,.12); color: #1ab89a; }
+    .feat-icon.orange { background: rgba(253,118,58,.1); color: var(--orange); }
+    .feat-icon.blue   { background: rgba(54,136,252,.1); color: #3688fc; }
+    .feat-icon.green  { background: rgba(60,212,172,.12); color: var(--success); }
+    .feat-icon.pink   { background: rgba(154,123,251,.12); color: var(--accent2); }
+
+    /* ─── HOW IT WORKS ─── */
+    #how { background: #0a0618; position: relative; overflow: hidden; }
+    #how .hero-grid { opacity: .5; }
+
+    .how-inner { max-width: 1200px; margin: 0 auto; position: relative; z-index: 1; }
+    .how-inner .section-title { color: #fff; }
+    .how-inner .section-sub { color: rgba(255,255,255,.55); }
+
+    .steps-container {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px;
+      margin-top: 60px; position: relative;
+    }
+    .steps-line {
+      position: absolute; top: 42px; left: calc(16.66% + 14px); right: calc(16.66% + 14px);
+      height: 2px;
+      background: linear-gradient(90deg, rgba(102,80,234,.4) 0%, rgba(58,237,203,.4) 100%);
+      z-index: 0;
+    }
+
+    .step-card {
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: var(--radius); padding: 36px 28px;
+      text-align: center; position: relative; z-index: 1;
+      transition: all .3s;
+      backdrop-filter: blur(8px);
+    }
+    .step-card:hover { background: rgba(102,80,234,.1); border-color: rgba(102,80,234,.35); transform: translateY(-5px); }
+
+    .step-num {
+      width: 60px; height: 60px; border-radius: 50%;
+      background: var(--gradient);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem; font-weight: 900; color: #fff;
+      margin: 0 auto 24px;
+      box-shadow: 0 6px 20px rgba(102,80,234,.45);
+      position: relative; z-index: 2;
+    }
+    .step-title { font-size: 1.1rem; font-weight: 800; color: #fff; margin-bottom: 10px; }
+    .step-desc { font-size: .88rem; color: rgba(255,255,255,.55); line-height: 1.65; }
+
+    /* ─── BENEFICIOS B2B/B2C ─── */
+    #benefits { background: var(--light); }
+    .benefits-inner { max-width: 1200px; margin: 0 auto; }
+
+    .benefits-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 60px;
+    }
+    .benefit-col {
+      background: var(--white); border-radius: var(--radius);
+      overflow: hidden; box-shadow: var(--shadow-sm);
+    }
+    .benefit-header {
+      padding: 28px 34px;
+      display: flex; align-items: center; gap: 14px;
+    }
+    .benefit-header.b2b { background: linear-gradient(135deg, #15076E 0%, #6650EA 100%); }
+    .benefit-header.b2c { background: linear-gradient(135deg, #1ab89a 0%, #3AEDCB 100%); }
+    .benefit-header .bh-icon {
+      width: 46px; height: 46px; background: rgba(255,255,255,.2);
+      border-radius: 12px; display: flex; align-items: center; justify-content: center;
+      font-size: 20px; color: #fff;
+    }
+    .benefit-header .bh-title { font-size: 1.25rem; font-weight: 900; color: #fff; }
+    .benefit-header .bh-sub { font-size: .8rem; color: rgba(255,255,255,.7); }
+
+    .benefit-list { padding: 28px 34px; display: flex; flex-direction: column; gap: 16px; }
+    .benefit-item { display: flex; align-items: flex-start; gap: 14px; }
+    .benefit-item .bi-check {
+      width: 26px; height: 26px; border-radius: 8px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px;
+    }
+    .b2b .bi-check { background: rgba(102,80,234,.1); color: var(--primary); }
+    .b2c .bi-check { background: rgba(58,237,203,.12); color: #1ab89a; }
+    .benefit-item .bi-text .bi-title { font-size: .92rem; font-weight: 700; color: var(--dark); }
+    .benefit-item .bi-text .bi-desc { font-size: .82rem; color: #888; margin-top: 2px; }
+
+    /* ─── DEMO/SCREENSHOT ─── */
+    #demo { background: var(--white); }
+    .demo-inner { max-width: 1200px; margin: 0 auto; }
+    .dashboard-mock {
+      margin-top: 60px;
+      background: #1a1a2e;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 40px 80px rgba(0,0,0,.35);
+      border: 1px solid rgba(255,255,255,.05);
+    }
+    .dm-topbar {
+      background: #222D32; padding: 12px 20px;
+      display: flex; align-items: center; gap: 16px;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+    .dm-dots { display: flex; gap: 7px; }
+    .dm-dot { width: 12px; height: 12px; border-radius: 50%; }
+    .dm-dot.r { background: #FF5F57; }
+    .dm-dot.y { background: #FEBC2E; }
+    .dm-dot.g { background: #28C840; }
+    .dm-url {
+      flex: 1; background: rgba(255,255,255,.06); border-radius: 6px;
+      padding: 5px 14px; color: rgba(255,255,255,.4); font-size: .78rem; font-family: monospace;
+      max-width: 340px;
+    }
+    .dm-topbar-user {
+      display: flex; align-items: center; gap: 8px; margin-left: auto;
+    }
+    .dm-topbar-user .du-avatar {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: var(--gradient); display: flex; align-items: center; justify-content: center;
+      font-size: .72rem; font-weight: 800; color: #fff;
+    }
+    .dm-topbar-user .du-name { font-size: .75rem; color: rgba(255,255,255,.6); }
+
+    .dm-body { display: flex; }
+    .dm-sidebar {
+      width: 200px; background: #222D32;
+      padding: 16px 0; flex-shrink: 0;
+      border-right: 1px solid rgba(255,255,255,.04);
+    }
+    .dm-sidebar-logo {
+      padding: 0 18px 14px; border-bottom: 1px solid rgba(255,255,255,.06); margin-bottom: 8px;
+      font-size: .9rem; font-weight: 900; color: #fff; letter-spacing: -.01em;
+    }
+    .dm-sidebar-logo span { color: var(--accent); }
+    .dm-sidebar-section { padding: 8px 18px 4px; font-size: .6rem; font-weight: 800; color: rgba(255,255,255,.25); text-transform: uppercase; letter-spacing: .1em; }
+    .dm-nav-item {
+      padding: 9px 18px; font-size: .78rem; color: rgba(255,255,255,.45);
+      display: flex; align-items: center; gap: 9px; cursor: pointer; transition: .2s;
+      margin: 1px 0;
+    }
+    .dm-nav-item:hover { color: rgba(255,255,255,.75); background: rgba(255,255,255,.04); }
+    .dm-nav-item.active { background: rgba(102,80,234,.22); color: #fff; border-left: 3px solid var(--primary); font-weight: 700; }
+    .dm-nav-item i { width: 15px; text-align: center; font-size: .8rem; }
+    .dm-nav-item .dm-badge-count {
+      margin-left: auto; background: var(--orange); color: #fff;
+      font-size: .62rem; font-weight: 800; padding: 1px 6px; border-radius: 10px;
+    }
+
+    .dm-content { flex: 1; background: #ecf0f5; overflow: hidden; }
+
+    /* top header bar inside content */
+    .dm-content-header {
+      background: #fff; padding: 12px 20px;
+      display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid #e8e8e8;
+      box-shadow: 0 1px 4px rgba(0,0,0,.05);
+    }
+    .dm-content-header .dch-title { font-size: .88rem; font-weight: 800; color: #222D32; display: flex; align-items: center; gap: 6px; }
+    .dm-content-header .dch-title i { color: var(--primary); }
+    .dch-breadcrumb { font-size: .72rem; color: #999; }
+    .dch-breadcrumb span { color: var(--primary); font-weight: 600; }
+
+    .dm-inner-body { padding: 18px; }
+
+    /* KPI cards */
+    .dm-cards { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 16px; }
+    .dm-card {
+      background: #fff; border-radius: 10px; padding: 14px 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.07);
+      display: flex; align-items: center; gap: 12px;
+    }
+    .dm-card .dc-icon {
+      width: 44px; height: 44px; border-radius: 10px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
+    }
+    .dc-icon.c1 { background: rgba(102,80,234,.1); color: var(--primary); }
+    .dc-icon.c2 { background: rgba(60,212,172,.12); color: #1ab89a; }
+    .dc-icon.c3 { background: rgba(253,118,58,.1); color: var(--orange); }
+    .dc-icon.c4 { background: rgba(54,136,252,.1); color: #3688fc; }
+    .dm-card .dc-info { min-width: 0; }
+    .dm-card .dc-label { font-size: .65rem; color: #999; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; white-space: nowrap; }
+    .dm-card .dc-num { font-size: 1.4rem; font-weight: 900; line-height: 1.2; }
+    .dc-num.c1 { color: var(--primary); }
+    .dc-num.c2 { color: #1ab89a; }
+    .dc-num.c3 { color: var(--orange); }
+    .dc-num.c4 { color: #3688fc; }
+    .dm-card .dc-trend { font-size: .65rem; font-weight: 700; display: flex; align-items: center; gap: 3px; }
+    .dc-trend.up { color: #1ab89a; }
+    .dc-trend.dn { color: var(--orange); }
+
+    /* two-col layout: table + mini chart */
+    .dm-row2 { display: grid; grid-template-columns: 1fr 240px; gap: 14px; }
+    @media (max-width: 900px) { .dm-row2 { grid-template-columns: 1fr; } .dm-chart-col { display: none; } }
+
+    .dm-table-wrap {
+      background: #fff; border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.07); overflow: hidden;
+    }
+    .dm-table-header {
+      padding: 12px 16px; display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .dm-table-title { font-size: .8rem; font-weight: 800; color: #222D32; }
+    .dm-filter-row { display: flex; gap: 6px; align-items: center; }
+    .dm-filter-btn {
+      padding: 4px 10px; border-radius: 6px; font-size: .65rem; font-weight: 700; cursor: pointer; border: none;
+    }
+    .dm-filter-btn.active { background: var(--primary); color: #fff; }
+    .dm-filter-btn.plain  { background: #f4f6fb; color: #666; }
+    .dm-search {
+      padding: 4px 10px; border-radius: 6px; font-size: .65rem; border: 1px solid #e8e8e8;
+      color: #888; background: #fafafa; width: 120px;
+    }
+
+    .dm-table { width: 100%; border-collapse: collapse; font-size: .72rem; }
+    .dm-table thead { background: #fafafa; }
+    .dm-table th {
+      color: #aaa; font-weight: 700; text-transform: uppercase;
+      padding: 8px 12px; text-align: left; font-size: .63rem; letter-spacing: .04em;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .dm-table td { padding: 9px 12px; border-bottom: 1px solid #f7f7f7; color: #444; vertical-align: middle; }
+    .dm-table tbody tr:hover { background: #fafbff; }
+    .dm-table td.td-ped { font-weight: 800; color: var(--primary); }
+    .dm-table td.td-client { font-weight: 600; color: #333; }
+    .dm-table td.td-monto { font-weight: 800; color: #222; }
+    .dm-table td.td-date { color: #aaa; font-size: .68rem; }
+
+    .dm-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 3px 9px; border-radius: 20px; font-size: .65rem; font-weight: 700; white-space: nowrap;
+    }
+    .dm-badge.nuevo   { background: rgba(102,80,234,.1); color: var(--primary); }
+    .dm-badge.conf    { background: rgba(60,212,172,.12); color: #1ab89a; }
+    .dm-badge.pend    { background: rgba(253,118,58,.1); color: var(--orange); }
+    .dm-badge.prep    { background: rgba(54,136,252,.1); color: #3688fc; }
+    .dm-badge.entregado { background: rgba(40,200,80,.1); color: #28a745; }
+    .dm-badge::before { content: '●'; font-size: .5rem; }
+
+    .dm-action-btn {
+      width: 24px; height: 24px; border-radius: 6px; border: none; cursor: pointer;
+      display: inline-flex; align-items: center; justify-content: center; font-size: .72rem;
+    }
+    .dm-action-btn.view { background: rgba(102,80,234,.1); color: var(--primary); }
+    .dm-action-btn.pdf  { background: rgba(253,118,58,.1); color: var(--orange); }
+    .dm-action-btn.wa   { background: rgba(37,211,102,.12); color: #25D366; }
+
+    /* mini chart col */
+    .dm-chart-col { display: flex; flex-direction: column; gap: 14px; }
+    .dm-mini-card {
+      background: #fff; border-radius: 10px; padding: 14px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.07);
+    }
+    .dm-mini-card .dmc-title { font-size: .7rem; font-weight: 800; color: #555; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; }
+    .dm-mini-card .dmc-title span { color: #bbb; font-weight: 400; font-size: .65rem; }
+
+    /* sparkline SVG bar chart */
+    .dm-bars { display: flex; gap: 5px; align-items: flex-end; height: 50px; }
+    .dm-bar {
+      flex: 1; border-radius: 4px 4px 0 0;
+      background: rgba(102,80,234,.15); position: relative; min-width: 0;
+      transition: background .2s;
+    }
+    .dm-bar.today { background: var(--primary); }
+    .dm-bar-label { font-size: .58rem; color: #bbb; text-align: center; margin-top: 4px; }
+    .dm-bars-wrap { margin-bottom: 4px; }
+
+    .dm-donut-wrap { display: flex; align-items: center; gap: 12px; }
+    .dm-donut {
+      width: 60px; height: 60px; border-radius: 50%; flex-shrink: 0;
+      background: conic-gradient(var(--primary) 0% 52%, #1ab89a 52% 78%, var(--orange) 78% 90%, #e8e8e8 90% 100%);
+      display: flex; align-items: center; justify-content: center;
+      position: relative;
+    }
+    .dm-donut::after {
+      content: ''; position: absolute; inset: 12px;
+      background: #fff; border-radius: 50%;
+    }
+    .dm-donut-legend { display: flex; flex-direction: column; gap: 5px; }
+    .dm-legend-item { display: flex; align-items: center; gap: 5px; font-size: .65rem; color: #666; }
+    .dm-legend-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+
+    .dm-activity-list { display: flex; flex-direction: column; gap: 0; }
+    .dm-activity-item {
+      display: flex; align-items: flex-start; gap: 8px; padding: 7px 0;
+      border-bottom: 1px solid #f5f5f5;
+    }
+    .dm-activity-item:last-child { border-bottom: none; }
+    .dm-ai-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 4px; flex-shrink: 0; }
+    .dm-ai-text { font-size: .68rem; color: #555; line-height: 1.4; }
+    .dm-ai-text strong { color: #333; }
+    .dm-ai-time { font-size: .62rem; color: #bbb; margin-top: 2px; }
+
+    /* ─── STATS BAND ─── */
+    #stats {
+      background: var(--gradient);
+      padding: 70px 5%;
+    }
+    .stats-inner { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: repeat(4,1fr); gap: 20px; }
+    .stat-block { text-align: center; }
+    .stat-block .sb-num { font-size: 3rem; font-weight: 900; color: #fff; line-height: 1; }
+    .stat-block .sb-label { font-size: .85rem; color: rgba(255,255,255,.72); margin-top: 6px; font-weight: 600; }
+    .stat-block .sb-sub { font-size: .75rem; color: rgba(255,255,255,.45); margin-top: 3px; }
+
+    /* ─── PRICING ─── */
+    #pricing { background: var(--light); }
+    .pricing-inner { max-width: 1100px; margin: 0 auto; }
+    .pricing-grid {
+      display: grid; grid-template-columns: repeat(2, minmax(0, 360px)); gap: 28px; margin-top: 60px; align-items: start; justify-content: center;
+    }
+    .price-card {
+      background: var(--white); border-radius: var(--radius);
+      padding: 38px 30px; border: 2px solid transparent;
+      box-shadow: var(--shadow-sm); transition: all .3s; position: relative;
+    }
+    .price-card:hover { transform: translateY(-6px); }
+    .price-card.featured {
+      border-color: var(--primary);
+      background: linear-gradient(180deg, rgba(102,80,234,.04) 0%, #fff 40%);
+      box-shadow: var(--shadow);
+      transform: scale(1.03);
+    }
+    .price-card.featured:hover { transform: scale(1.03) translateY(-6px); }
+    .price-popular {
+      position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
+      background: var(--gradient); color: #fff;
+      padding: 5px 20px; border-radius: 40px; font-size: .75rem; font-weight: 800;
+      white-space: nowrap;
+    }
+    .price-name { font-size: .8rem; font-weight: 800; color: var(--primary); text-transform: uppercase; letter-spacing: .1em; margin-bottom: 12px; }
+    .price-amount { font-size: 2.8rem; font-weight: 900; color: var(--dark); line-height: 1; }
+    .price-amount span { font-size: 1rem; font-weight: 600; color: #999; }
+    .price-desc { font-size: .85rem; color: #888; margin: 10px 0 28px; }
+    .price-features { display: flex; flex-direction: column; gap: 12px; margin-bottom: 34px; }
+    .pf-item { display: flex; align-items: center; gap: 10px; font-size: .88rem; color: #555; }
+    .pf-item i.fa-check { color: var(--success); }
+    .pf-item i.fa-times { color: #ccc; }
+    .btn-price {
+      display: block; text-align: center; padding: 14px;
+      border-radius: var(--radius-sm); font-weight: 800; font-size: .92rem;
+      text-decoration: none; transition: all .25s;
+    }
+    .btn-price.outline { border: 2px solid var(--primary); color: var(--primary); }
+    .btn-price.outline:hover { background: var(--primary); color: #fff; }
+    .btn-price.filled { background: var(--gradient); color: #fff; box-shadow: 0 6px 20px rgba(102,80,234,.35); }
+    .btn-price.filled:hover { box-shadow: 0 10px 30px rgba(102,80,234,.5); transform: translateY(-2px); }
+
+    /* ─── TESTIMONIALS ─── */
+    #testimonials { background: var(--white); }
+    .testi-inner { max-width: 1200px; margin: 0 auto; }
+    .testi-grid {
+      display: grid; grid-template-columns: repeat(3,1fr); gap: 28px; margin-top: 60px;
+    }
+    .testi-card {
+      background: var(--light); border-radius: var(--radius);
+      padding: 30px 28px; border: 1px solid rgba(102,80,234,.07);
+      transition: all .3s;
+    }
+    .testi-card:hover { box-shadow: var(--shadow-sm); background: #fff; }
+    .testi-stars { color: #FFBC00; font-size: .92rem; margin-bottom: 14px; }
+    .testi-text { font-size: .92rem; color: #555; line-height: 1.7; margin-bottom: 20px; font-style: italic; }
+    .testi-author { display: flex; align-items: center; gap: 12px; }
+    .testi-avatar {
+      width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem; font-weight: 800; color: #fff;
+    }
+    .testi-name { font-size: .88rem; font-weight: 800; color: var(--dark); }
+    .testi-role { font-size: .78rem; color: var(--gray); }
+
+    /* ─── FAQ ─── */
+    #faq { background: var(--light); }
+    .faq-inner { max-width: 780px; margin: 0 auto; }
+    .faq-list { margin-top: 50px; display: flex; flex-direction: column; gap: 12px; }
+    .faq-item {
+      background: var(--white); border-radius: var(--radius-sm);
+      border: 1px solid rgba(102,80,234,.08); overflow: hidden;
+    }
+    .faq-q {
+      padding: 20px 24px; display: flex; align-items: center; justify-content: space-between;
+      cursor: pointer; font-weight: 700; font-size: .95rem; color: var(--dark);
+      user-select: none;
+    }
+    .faq-q .faq-icon { font-size: .8rem; color: var(--primary); transition: transform .25s; }
+    .faq-a {
+      max-height: 0; overflow: hidden;
+      padding: 0 24px;
+      font-size: .88rem; color: #667; line-height: 1.7;
+      transition: max-height .35s ease, padding .35s;
+    }
+    .faq-item.open .faq-a { max-height: 200px; padding: 0 24px 18px; }
+    .faq-item.open .faq-icon { transform: rotate(180deg); }
+
+    /* ─── CTA FINAL ─── */
+    #cta {
+      background: #0a0618;
+      padding: 120px 5%;
+      text-align: center;
+      position: relative; overflow: hidden;
+    }
+    #cta .hero-grid { opacity: .4; }
+    .cta-inner { position: relative; z-index: 1; max-width: 700px; margin: 0 auto; }
+    .cta-title { font-size: clamp(2rem, 4vw, 3.2rem); font-weight: 900; color: #fff; line-height: 1.15; margin-bottom: 18px; }
+    .cta-title .highlight { background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .cta-sub { font-size: 1.05rem; color: rgba(255,255,255,.55); margin-bottom: 40px; }
+    .cta-actions { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+
+    .btn-cta {
+      padding: 17px 38px; border-radius: var(--radius-sm);
+      font-size: 1.05rem; font-weight: 800; text-decoration: none;
+      display: flex; align-items: center; gap: 10px; transition: all .25s;
+    }
+    .btn-cta.primary {
+      background: var(--gradient); color: #fff;
+      box-shadow: 0 10px 30px rgba(102,80,234,.45);
+    }
+    .btn-cta.primary:hover { transform: translateY(-3px); box-shadow: 0 16px 40px rgba(102,80,234,.55); }
+    .btn-cta.ghost {
+      border: 2px solid rgba(255,255,255,.2); color: rgba(255,255,255,.8);
+    }
+    .btn-cta.ghost:hover { border-color: var(--accent2); color: #fff; }
+
+    .cta-trust { margin-top: 28px; font-size: .8rem; color: rgba(255,255,255,.35); display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; }
+    .cta-trust span { display: flex; align-items: center; gap: 6px; }
+    .cta-trust i { color: var(--success); }
+
+    /* ─── FOOTER ─── */
+    footer {
+      background: #0d0d1f;
+      padding: 70px 5% 30px;
+      color: rgba(255,255,255,.55);
+    }
+    .footer-inner { max-width: 1200px; margin: 0 auto; }
+    .footer-top {
+      display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 50px;
+      padding-bottom: 50px;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+    .footer-brand .fb-logo {
+      display: flex; align-items: center; gap: 10px; margin-bottom: 16px;
+    }
+    .fb-logo .logo-icon { width: 36px; height: 36px; background: var(--gradient); border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 16px; color: #fff; }
+    .fb-logo span { font-size: 1.2rem; font-weight: 800; color: #fff; }
+    .fb-logo span em { font-style: normal; color: var(--accent); }
+    .footer-brand p { font-size: .85rem; line-height: 1.7; max-width: 260px; margin-bottom: 20px; }
+    .footer-social { display: flex; gap: 10px; }
+    .social-btn {
+      width: 36px; height: 36px; border-radius: 9px;
+      background: rgba(255,255,255,.06);
+      display: flex; align-items: center; justify-content: center;
+      color: rgba(255,255,255,.5); font-size: .9rem; text-decoration: none;
+      transition: all .2s;
+    }
+    .social-btn:hover { background: var(--primary); color: #fff; }
+    .footer-col .fc-title { font-size: .8rem; font-weight: 800; color: rgba(255,255,255,.8); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 18px; }
+    .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+    .footer-col ul a { color: rgba(255,255,255,.45); text-decoration: none; font-size: .85rem; transition: color .2s; }
+    .footer-col ul a:hover { color: #fff; }
+    .footer-bottom {
+      padding-top: 28px; display: flex; justify-content: space-between; align-items: center; flex-wrap: gap;
+      font-size: .78rem;
+    }
+    .footer-bottom .fb-copy { }
+    .footer-bottom .fb-links { display: flex; gap: 20px; }
+    .footer-bottom .fb-links a { color: rgba(255,255,255,.35); text-decoration: none; transition: color .2s; }
+    .footer-bottom .fb-links a:hover { color: #fff; }
+
+    /* ─── SCROLL REVEAL ─── */
+    .reveal {
+      opacity: 0; transform: translateY(30px);
+      transition: opacity .7s ease, transform .7s ease;
+    }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 1100px) {
+      .fc-1, .fc-2, .fc-3 { display: none; }
+      .features-grid { grid-template-columns: repeat(2,1fr); }
+    }
+    @media (max-width: 900px) {
+      .hero-inner { grid-template-columns: 1fr; }
+      .hero-visual { display: none; }
+      .steps-container { grid-template-columns: 1fr; }
+      .steps-line { display: none; }
+      .benefits-grid { grid-template-columns: 1fr; }
+      .pricing-grid { grid-template-columns: 1fr; }
+      .price-card.featured { transform: none; }
+      .testi-grid { grid-template-columns: 1fr; }
+      .footer-top { grid-template-columns: 1fr 1fr; gap: 30px; }
+      .stats-inner { grid-template-columns: repeat(2,1fr); gap: 30px; }
+      .dm-cards { grid-template-columns: repeat(2,1fr); }
+    }
+    @media (max-width: 680px) {
+      .nav-links, .nav-cta .btn-outline-nav { display: none; }
+      .hamburger { display: flex; }
+      .features-grid { grid-template-columns: 1fr; }
+      .footer-top { grid-template-columns: 1fr; }
+      .footer-col:nth-child(n+3) { display: none; }
+      .stats-inner { grid-template-columns: 1fr 1fr; }
+      .dm-sidebar { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ════════════ NAVBAR ════════════ -->
+<nav id="navbar">
+  <a href="#" class="nav-logo">
+    <div class="logo-icon"><i class="fab fa-whatsapp"></i></div>
+    <span>Ati<em>ende</em></span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#features">Funcionalidades</a></li>
+    <li><a href="#how">Cómo funciona</a></li>
+    <li><a href="#benefits">Beneficios</a></li>
+    <li><a href="#pricing">Planes</a></li>
+    <li><a href="#oferta">Oferta</a></li>
+    <li><a href="#faq">FAQ</a></li>
+  </ul>
+  <div class="nav-cta">
+    <a href="#demo" class="btn-outline-nav">Ver demo</a>
+    <a href="#cta" class="btn-primary-nav">Empezar ahora</a>
+  </div>
+  <div class="hamburger" onclick="toggleMenu()">
+    <span></span><span></span><span></span>
+  </div>
+</nav>
+
+
+<!-- ════════════ HERO ════════════ -->
+<section id="hero">
+  <div class="hero-bg-orbs">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+  <div class="hero-grid"></div>
+
+  <div class="hero-inner">
+    <div class="hero-content">
+      <div class="hero-badge">
+        <div class="dot"></div>
+        Plataforma N°1 de pedidos por WhatsApp
+      </div>
+      <h1 class="hero-title">
+        Gestión de pedidos<br>
+        <span class="highlight">automatizada por<br>WhatsApp</span>
+      </h1>
+      <p class="hero-subtitle">
+        Convertí WhatsApp en tu canal de ventas y atención. Tus clientes hacen pedidos, reclamos y consultas en el chat que ya usan. Vos gestionás todo desde un panel centralizado.
+      </p>
+      <div class="hero-actions">
+        <a href="#cta" class="btn-hero-primary">
+          <i class="fab fa-whatsapp"></i>
+          Empezar ahora
+        </a>
+        <a href="#demo" class="btn-hero-ghost">
+          <i class="fas fa-play-circle"></i>
+          Ver cómo funciona
+        </a>
+      </div>
+      <div class="hero-stats">
+        <div class="stat-item">
+          <div class="stat-num">+500</div>
+          <div class="stat-label">Empresas activas</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num">98%</div>
+          <div class="stat-label">Tasa de apertura</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num">3x</div>
+          <div class="stat-label">Más ventas</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero-visual">
+      <div class="phone-wrap">
+        <div class="phone-glow"></div>
+        <div class="phone">
+          <div class="phone-screen">
+            <div class="phone-header">
+              <div class="phone-avatar">W</div>
+              <div class="phone-contact">
+                <div class="name">Club Pedidos Bot</div>
+                <div class="status">● En línea</div>
+              </div>
+            </div>
+            <div class="chat-body">
+              <div class="msg recv">
+                ¡Bienvenido a <strong>CORP</strong>, Diego! 👋<br>
+                ¿En qué te puedo ayudar hoy?
+                <div class="msg-time">10:42 ✓✓</div>
+              </div>
+              <div class="chat-interactive">
+                <div class="ci-body">Elegí una opción</div>
+                <a class="ci-btn"><i class="fas fa-shopping-cart"></i> Hacer un pedido</a>
+                <a class="ci-btn"><i class="fas fa-headset"></i> Hacer un reclamo</a>
+              </div>
+              <div class="msg sent accent">
+                1 — Hacer un pedido
+                <div class="msg-time">10:43 ✓✓</div>
+              </div>
+              <div class="msg recv">
+                ¡Perfecto! 🛒 Te envío el link para que cargues tu pedido personalizado.
+                <div class="msg-time">10:43 ✓✓</div>
+              </div>
+              <div class="msg recv" style="background:rgba(102,80,234,.2);">
+                📋 <a style="color:#9A7BFB">→ Abrir catálogo de pedido</a>
+                <div class="msg-time">10:43 ✓✓</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- floating cards -->
+        <div class="float-card fc-1">
+          <div class="fc-icon" style="background:rgba(60,212,172,.12)"><i class="fas fa-check" style="color:#3cd4ac"></i></div>
+          <div class="fc-text">
+            <div class="fc-title">Pedido confirmado</div>
+            <div class="fc-sub">CORP · Pedido #2022</div>
+          </div>
+        </div>
+        <div class="float-card fc-2">
+          <div class="fc-icon" style="background:rgba(253,118,58,.1)"><i class="fas fa-bolt" style="color:#FD763A"></i></div>
+          <div class="fc-text">
+            <div class="fc-title">+3 pedidos nuevos</div>
+            <div class="fc-sub">Último: hace 2 min</div>
+          </div>
+        </div>
+        <div class="float-card fc-3">
+          <div class="fc-icon" style="background:rgba(102,80,234,.1)"><i class="fas fa-file-pdf" style="color:#6650EA"></i></div>
+          <div class="fc-text">
+            <div class="fc-title">Ticket enviado</div>
+            <div class="fc-sub">PDF por WhatsApp ✓</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ════════════ LOGOS BAR ════════════ -->
+<div id="logos">
+  <div class="logos-inner">
+    <div class="logos-label">Integrado con las herramientas que ya usás</div>
+    <div class="logos-row">
+      <div class="logo-item"><span class="li-icon">🟢</span><span class="li-name">WhatsApp Business</span></div>
+      <div class="logo-item"><span class="li-icon">🔵</span><span class="li-name">Meta Cloud API</span></div>
+      <div class="logo-item"><span class="li-icon">💳</span><span class="li-name">MercadoPago</span></div>
+      <div class="logo-item"><span class="li-icon">📊</span><span class="li-name">Excel / CSV</span></div>
+      <div class="logo-item"><span class="li-icon">📦</span><span class="li-name">ERP / SAP</span></div>
+      <div class="logo-item"><span class="li-icon">🗺️</span><span class="li-name">Mapbox</span></div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════ FEATURES ════════════ -->
+<section id="features">
+  <div class="center reveal">
+    <span class="section-tag"><i class="fas fa-star"></i> Funcionalidades</span>
+    <h2 class="section-title">Todo lo que tu empresa necesita,<br>dentro de WhatsApp</h2>
+    <p class="section-sub">Sin apps extra. Sin capacitación larga. Tu equipo lo usa desde el primer día.</p>
+  </div>
+  <div class="features-grid">
+    <div class="feat-card reveal">
+      <div class="feat-icon purple"><i class="fas fa-robot"></i></div>
+      <div class="feat-title">Bot conversacional automático</div>
+      <div class="feat-desc">Flujos de menús, botones interactivos y respuestas automáticas que guían al cliente paso a paso. Sin intervención humana para el 80% de las consultas.</div>
+    </div>
+    <div class="feat-card reveal">
+      <div class="feat-icon teal"><i class="fas fa-shopping-cart"></i></div>
+      <div class="feat-title">Catálogo de pedidos online</div>
+      <div class="feat-desc">Link personalizado por cliente con su catálogo y precios. El cliente elige, confirma y el pedido llega a tu panel en segundos con ticket PDF adjunto.</div>
+    </div>
+    <div class="feat-card reveal">
+      <div class="feat-icon orange"><i class="fas fa-exclamation-triangle"></i></div>
+      <div class="feat-title">Gestión de reclamos y consultas</div>
+      <div class="feat-desc">Recibí, clasificá y resolvé reclamos desde el panel. Respuesta directa por WhatsApp con botones de confirmación. Trazabilidad completa de cada caso.</div>
+    </div>
+    <div class="feat-card reveal">
+      <div class="feat-icon blue"><i class="fas fa-building"></i></div>
+      <div class="feat-title">Multi-empresa (multi-tenant)</div>
+      <div class="feat-desc">Una plataforma, múltiples empresas. Cada tenant tiene su propio bot, base de datos, credenciales de WhatsApp y panel de gestión completamente aislado.</div>
+    </div>
+    <div class="feat-card reveal">
+      <div class="feat-icon green"><i class="fas fa-chart-line"></i></div>
+      <div class="feat-title">Analytics y reportes</div>
+      <div class="feat-desc">Dashboard con métricas en tiempo real: pedidos del día, reclamos pendientes, ventas por período. Exportación a Excel/CSV de tus datos cuando quieras.</div>
+    </div>
+    <div class="feat-card reveal">
+      <div class="feat-icon pink"><i class="fas fa-map-marker-alt"></i></div>
+      <div class="feat-title">Geolocalización de clientes</div>
+      <div class="feat-desc">Mapa interactivo con la ubicación de tus clientes. Optimizá rutas de reparto y visualizá cobertura geográfica de tu cartera comercial.</div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ════════════ HOW IT WORKS ════════════ -->
+<section id="how">
+  <div class="hero-grid"></div>
+  <div class="how-inner">
+    <div class="center reveal">
+      <span class="section-tag" style="background:rgba(58,237,203,.1);color:var(--accent)"><i class="fas fa-bolt"></i> Cómo funciona</span>
+      <h2 class="section-title">En 3 pasos, tu empresa<br>vende por WhatsApp</h2>
+      <p class="section-sub" style="margin:0 auto">Sin infraestructura compleja. Sin semanas de implementación.</p>
+    </div>
+    <div class="steps-container">
+      <div class="steps-line"></div>
+      <div class="step-card reveal">
+        <div class="step-num">1</div>
+        <div class="step-title">Conectá tu número</div>
+        <div class="step-desc">Vinculá tu número de WhatsApp Business con la Meta Cloud API desde el panel de Atiende.</div>
+      </div>
+      <div class="step-card reveal">
+        <div class="step-num">2</div>
+        <div class="step-title">Cargá tu catálogo</div>
+        <div class="step-desc">Importá tus productos desde Excel o ingresalos manualmente. Asigná precios, rubros y disponibilidad por cliente o lista de precios.</div>
+      </div>
+      <div class="step-card reveal">
+        <div class="step-num">3</div>
+        <div class="step-title">¡A vender!</div>
+        <div class="step-desc">El bot comienza a atender. Tus clientes hacen pedidos, reciben tickets PDF y vos gestionás todo desde el panel centralizado.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ════════════ DEMO / DASHBOARD ════════════ -->
+<section id="demo">
+  <div class="demo-inner">
+    <div class="center reveal">
+      <span class="section-tag"><i class="fas fa-desktop"></i> Panel de control</span>
+      <h2 class="section-title">Un panel que centraliza<br>toda tu operación</h2>
+      <p class="section-sub">Gestioná pedidos, reclamos, clientes y reportes desde una sola pantalla.</p>
+    </div>
+    <div class="dashboard-mock reveal">
+      <!-- browser chrome -->
+      <div class="dm-topbar">
+        <div class="dm-dots">
+          <div class="dm-dot r"></div><div class="dm-dot y"></div><div class="dm-dot g"></div>
+        </div>
+        <div class="dm-url">app.atiende.com.ar/vistas/escritorio.php</div>
+        <div class="dm-topbar-user">
+          <div class="du-avatar">AD</div>
+          <span class="du-name">Admin · CORP</span>
+        </div>
+      </div>
+
+      <div class="dm-body">
+        <!-- sidebar -->
+        <div class="dm-sidebar">
+          <div class="dm-sidebar-logo">Ati<span>ende</span></div>
+          <div class="dm-sidebar-section">Principal</div>
+          <div class="dm-nav-item active"><i class="fas fa-tachometer-alt"></i> Dashboard</div>
+          <div class="dm-nav-item"><i class="fas fa-shopping-bag"></i> Pedidos <span class="dm-badge-count">12</span></div>
+          <div class="dm-nav-item"><i class="fas fa-exclamation-circle"></i> Reclamos <span class="dm-badge-count">3</span></div>
+          <div class="dm-nav-item"><i class="fas fa-question-circle"></i> Consultas</div>
+          <div class="dm-sidebar-section">Gestión</div>
+          <div class="dm-nav-item"><i class="fas fa-users"></i> Clientes</div>
+          <div class="dm-nav-item"><i class="fas fa-box-open"></i> Catálogo</div>
+          <div class="dm-nav-item"><i class="fas fa-truck"></i> Repartos</div>
+          <div class="dm-sidebar-section">Reportes</div>
+          <div class="dm-nav-item"><i class="fas fa-chart-bar"></i> Analytics</div>
+          <div class="dm-nav-item"><i class="fas fa-file-excel"></i> Exportar</div>
+          <div class="dm-nav-item"><i class="fas fa-cog"></i> Configuración</div>
+        </div>
+
+        <!-- main content -->
+        <div class="dm-content">
+          <!-- page header -->
+          <div class="dm-content-header">
+            <div class="dch-title"><i class="fas fa-tachometer-alt"></i> Dashboard</div>
+            <div class="dch-breadcrumb">Inicio / <span>Panel de pedidos</span> · Hoy 27 May 2026</div>
+          </div>
+
+          <div class="dm-inner-body">
+            <!-- KPI cards -->
+            <div class="dm-cards">
+              <div class="dm-card">
+                <div class="dc-icon c1"><i class="fas fa-shopping-cart"></i></div>
+                <div class="dc-info">
+                  <div class="dc-label">Pedidos hoy</div>
+                  <div class="dc-num c1">42</div>
+                  <div class="dc-trend up">↑ +18% vs ayer</div>
+                </div>
+              </div>
+              <div class="dm-card">
+                <div class="dc-icon c2"><i class="fas fa-dollar-sign"></i></div>
+                <div class="dc-info">
+                  <div class="dc-label">Ventas del día</div>
+                  <div class="dc-num c2">$284.600</div>
+                  <div class="dc-trend up">↑ +23% vs ayer</div>
+                </div>
+              </div>
+              <div class="dm-card">
+                <div class="dc-icon c3"><i class="fas fa-exclamation-triangle"></i></div>
+                <div class="dc-info">
+                  <div class="dc-label">Reclamos abiertos</div>
+                  <div class="dc-num c3">7</div>
+                  <div class="dc-trend dn">3 sin responder</div>
+                </div>
+              </div>
+              <div class="dm-card">
+                <div class="dc-icon c4"><i class="fas fa-users"></i></div>
+                <div class="dc-info">
+                  <div class="dc-label">Clientes activos</div>
+                  <div class="dc-num c4">318</div>
+                  <div class="dc-trend up">↑ +5 nuevos</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- table + charts row -->
+            <div class="dm-row2">
+              <!-- pedidos table -->
+              <div class="dm-table-wrap">
+                <div class="dm-table-header">
+                  <div class="dm-table-title"><i class="fas fa-list" style="color:var(--primary);margin-right:5px"></i>Pedidos recibidos</div>
+                  <div class="dm-filter-row">
+                    <input class="dm-search" placeholder="🔍 Buscar cliente...">
+                    <button class="dm-filter-btn active">Todos</button>
+                    <button class="dm-filter-btn plain">Nuevos</button>
+                    <button class="dm-filter-btn plain">Pendientes</button>
+                  </div>
+                </div>
+                <table class="dm-table">
+                  <thead>
+                    <tr>
+                      <th>N° Ped.</th>
+                      <th>Cliente</th>
+                      <th>Productos</th>
+                      <th>Monto</th>
+                      <th>Vendedor</th>
+                      <th>Fecha</th>
+                      <th>Estado</th>
+                      <th>Acc.</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td class="td-ped">#002022</td>
+                      <td class="td-client">DIEGO MOTTA</td>
+                      <td>5 artículos</td>
+                      <td class="td-monto">$12.400</td>
+                      <td>García J.</td>
+                      <td class="td-date">27/05 10:43</td>
+                      <td><span class="dm-badge nuevo">Nuevo</span></td>
+                      <td>
+                        <button class="dm-action-btn view"><i class="fas fa-eye"></i></button>
+                        <button class="dm-action-btn pdf"><i class="fas fa-file-pdf"></i></button>
+                        <button class="dm-action-btn wa"><i class="fab fa-whatsapp"></i></button>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="td-ped">#002021</td>
+                      <td class="td-client">Distribuidora Sur SRL</td>
+                      <td>12 artículos</td>
+                      <td class="td-monto">$87.300</td>
+                      <td>López M.</td>
+                      <td class="td-date">27/05 09:15</td>
+                      <td><span class="dm-badge conf">Confirmado</span></td>
+                      <td>
+                        <button class="dm-action-btn view"><i class="fas fa-eye"></i></button>
+                        <button class="dm-action-btn pdf"><i class="fas fa-file-pdf"></i></button>
+                        <button class="dm-action-btn wa"><i class="fab fa-whatsapp"></i></button>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="td-ped">#002020</td>
+                      <td class="td-client">El Almacén Central</td>
+                      <td>8 artículos</td>
+                      <td class="td-monto">$34.100</td>
+                      <td>García J.</td>
+                      <td class="td-date">27/05 08:52</td>
+                      <td><span class="dm-badge prep">En preparación</span></td>
+                      <td>
+                        <button class="dm-action-btn view"><i class="fas fa-eye"></i></button>
+                        <button class="dm-action-btn pdf"><i class="fas fa-file-pdf"></i></button>
+                        <button class="dm-action-btn wa"><i class="fab fa-whatsapp"></i></button>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="td-ped">#002019</td>
+                      <td class="td-client">Supermercado Líder</td>
+                      <td>21 artículos</td>
+                      <td class="td-monto">$143.700</td>
+                      <td>Ramírez P.</td>
+                      <td class="td-date">26/05 16:30</td>
+                      <td><span class="dm-badge entregado">Entregado</span></td>
+                      <td>
+                        <button class="dm-action-btn view"><i class="fas fa-eye"></i></button>
+                        <button class="dm-action-btn pdf"><i class="fas fa-file-pdf"></i></button>
+                        <button class="dm-action-btn wa"><i class="fab fa-whatsapp"></i></button>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="td-ped">#002018</td>
+                      <td class="td-client">Minimarket Del Valle</td>
+                      <td>6 artículos</td>
+                      <td class="td-monto">$19.850</td>
+                      <td>López M.</td>
+                      <td class="td-date">26/05 14:11</td>
+                      <td><span class="dm-badge pend">Pendiente</span></td>
+                      <td>
+                        <button class="dm-action-btn view"><i class="fas fa-eye"></i></button>
+                        <button class="dm-action-btn pdf"><i class="fas fa-file-pdf"></i></button>
+                        <button class="dm-action-btn wa"><i class="fab fa-whatsapp"></i></button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- right col: chart + activity -->
+              <div class="dm-chart-col">
+                <!-- bar chart -->
+                <div class="dm-mini-card">
+                  <div class="dmc-title">Pedidos 7 días <span>vs semana ant.</span></div>
+                  <div class="dm-bars-wrap">
+                    <div class="dm-bars">
+                      <div style="display:flex;flex-direction:column;align-items:center;flex:1">
+                        <div class="dm-bar" style="height:30%"></div>
+                        <div class="dm-bar-label">L</div>
+                      </div>
+                      <div style="display:flex;flex-direction:column;align-items:center;flex:1">
+                        <div class="dm-bar" style="height:55%"></div>
+                        <div class="dm-bar-label">M</div>
+                      </div>
+                      <div style="display:flex;flex-direction:column;align-items:center;flex:1">
+                        <div class="dm-bar" style="height:45%"></div>
+                        <div class="dm-bar-label">X</div>
+                      </div>
+                      <div style="display:flex;flex-direction:column;align-items:center;flex:1">
+                        <div class="dm-bar" style="height:70%"></div>
+                        <div class="dm-bar-label">J</div>
+                      </div>
+                      <div style="display:flex;flex-direction:column;align-items:center;flex:1">
+                        <div class="dm-bar" style="height:60%"></div>
+                        <div class="dm-bar-label">V</div>
+                      </div>
+                      <div style="display:flex;flex-direction:column;align-items:center;flex:1">
+                        <div class="dm-bar" style="height:25%"></div>
+                        <div class="dm-bar-label">S</div>
+                      </div>
+                      <div style="display:flex;flex-direction:column;align-items:center;flex:1">
+                        <div class="dm-bar today" style="height:88%"></div>
+                        <div class="dm-bar-label" style="color:var(--primary);font-weight:700">H</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- donut estado -->
+                <div class="dm-mini-card">
+                  <div class="dmc-title">Por estado <span>este mes</span></div>
+                  <div class="dm-donut-wrap">
+                    <div class="dm-donut"></div>
+                    <div class="dm-donut-legend">
+                      <div class="dm-legend-item"><div class="dm-legend-dot" style="background:var(--primary)"></div>Confirmados 52%</div>
+                      <div class="dm-legend-item"><div class="dm-legend-dot" style="background:#1ab89a"></div>Entregados 26%</div>
+                      <div class="dm-legend-item"><div class="dm-legend-dot" style="background:var(--orange)"></div>Pendientes 12%</div>
+                      <div class="dm-legend-item"><div class="dm-legend-dot" style="background:#e8e8e8"></div>Otros 10%</div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- activity feed -->
+                <div class="dm-mini-card">
+                  <div class="dmc-title">Actividad reciente</div>
+                  <div class="dm-activity-list">
+                    <div class="dm-activity-item">
+                      <div class="dm-ai-dot" style="background:#25D366"></div>
+                      <div>
+                        <div class="dm-ai-text"><strong>Diego Motta</strong> hizo un pedido vía WhatsApp</div>
+                        <div class="dm-ai-time">hace 3 min</div>
+                      </div>
+                    </div>
+                    <div class="dm-activity-item">
+                      <div class="dm-ai-dot" style="background:var(--orange)"></div>
+                      <div>
+                        <div class="dm-ai-text"><strong>Minimarket Del Valle</strong> envió un reclamo</div>
+                        <div class="dm-ai-time">hace 14 min</div>
+                      </div>
+                    </div>
+                    <div class="dm-activity-item">
+                      <div class="dm-ai-dot" style="background:var(--primary)"></div>
+                      <div>
+                        <div class="dm-ai-text">Ticket PDF enviado a <strong>Distrib. Sur</strong></div>
+                        <div class="dm-ai-time">hace 28 min</div>
+                      </div>
+                    </div>
+                    <div class="dm-activity-item">
+                      <div class="dm-ai-dot" style="background:#1ab89a"></div>
+                      <div>
+                        <div class="dm-ai-text">Pedido <strong>#002019</strong> marcado entregado</div>
+                        <div class="dm-ai-time">hace 1 h</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ════════════ BENEFICIOS B2B / B2C ════════════ -->
+<section id="benefits">
+  <div class="benefits-inner">
+    <div class="center reveal">
+      <span class="section-tag"><i class="fas fa-users"></i> Beneficios</span>
+      <h2 class="section-title">Diseñado para tu modelo de negocio</h2>
+      <p class="section-sub">Una plataforma que se adapta a tu modelo de negocio, ya sea que vendas a empresas o al consumidor final.</p>
+    </div>
+    <div class="benefits-grid">
+      <div class="benefit-col b2b reveal">
+        <div class="benefit-header b2b">
+          <div class="bh-icon"><i class="fas fa-industry"></i></div>
+          <div>
+            <div class="bh-title">Empresa a Empresa</div>
+            <div class="bh-sub">Para distribuidoras, mayoristas y fabricantes</div>
+          </div>
+        </div>
+        <div class="benefit-list">
+          <div class="benefit-item">
+            <div class="bi-check"><i class="fas fa-check"></i></div>
+            <div class="bi-text">
+              <div class="bi-title">Listas de precios personalizadas</div>
+              <div class="bi-desc">Cada cliente ve sus precios específicos según su acuerdo comercial</div>
+            </div>
+          </div>
+          <div class="benefit-item">
+            <div class="bi-check"><i class="fas fa-check"></i></div>
+            <div class="bi-text">
+              <div class="bi-title">Pedidos por vendedor asignado</div>
+              <div class="bi-desc">Asociá cada cliente a su representante de ventas</div>
+            </div>
+          </div>
+          <div class="benefit-item">
+            <div class="bi-check"><i class="fas fa-check"></i></div>
+            <div class="bi-text">
+              <div class="bi-title">Exportación a CSV/Excel</div>
+              <div class="bi-desc">Descargá tus pedidos, ventas y clientes en CSV/Excel cuando quieras, para trabajarlos en tu planilla o cargarlos a mano donde necesites</div>
+            </div>
+          </div>
+          <div class="benefit-item">
+            <div class="bi-check"><i class="fas fa-check"></i></div>
+            <div class="bi-text">
+              <div class="bi-title">Catálogo filtrable por rubro</div>
+              <div class="bi-desc">Organizá tus productos por rubro, con imágenes, para que el cliente encuentre lo que busca en segundos</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="benefit-col b2c reveal">
+        <div class="benefit-header b2c">
+          <div class="bh-icon"><i class="fas fa-user-friends"></i></div>
+          <div>
+            <div class="bh-title">Empresa a Consumidor</div>
+            <div class="bh-sub">Para comercios, tiendas y servicios al público</div>
+          </div>
+        </div>
+        <div class="benefit-list">
+          <div class="benefit-item">
+            <div class="bi-check"><i class="fas fa-check"></i></div>
+            <div class="bi-text">
+              <div class="bi-title">Onboarding automático de clientes</div>
+              <div class="bi-desc">El bot da de alta nuevos clientes sin intervención humana</div>
+            </div>
+          </div>
+          <div class="benefit-item">
+            <div class="bi-check"><i class="fas fa-check"></i></div>
+            <div class="bi-text">
+              <div class="bi-title">Pago online con MercadoPago</div>
+              <div class="bi-desc">Link de pago generado automáticamente en cada pedido</div>
+            </div>
+          </div>
+          <div class="benefit-item">
+            <div class="bi-check"><i class="fas fa-check"></i></div>
+            <div class="bi-text">
+              <div class="bi-title">Encuestas de satisfacción</div>
+              <div class="bi-desc">Calificación automática post-entrega por WhatsApp</div>
+            </div>
+          </div>
+          <div class="benefit-item">
+            <div class="bi-check"><i class="fas fa-check"></i></div>
+            <div class="bi-text">
+              <div class="bi-title">Ubicación del cliente vía GPS</div>
+              <div class="bi-desc">El cliente comparte su ubicación para entregas a domicilio</div>
+            </div>
+          </div>
+          <div class="benefit-item">
+            <div class="bi-check"><i class="fas fa-check"></i></div>
+            <div class="bi-text">
+              <div class="bi-title">Ticket PDF enviado al instante</div>
+              <div class="bi-desc">Comprobante de pedido con detalle de productos y monto total</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+
+<!-- ════════════ PRICING ════════════ -->
+<section id="pricing">
+  <div class="pricing-inner">
+    <div class="center reveal">
+      <span class="section-tag"><i class="fas fa-tag"></i> Planes</span>
+      <h2 class="section-title">Precios simples y transparentes</h2>
+      <p class="section-sub">Sin cargos ocultos. Escalá tu plan cuando tu negocio crezca.</p>
+    </div>
+    <div class="pricing-grid">
+
+      <div class="price-card featured reveal">
+        <div class="price-popular">⚡ Más popular</div>
+        <div class="price-name">Pro</div>
+        <div class="price-amount">$49<span>/mes USD</span></div>
+        <div class="price-desc">Para empresas con operación activa</div>
+        <div class="price-features">
+          <div class="pf-item"><i class="fas fa-check"></i> 1 empresa</div>
+          <div class="pf-item"><i class="fas fa-check"></i> Pedidos ilimitados</div>
+          <div class="pf-item"><i class="fas fa-check"></i> Bot avanzado con flows</div>
+          <div class="pf-item"><i class="fas fa-check"></i> Tickets PDF automáticos</div>
+          <div class="pf-item"><i class="fas fa-check"></i> Pago con MercadoPago</div>
+          <div class="pf-item"><i class="fas fa-check"></i> Exportación Excel/CSV</div>
+          <div class="pf-item"><i class="fas fa-check"></i> Analytics completo</div>
+        </div>
+        <a href="#cta" class="btn-price filled">Empezar ahora</a>
+      </div>
+
+      <div class="price-card reveal">
+        <div class="price-name">Enterprise</div>
+        <div class="price-amount">Custom<span></span></div>
+        <div class="price-desc">Para distribuidoras y grupos empresariales</div>
+        <div class="price-features">
+          <div class="pf-item"><i class="fas fa-check"></i> Empresas ilimitadas</div>
+          <div class="pf-item"><i class="fas fa-check"></i> Infraestructura dedicada</div>
+          <div class="pf-item"><i class="fas fa-check"></i> Integración ERP/SAP/FTP</div>
+          <div class="pf-item"><i class="fas fa-check"></i> Mapa de geolocalización de ventas</div>
+          <div class="pf-item"><i class="fas fa-check"></i> Vendedores ilimitados</div>
+          <div class="pf-item"><i class="fas fa-check"></i> Soporte dedicado (lunes a viernes)</div>
+          <div class="pf-item"><i class="fas fa-check"></i> Onboarding personalizado</div>
+        </div>
+        <a href="#cta" class="btn-price outline">Hablar con ventas</a>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ════════════ OFERTA / BONOS / GARANTÍA ════════════ -->
+<style>
+  #oferta { padding: 90px 0; background: var(--light); }
+  .ofr-inner { max-width: 1080px; margin: 0 auto; padding: 0 5%; }
+  .ofr-stack { display: flex; flex-direction: column; gap: 16px; margin-top: 44px; }
+  .ofr-row {
+    display: flex; gap: 22px; align-items: center;
+    background: var(--white); border: 1px solid #ece9fb;
+    border-radius: var(--radius); padding: 22px 26px; box-shadow: var(--shadow-sm);
+    transition: transform .2s, box-shadow .2s;
+  }
+  .ofr-row:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
+  .ofr-row.core { border: 2px solid var(--primary); background: linear-gradient(180deg,#fff, #f7f5ff); }
+  .ofr-ico {
+    width: 56px; height: 56px; flex: none; border-radius: 14px;
+    background: var(--gradient); color: #fff;
+    display: flex; align-items: center; justify-content: center; font-size: 22px;
+  }
+  .ofr-row.core .ofr-ico { background: var(--gradient-d); }
+  .ofr-body { flex: 1; min-width: 0; }
+  .ofr-cat {
+    display: inline-block; font-size: .68rem; font-weight: 800; text-transform: uppercase;
+    letter-spacing: .6px; color: var(--primary); background: rgba(102,80,234,.09);
+    padding: 3px 10px; border-radius: 20px; margin-bottom: 8px;
+  }
+  .ofr-title { font-size: 1.12rem; font-weight: 800; color: var(--dark); margin-bottom: 5px; }
+  .ofr-desc { font-size: .95rem; color: #5b6770; line-height: 1.5; }
+  .ofr-price { flex: none; text-align: right; min-width: 130px; }
+  .ofr-price .old { font-size: 1.15rem; font-weight: 700; color: var(--gray); text-decoration: line-through; }
+  .ofr-price .inc { display: block; margin-top: 4px; font-size: .72rem; font-weight: 900; color: var(--success); text-transform: uppercase; letter-spacing: .4px; }
+  .ofr-total {
+    margin-top: 26px; background: var(--gradient-d); color: #fff;
+    border-radius: var(--radius); padding: 28px 30px; text-align: center; box-shadow: var(--shadow);
+  }
+  .ofr-total .val-old { font-size: 1.1rem; color: rgba(255,255,255,.6); text-decoration: line-through; }
+  .ofr-total .val-now { font-size: clamp(1.8rem,4vw,2.6rem); font-weight: 900; line-height: 1.1; margin: 6px 0 4px; }
+  .ofr-total .val-now .hl { background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .ofr-total .val-note { font-size: .9rem; color: rgba(255,255,255,.7); }
+  .ofr-total .btn-ofr {
+    display: inline-flex; align-items: center; gap: 10px; margin-top: 22px;
+    background: var(--gradient); color: #fff; text-decoration: none;
+    padding: 15px 34px; border-radius: 30px; font-weight: 800; font-size: 1.02rem;
+    box-shadow: 0 10px 30px rgba(102,80,234,.45); transition: transform .15s, box-shadow .15s;
+  }
+  .ofr-total .btn-ofr:hover { transform: translateY(-3px); box-shadow: 0 16px 42px rgba(102,80,234,.6); }
+  .ofr-guarantee {
+    display: flex; gap: 24px; align-items: center; margin-top: 26px;
+    background: var(--white); border: 2px dashed var(--success);
+    border-radius: var(--radius); padding: 26px 30px;
+  }
+  .ofr-guarantee .g-ico { font-size: 46px; color: var(--success); flex: none; }
+  .ofr-guarantee .g-title { font-size: 1.2rem; font-weight: 800; color: var(--dark); margin-bottom: 6px; }
+  .ofr-guarantee .g-desc { font-size: .95rem; color: #5b6770; line-height: 1.55; }
+  @media (max-width: 720px) {
+    .ofr-row { flex-direction: column; align-items: flex-start; gap: 14px; }
+    .ofr-price { text-align: left; min-width: 0; }
+    .ofr-guarantee { flex-direction: column; text-align: center; }
+  }
+</style>
+<section id="oferta">
+  <div class="ofr-inner">
+    <div class="center reveal">
+      <span class="section-tag"><i class="fas fa-gift"></i> Oferta de lanzamiento</span>
+      <h2 class="section-title">Todo lo que te llevás<br>al activar Atiende hoy</h2>
+      <p class="section-sub">No es solo el software. Es todo lo que necesitás para que tu empresa empiece a recibir pedidos por WhatsApp esta misma semana — sin excusas.</p>
+    </div>
+
+    <div class="ofr-stack">
+
+      <!-- CORE -->
+      <div class="ofr-row core reveal">
+        <div class="ofr-ico"><i class="fas fa-rocket"></i></div>
+        <div class="ofr-body">
+          <span class="ofr-cat">Tu plataforma</span>
+          <div class="ofr-title">Atiende — Plan Pro</div>
+          <div class="ofr-desc">Pedidos, reclamos y consultas por WhatsApp, centralizados en un panel. Tu negocio atendiendo 24/7, sin contratar más gente.</div>
+        </div>
+        <div class="ofr-price"><span class="old">$49/mes</span></div>
+      </div>
+
+      <!-- BONO 1 · VEHÍCULO -->
+      <div class="ofr-row reveal">
+        <div class="ofr-ico"><i class="fas fa-comments-dollar"></i></div>
+        <div class="ofr-body">
+          <span class="ofr-cat">Bono 1 · El método funciona</span>
+          <div class="ofr-title">Biblioteca de Flujos que Venden</div>
+          <div class="ofr-desc">Los menús de pedido, reclamo y consulta ya armados y probados en empresas reales que hoy facturan por WhatsApp. Los activás y empezás a recibir pedidos el primer día — sin inventar nada ni adivinar qué escribir. Dejás de preguntarte "¿esto realmente vende?" porque ya lo hizo.</div>
+        </div>
+        <div class="ofr-price"><span class="old">$97</span><span class="inc">Incluido</span></div>
+      </div>
+
+      <!-- BONO 2 · INTERNAS -->
+      <div class="ofr-row reveal">
+        <div class="ofr-ico"><i class="fas fa-hands-helping"></i></div>
+        <div class="ofr-body">
+          <span class="ofr-cat">Bono 2 · No necesitás ser técnico</span>
+          <div class="ofr-title">Implementación Lista en 48 hs (lo hacemos por vos)</div>
+          <div class="ofr-desc">Nuestro equipo te deja el bot, el catálogo y el panel funcionando en 2 días. Vos no tocás una sola configuración. Aunque no tengas tiempo ni perfil técnico, arrancás operando como si llevaras meses usándolo.</div>
+        </div>
+        <div class="ofr-price"><span class="old">$149</span><span class="inc">Incluido</span></div>
+      </div>
+
+      <!-- BONO 3 · EXTERNAS -->
+      <div class="ofr-row reveal">
+        <div class="ofr-ico"><i class="fas fa-toolbox"></i></div>
+        <div class="ofr-body">
+          <span class="ofr-cat">Bono 3 · Las herramientas, listas</span>
+          <div class="ofr-title">Kit de Arranque Comercial</div>
+          <div class="ofr-desc">Carga masiva de tu catálogo desde Excel, listas de precios por cliente y activación de tu número de WhatsApp Business. No importa si hoy no tenés catálogo digital ni el número configurado: te dejamos el entorno completo para vender desde cero.</div>
+        </div>
+        <div class="ofr-price"><span class="old">$79</span><span class="inc">Incluido</span></div>
+      </div>
+
+    </div>
+
+    <!-- VALOR TOTAL -->
+    <div class="ofr-total reveal">
+      <div class="val-old">Valor real de los bonos: $325 USD</div>
+      <div class="val-now">Hoy los sumás <span class="hl">gratis</span> al activar tu plan</div>
+      <div class="val-note">3 bonos por valor de $325 incluidos sin costo cuando empezás esta semana.</div>
+      <a href="#cta" class="btn-ofr"><i class="fas fa-bolt"></i> Quiero Atiende + los 3 bonos</a>
+    </div>
+
+    <!-- GARANTÍA -->
+    <div class="ofr-guarantee reveal">
+      <div class="g-ico"><i class="fas fa-shield-alt"></i></div>
+      <div>
+        <div class="g-title">Sin permanencia — cancelá cuando quieras</div>
+        <div class="g-desc">Atiende es una suscripción mes a mes, sin contratos ni ataduras. Si en algún momento sentís que no es para vos, nos avisás y damos de baja tu cuenta sin penalidades ni letra chica. Te quedás porque te funciona, no porque estás atado.</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ════════════ TESTIMONIALS ════════════ -->
+<section id="testimonials">
+  <div class="testi-inner">
+    <div class="center reveal">
+      <span class="section-tag"><i class="fas fa-heart"></i> Testimonios</span>
+      <h2 class="section-title">Lo que dicen nuestros clientes</h2>
+    </div>
+    <div class="testi-grid">
+      <div class="testi-card reveal">
+        <div class="testi-stars">★★★★★</div>
+        <div class="testi-text">"Atiende transformó por completo nuestra operación. Antes tardábamos 2 horas en procesar pedidos. Hoy están todos cargados antes del mediodía de forma automática."</div>
+        <div class="testi-author">
+          <div class="testi-avatar" style="background:linear-gradient(135deg,#6650EA,#9A7BFB)">MR</div>
+          <div>
+            <div class="testi-name">Marcelo Rodriguez</div>
+            <div class="testi-role">Gerente Comercial · Distribuidora Norte</div>
+          </div>
+        </div>
+      </div>
+      <div class="testi-card reveal">
+        <div class="testi-stars">★★★★★</div>
+        <div class="testi-text">"Nuestros clientes no tenían que instalar nada. Simplemente usan WhatsApp como siempre. La adopción fue inmediata. En una semana ya teníamos el 90% de los pedidos online."</div>
+        <div class="testi-author">
+          <div class="testi-avatar" style="background:linear-gradient(135deg,#1ab89a,#3AEDCB)">CL</div>
+          <div>
+            <div class="testi-name">Carolina López</div>
+            <div class="testi-role">Directora de Operaciones · Faustina Foods</div>
+          </div>
+        </div>
+      </div>
+      <div class="testi-card reveal">
+        <div class="testi-stars">★★★★★</div>
+        <div class="testi-text">"La integración con nuestro ERP vía CSV fue clave. Los pedidos de WhatsApp llegan directamente a producción sin intervención manual. Eliminamos errores de carga al 100%."</div>
+        <div class="testi-author">
+          <div class="testi-avatar" style="background:linear-gradient(135deg,#FD763A,#ffb347)">JP</div>
+          <div>
+            <div class="testi-name">Jorge Pamparana</div>
+            <div class="testi-role">CTO · Termoplástica SA</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ════════════ FAQ ════════════ -->
+<section id="faq">
+  <div class="faq-inner">
+    <div class="center reveal">
+      <span class="section-tag"><i class="fas fa-question-circle"></i> FAQ</span>
+      <h2 class="section-title">Preguntas frecuentes</h2>
+    </div>
+    <div class="faq-list">
+      <div class="faq-item reveal">
+        <div class="faq-q" onclick="toggleFaq(this)">
+          ¿Necesito una cuenta verificada de WhatsApp Business?
+          <i class="fas fa-chevron-down faq-icon"></i>
+        </div>
+        <div class="faq-a">Sí. Atiende utiliza la WhatsApp Business Cloud API de Meta. Necesitás tener un número de WhatsApp Business con API habilitada. Te guiamos en el proceso de setup durante el onboarding.</div>
+      </div>
+      <div class="faq-item reveal">
+        <div class="faq-q" onclick="toggleFaq(this)">
+          ¿Puedo usar Atiende con mi número actual de WhatsApp?
+          <i class="fas fa-chevron-down faq-icon"></i>
+        </div>
+        <div class="faq-a">Podés migrar tu número actual a la API de WhatsApp Business, pero una vez migrado no podrá usarse en la app móvil convencional. Recomendamos tener un número específico para Atiende.</div>
+      </div>
+      <div class="faq-item reveal">
+        <div class="faq-q" onclick="toggleFaq(this)">
+          ¿Cómo importo mi catálogo de productos?
+          <i class="fas fa-chevron-down faq-icon"></i>
+        </div>
+        <div class="faq-a">Desde el panel de administración podés importar tus productos mediante un archivo Excel (.xls/.xlsx). También podés cargarlos manualmente o vía API. El formato está documentado en nuestra guía de inicio.</div>
+      </div>
+      <div class="faq-item reveal">
+        <div class="faq-q" onclick="toggleFaq(this)">
+          ¿Atiende funciona con múltiples empresas?
+          <i class="fas fa-chevron-down faq-icon"></i>
+        </div>
+        <div class="faq-a">Sí. Atiende está construido como plataforma multi-tenant. Cada empresa tiene su propia base de datos, bot, número de WhatsApp y panel de gestión completamente aislados entre sí.</div>
+      </div>
+      <div class="faq-item reveal">
+        <div class="faq-q" onclick="toggleFaq(this)">
+          ¿Qué pasa si el cliente no responde a los botones interactivos?
+          <i class="fas fa-chevron-down faq-icon"></i>
+        </div>
+        <div class="faq-a">El bot detecta respuestas de texto libre y las procesa igualmente. Si el cliente escribe "1" en lugar de tocar el botón "Hacer un pedido", el flujo continúa normalmente.</div>
+      </div>
+      <div class="faq-item reveal">
+        <div class="faq-q" onclick="toggleFaq(this)">
+          ¿Tiene integración con MercadoPago?
+          <i class="fas fa-chevron-down faq-icon"></i>
+        </div>
+        <div class="faq-a">Sí. Atiende genera un link de pago de MercadoPago automáticamente al confirmar el pedido y lo envía al cliente por WhatsApp.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ════════════ CTA FINAL ════════════ -->
+<section id="cta">
+  <div class="hero-grid"></div>
+  <div class="orb" style="width:500px;height:500px;background:#6650EA;top:-200px;right:-100px;filter:blur(100px);opacity:.35;position:absolute;"></div>
+  <div class="orb" style="width:350px;height:350px;background:#3AEDCB;bottom:-100px;left:-50px;filter:blur(100px);opacity:.2;position:absolute;"></div>
+  <div class="cta-inner reveal">
+    <h2 class="cta-title">Tu empresa en WhatsApp,<br><span class="highlight">empezando hoy</span></h2>
+    <p class="cta-sub">Configuración en menos de 10 minutos. Sin tarjeta de crédito. Sin contrato mínimo.</p>
+    <div class="cta-actions">
+      <a href="#" class="btn-cta primary">
+        <i class="fab fa-whatsapp"></i>
+        Crear mi cuenta
+      </a>
+      <a href="#demo" class="btn-cta ghost">
+        <i class="fas fa-desktop"></i>
+        Ver demo en vivo
+      </a>
+    </div>
+    <div class="cta-trust">
+      <span><i class="fas fa-shield-alt"></i> Datos seguros</span>
+      <span><i class="fas fa-check-circle"></i> Sin tarjeta de crédito</span>
+      <span><i class="fas fa-bolt"></i> Setup en 10 minutos</span>
+      <span><i class="fas fa-headset"></i> Soporte en español</span>
+    </div>
+  </div>
+</section>
+
+
+<!-- ════════════ FOOTER ════════════ -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <div class="fb-logo">
+          <div class="logo-icon"><i class="fab fa-whatsapp"></i></div>
+          <span>Ati<em>ende</em></span>
+        </div>
+        <p>La plataforma que conecta tu empresa con tus clientes a través de WhatsApp. Pedidos, reclamos y consultas, todo automatizado.</p>
+        <div class="footer-social">
+          <a href="#" class="social-btn"><i class="fab fa-instagram"></i></a>
+          <a href="#" class="social-btn"><i class="fab fa-linkedin-in"></i></a>
+          <a href="#" class="social-btn"><i class="fab fa-twitter"></i></a>
+          <a href="#" class="social-btn"><i class="fab fa-whatsapp"></i></a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <div class="fc-title">Producto</div>
+        <ul>
+          <li><a href="#features">Funcionalidades</a></li>
+          <li><a href="#how">Cómo funciona</a></li>
+          <li><a href="#demo">Demo</a></li>
+          <li><a href="#pricing">Precios</a></li>
+          <li><a href="#">Changelog</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <div class="fc-title">Empresa</div>
+        <ul>
+          <li><a href="#">Nosotros</a></li>
+          <li><a href="#">Blog</a></li>
+          <li><a href="#">Casos de éxito</a></li>
+          <li><a href="#">Socios</a></li>
+          <li><a href="#">Contacto</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <div class="fc-title">Recursos</div>
+        <ul>
+          <li><a href="#">Documentación</a></li>
+          <li><a href="#">API Reference</a></li>
+          <li><a href="#">Guía de inicio</a></li>
+          <li><a href="#">Status del sistema</a></li>
+          <li><a href="#">Centro de ayuda</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="fb-copy">© 2025 Atiende. Todos los derechos reservados.</div>
+      <div class="fb-links">
+        <a href="#">Privacidad</a>
+        <a href="#">Términos de uso</a>
+        <a href="#">Cookies</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+
+<!-- ════════════ SCRIPTS ════════════ -->
+<script>
+  // ── Navbar scroll ──
+  window.addEventListener('scroll', () => {
+    document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 20);
+  });
+
+  // ── Mobile menu ──
+  function toggleMenu() {
+    const links = document.querySelector('.nav-links');
+    const cta   = document.querySelector('.nav-cta');
+    if (links) links.style.display = links.style.display === 'flex' ? '' : 'flex';
+  }
+
+  // ── Scroll reveal ──
+  const revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        setTimeout(() => entry.target.classList.add('visible'), i * 80);
+        revealObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+
+  document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+  // ── FAQ accordion ──
+  function toggleFaq(el) {
+    const item = el.parentElement;
+    const wasOpen = item.classList.contains('open');
+    document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+    if (!wasOpen) item.classList.add('open');
+  }
+
+  // ── Smooth scroll for nav links ──
+  document.querySelectorAll('a[href^="#"]').forEach(link => {
+    link.addEventListener('click', e => {
+      const id = link.getAttribute('href');
+      if (id === '#') return;
+      const target = document.querySelector(id);
+      if (target) {
+        e.preventDefault();
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  });
+
+  // ── Counter animation ──
+  function animateCounter(el, from, to, suffix, duration) {
+    let start = null;
+    const step = (ts) => {
+      if (!start) start = ts;
+      const progress = Math.min((ts - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const current = Math.floor(from + (to - from) * eased);
+      el.textContent = (current >= to ? to : current) + suffix;
+      if (progress < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }
+
+  // Trigger counters when stats section is visible
+  let countersTriggered = false;
+  const statsObserver = new IntersectionObserver((entries) => {
+    if (entries[0].isIntersecting && !countersTriggered) {
+      countersTriggered = true;
+      const counters = [
+        { el: document.querySelectorAll('.sb-num')[0], from: 0, to: 500, suffix: '+' },
+        { el: document.querySelectorAll('.sb-num')[1], from: 80, to: 98, suffix: '%' },
+        { el: document.querySelectorAll('.sb-num')[2], from: 1, to: 3, suffix: 'x' },
+      ];
+      counters.forEach(c => { if (c.el) animateCounter(c.el, c.from, c.to, c.suffix, 1800); });
+    }
+  }, { threshold: 0.3 });
+  const statsSection = document.getElementById('stats');
+  if (statsSection) statsObserver.observe(statsSection);
+</script>
+
+</body>
+</html>

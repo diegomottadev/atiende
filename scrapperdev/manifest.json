@@ -1,0 +1,40 @@
+{
+    "manifest_version": 3,
+    "name": "Teclazo",
+    "version": "1.0.0",
+    "description": "Atajos de texto para WhatsApp: escribi /cotizar y se expande en una respuesta completa. Plantillas profesionales por rubro.",
+    "action": {
+        "default_icon": "icon48.png",
+        "default_popup": "settings_popup.html",
+        "default_title": "Teclazo"
+    },
+    "icons": {
+        "16": "icon16.png",
+        "48": "icon48.png",
+        "128": "icon128.png"
+    },
+    "background": {
+        "service_worker": "background.js"
+    },
+    "content_scripts": [
+        {
+            "matches": [
+                "<all_urls>"
+            ],
+            "js": [
+                "config.js",
+                "api.js",
+                "content.js"
+            ],
+            "run_at": "document_idle"
+        }
+    ],
+    "permissions": [
+        "storage",
+        "activeTab"
+    ],
+    "host_permissions": [
+        "http://localhost:8000/*",
+        "https://api.clubpedidos.com/*"
+    ]
+}

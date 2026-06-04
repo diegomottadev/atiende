@@ -1,0 +1,878 @@
+/*
+ Navicat Premium Data Transfer
+
+ Source Server         : Dockerconnection
+ Source Server Type    : MySQL
+ Source Server Version : 100336
+ Source Host           : localhost:3307
+ Source Schema         : atiende
+
+ Target Server Type    : MySQL
+ Target Server Version : 100336
+ File Encoding         : 65001
+
+ Date: 27/09/2022 11:05:39
+*/
+
+SET NAMES utf8mb4;
+SET FOREIGN_KEY_CHECKS = 0;
+
+-- ----------------------------
+-- Table structure for areas
+-- ----------------------------
+DROP TABLE IF EXISTS `areas`;
+CREATE TABLE `areas`  (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `area` varchar(250) CHARACTER SET utf8 COLLATE utf8_spanish_ci NOT NULL,
+  `telefono` varchar(20) CHARACTER SET utf8 COLLATE utf8_spanish_ci NOT NULL,
+  `activo` tinyint(1) NOT NULL,
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 26 CHARACTER SET = utf8 COLLATE = utf8_spanish_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of areas
+-- ----------------------------
+INSERT INTO `areas` VALUES (1, 'Comercial', '5493764278402', 1);
+INSERT INTO `areas` VALUES (9, 'Logistica', '5493764278402', 1);
+INSERT INTO `areas` VALUES (13, 'Gerencia', '5493764278402', 1);
+INSERT INTO `areas` VALUES (15, 'Facturación', '5493764278402', 1);
+INSERT INTO `areas` VALUES (18, 'Producción', '5493764278402', 1);
+INSERT INTO `areas` VALUES (22, 'Recursos humanos', '5493764278402', 1);
+INSERT INTO `areas` VALUES (23, 'Finanzas', '5493764278402', 1);
+
+-- ----------------------------
+-- Table structure for areas_consultas
+-- ----------------------------
+DROP TABLE IF EXISTS `areas_consultas`;
+CREATE TABLE `areas_consultas`  (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `area` varchar(250) CHARACTER SET utf8 COLLATE utf8_spanish_ci NOT NULL,
+  `telefono` varchar(20) CHARACTER SET utf8 COLLATE utf8_spanish_ci NOT NULL,
+  `activo` tinyint(1) NOT NULL,
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 24 CHARACTER SET = utf8 COLLATE = utf8_spanish_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of areas_consultas
+-- ----------------------------
+INSERT INTO `areas_consultas` VALUES (1, 'Comercial', '5493764278402', 1);
+INSERT INTO `areas_consultas` VALUES (9, 'Logistica', '5493764278402', 1);
+INSERT INTO `areas_consultas` VALUES (13, 'Gerencia', '5493764278402', 1);
+INSERT INTO `areas_consultas` VALUES (15, 'Facturación', '5493764278402', 1);
+INSERT INTO `areas_consultas` VALUES (18, 'Producción', '5493764278402', 1);
+INSERT INTO `areas_consultas` VALUES (21, 'CANCELACIONES', '5493764278402', 1);
+INSERT INTO `areas_consultas` VALUES (22, 'Recursos humanos', '5493764278402', 1);
+INSERT INTO `areas_consultas` VALUES (23, 'Finanzas', '5493764278402', 1);
+
+-- ----------------------------
+-- Table structure for articulos
+-- ----------------------------
+DROP TABLE IF EXISTS `articulos`;
+CREATE TABLE `articulos`  (
+  `codigo` varchar(255) CHARACTER SET utf8 COLLATE utf8_spanish_ci NOT NULL,
+  `descripcion` varchar(250) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
+  `lista1` decimal(10, 2) NULL DEFAULT NULL,
+  `lista2` decimal(10, 2) NULL DEFAULT NULL,
+  `lista3` decimal(10, 2) NULL DEFAULT NULL,
+  `lista4` decimal(10, 2) NULL DEFAULT NULL,
+  `lista5` decimal(10, 2) NULL DEFAULT NULL,
+  `lista6` decimal(10, 2) NULL DEFAULT NULL,
+  `lista7` decimal(10, 2) NULL DEFAULT NULL,
+  `linea` varchar(150) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
+  `rubro` varchar(150) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
+  `subrubro` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
+  `marca` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
+  `kilos` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
+  `litros` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
+  `color` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
+  `tamano` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
+  `palet` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
+  `capacidad` varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
+  `pack` varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
+  `impInt` varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
+  `codBarra` varchar(120) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
+  `topecant` varchar(10) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+  `iva` varchar(10) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+  `deposito` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
+  `stock` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
+  `orden` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
+  PRIMARY KEY (`codigo`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of articulos
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for cart_cart_item
+-- ----------------------------
+DROP TABLE IF EXISTS `cart_cart_item`;
+CREATE TABLE `cart_cart_item`  (
+  `cart_id` bigint(20) UNSIGNED NOT NULL,
+  `cart_item_id` bigint(20) UNSIGNED NOT NULL,
+  INDEX `cart_cart_item_cart_id_index`(`cart_id`) USING BTREE,
+  INDEX `cart_cart_item_cart_item_id_index`(`cart_item_id`) USING BTREE,
+  CONSTRAINT `cart_cart_item_cart_id_foreign` FOREIGN KEY (`cart_id`) REFERENCES `carts` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT,
+  CONSTRAINT `cart_cart_item_cart_item_id_foreign` FOREIGN KEY (`cart_item_id`) REFERENCES `cart_items` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of cart_cart_item
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for cart_items
+-- ----------------------------
+DROP TABLE IF EXISTS `cart_items`;
+CREATE TABLE `cart_items`  (
+  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `cart_id` bigint(20) UNSIGNED NOT NULL,
+  `code` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `price` decimal(10, 2) NOT NULL,
+  `subtotal` decimal(10, 2) NOT NULL,
+  `image` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `quantity` int(10) UNSIGNED NOT NULL,
+  `brand` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `kilos` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `liters` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `color` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `size` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `created_at` timestamp(0) NULL DEFAULT NULL,
+  `updated_at` timestamp(0) NULL DEFAULT NULL,
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `cart_items_cart_id_index`(`cart_id`) USING BTREE,
+  CONSTRAINT `cart_items_cart_id_foreign` FOREIGN KEY (`cart_id`) REFERENCES `carts` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
+) ENGINE = InnoDB AUTO_INCREMENT = 57 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of cart_items
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for carts
+-- ----------------------------
+DROP TABLE IF EXISTS `carts`;
+CREATE TABLE `carts`  (
+  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `link_delivery_id` int(11) NOT NULL,
+  `auth_user` int(10) UNSIGNED NULL DEFAULT NULL,
+  `subtotal` decimal(10, 2) NOT NULL DEFAULT 0,
+  `discount` decimal(10, 2) NOT NULL DEFAULT 0,
+  `discount_percentage` decimal(5, 2) NOT NULL DEFAULT 0,
+  `coupon_id` int(10) UNSIGNED NULL DEFAULT NULL,
+  `total` decimal(10, 2) NOT NULL DEFAULT 0,
+  `status` tinyint(1) NOT NULL DEFAULT 1,
+  `created_at` timestamp(0) NULL DEFAULT NULL,
+  `updated_at` timestamp(0) NULL DEFAULT NULL,
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 21 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of carts
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for clientes
+-- ----------------------------
+DROP TABLE IF EXISTS `clientes`;
+CREATE TABLE `clientes`  (
+  `codigo` varchar(255) CHARACTER SET utf8 COLLATE utf8_spanish_ci NOT NULL,
+  `razonSocial` varchar(500) CHARACTER SET utf8 COLLATE utf8_spanish_ci NULL DEFAULT NULL,
+  `direccion` varchar(500) CHARACTER SET utf8 COLLATE utf8_spanish_ci NULL DEFAULT NULL,
+  `zona` varchar(50) CHARACTER SET utf8 COLLATE utf8_spanish_ci NULL DEFAULT NULL,
+  `vendedor` varchar(10) CHARACTER SET utf8 COLLATE utf8_spanish_ci NOT NULL,
+  `supervisor` varchar(100) CHARACTER SET utf8 COLLATE utf8_spanish_ci NULL DEFAULT NULL,
+  `telefono` varchar(50) CHARACTER SET utf8 COLLATE utf8_spanish_ci NULL DEFAULT NULL,
+  `lista` varchar(10) CHARACTER SET utf8 COLLATE utf8_spanish_ci NULL DEFAULT NULL,
+  `orden` varchar(50) CHARACTER SET utf8 COLLATE utf8_spanish_ci NULL DEFAULT NULL,
+  `ramo` varchar(100) CHARACTER SET utf8 COLLATE utf8_spanish_ci NULL DEFAULT NULL,
+  `subramo` varchar(100) CHARACTER SET utf8 COLLATE utf8_spanish_ci NULL DEFAULT NULL,
+  `localidad` varchar(300) CHARACTER SET utf8 COLLATE utf8_spanish_ci NULL DEFAULT NULL,
+  `provincia` varchar(100) CHARACTER SET utf8 COLLATE utf8_spanish_ci NULL DEFAULT NULL,
+  `pais` varchar(100) CHARACTER SET utf8 COLLATE utf8_spanish_ci NULL DEFAULT NULL,
+  `deposito` varchar(50) CHARACTER SET utf8 COLLATE utf8_spanish_ci NOT NULL,
+  `latitud` varchar(100) CHARACTER SET utf8 COLLATE utf8_spanish_ci NOT NULL,
+  `longitud` varchar(100) CHARACTER SET utf8 COLLATE utf8_spanish_ci NOT NULL,
+  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1014 CHARACTER SET = utf8 COLLATE = utf8_spanish_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of clientes
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for consultas
+-- ----------------------------
+DROP TABLE IF EXISTS `consultas`;
+CREATE TABLE `consultas`  (
+  `consultaId` int(11) NOT NULL AUTO_INCREMENT,
+  `empresa` varchar(100) CHARACTER SET utf8 COLLATE utf8_spanish_ci NOT NULL,
+  `fecha_ingreso` datetime(0) NOT NULL,
+  `clienteId` varchar(100) CHARACTER SET utf8 COLLATE utf8_spanish_ci NOT NULL,
+  `telefono` varchar(100) CHARACTER SET utf8 COLLATE utf8_spanish_ci NOT NULL,
+  `nick` varchar(250) CHARACTER SET utf8 COLLATE utf8_spanish_ci NOT NULL,
+  `motivo` varchar(250) CHARACTER SET utf8 COLLATE utf8_spanish_ci NOT NULL,
+  `area` varchar(250) CHARACTER SET utf8 COLLATE utf8_spanish_ci NOT NULL,
+  `detalle` text CHARACTER SET utf8 COLLATE utf8_spanish_ci NOT NULL,
+  `fecha_resolucion` datetime(0) NULL DEFAULT NULL,
+  `resolucion` text CHARACTER SET utf8 COLLATE utf8_spanish_ci NOT NULL,
+  `estado` varchar(100) CHARACTER SET utf8 COLLATE utf8_spanish_ci NOT NULL DEFAULT 'Pendiente',
+  `notificado` int(11) NOT NULL DEFAULT 0,
+  `anulado` tinyint(1) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`consultaId`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8 COLLATE = utf8_spanish_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of consultas
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for contactos
+-- ----------------------------
+DROP TABLE IF EXISTS `contactos`;
+CREATE TABLE `contactos`  (
+  `id` varchar(100) CHARACTER SET utf8 COLLATE utf8_spanish_ci NOT NULL,
+  `empresaId` int(11) NULL DEFAULT NULL,
+  `nombre` varchar(250) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `telefono` varchar(50) CHARACTER SET utf8 COLLATE utf8_spanish_ci NULL DEFAULT NULL,
+  `menu` varchar(11) CHARACTER SET utf8 COLLATE utf8_spanish_ci NULL DEFAULT NULL,
+  `esperaRespuesta` int(1) NOT NULL DEFAULT 0,
+  `anterior` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
+  `mensaje` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
+  `fechaHora` datetime(0) NULL DEFAULT NULL,
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_spanish_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of contactos
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for contactosb2c
+-- ----------------------------
+DROP TABLE IF EXISTS `contactosb2c`;
+CREATE TABLE `contactosb2c`  (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `telefono` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `codigo` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `razonSocial` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `direccion` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `localidad` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `ramo` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `zona` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `cuit` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 4553 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of contactosb2c
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for emprendedores
+-- ----------------------------
+DROP TABLE IF EXISTS `emprendedores`;
+CREATE TABLE `emprendedores`  (
+  `id` int(11) NOT NULL,
+  `nombre` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
+  `telefono` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
+  `rubro` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
+  `codigo` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of emprendedores
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for fidelizar
+-- ----------------------------
+DROP TABLE IF EXISTS `fidelizar`;
+CREATE TABLE `fidelizar`  (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `fecha` datetime(0) NOT NULL,
+  `clienteid` varchar(50) CHARACTER SET utf8 COLLATE utf8_spanish_ci NOT NULL,
+  `pedidoid` int(11) NOT NULL,
+  `tipo` int(11) NOT NULL,
+  `mensaje` varchar(250) CHARACTER SET utf8 COLLATE utf8_spanish_ci NOT NULL,
+  `estado` int(11) NOT NULL,
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 313 CHARACTER SET = utf8 COLLATE = utf8_spanish_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of fidelizar
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for link_pedidos
+-- ----------------------------
+DROP TABLE IF EXISTS `link_pedidos`;
+CREATE TABLE `link_pedidos`  (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `clienteId` varchar(50) CHARACTER SET utf8 COLLATE utf8_spanish_ci NOT NULL,
+  `telefono` varchar(100) CHARACTER SET utf8 COLLATE utf8_spanish_ci NOT NULL,
+  `token` varchar(250) CHARACTER SET utf8 COLLATE utf8_spanish_ci NOT NULL,
+  `fecha` datetime(0) NOT NULL,
+  `estado` int(11) NOT NULL,
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 2019 CHARACTER SET = utf8 COLLATE = utf8_spanish_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of link_pedidos
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for mensajeb2c_contactob2c
+-- ----------------------------
+DROP TABLE IF EXISTS `mensajeb2c_contactob2c`;
+CREATE TABLE `mensajeb2c_contactob2c`  (
+  `mensajeb2c_id` bigint(18) NULL DEFAULT NULL,
+  `contactob2c_id` bigint(18) NULL DEFAULT NULL,
+  INDEX `fk_mensajeb2c`(`mensajeb2c_id`) USING BTREE,
+  INDEX `fk_contactob2c`(`contactob2c_id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of mensajeb2c_contactob2c
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for mensajes
+-- ----------------------------
+DROP TABLE IF EXISTS `mensajes`;
+CREATE TABLE `mensajes`  (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `titulo` varchar(250) CHARACTER SET utf8 COLLATE utf8_spanish_ci NOT NULL,
+  `mensaje` text CHARACTER SET utf8 COLLATE utf8_spanish_ci NOT NULL,
+  `fecha` datetime(0) NOT NULL,
+  `cantidad` int(11) NOT NULL,
+  `destino` longtext CHARACTER SET utf8 COLLATE utf8_spanish_ci NOT NULL,
+  `estado` tinyint(1) NOT NULL,
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 8 CHARACTER SET = utf8 COLLATE = utf8_spanish_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of mensajes
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for mensajesb2c
+-- ----------------------------
+DROP TABLE IF EXISTS `mensajesb2c`;
+CREATE TABLE `mensajesb2c`  (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `titulo` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `mensaje` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL,
+  `fecha` datetime(0) NULL DEFAULT NULL,
+  `cantidad` int(11) NULL DEFAULT NULL,
+  `estado` tinyint(1) NULL DEFAULT 0,
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 31 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of mensajesb2c
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for menuitem
+-- ----------------------------
+DROP TABLE IF EXISTS `menuitem`;
+CREATE TABLE `menuitem`  (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `opcionId` varchar(100) CHARACTER SET utf8 COLLATE utf8_spanish_ci NOT NULL,
+  `opcion` varchar(250) CHARACTER SET utf8 COLLATE utf8_spanish_ci NOT NULL,
+  `menuId` varchar(20) CHARACTER SET utf8 COLLATE utf8_spanish_ci NOT NULL,
+  `guardar` tinyint(1) NOT NULL,
+  `area` varchar(20) CHARACTER SET utf8 COLLATE utf8_spanish_ci NOT NULL,
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 31 CHARACTER SET = utf8 COLLATE = utf8_spanish_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of menuitem
+-- ----------------------------
+INSERT INTO `menuitem` VALUES (1, 'A', 'Tu pedido aun no ha llegado?', '5', 0, '9');
+INSERT INTO `menuitem` VALUES (3, 'C', 'Te llego un producto equivocado?', '5', 0, '15');
+INSERT INTO `menuitem` VALUES (4, 'D', 'Tu pedido llego con otro importe?', '5', 0, '1');
+INSERT INTO `menuitem` VALUES (5, 'E', 'Tienes alguna sugerencia?', '5', 0, '13');
+INSERT INTO `menuitem` VALUES (29, 'B', 'moitvó', '5', 0, '22');
+
+-- ----------------------------
+-- Table structure for migrations
+-- ----------------------------
+DROP TABLE IF EXISTS `migrations`;
+CREATE TABLE `migrations`  (
+  `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `migration` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `batch` int(11) NOT NULL,
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 25 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of migrations
+-- ----------------------------
+INSERT INTO `migrations` VALUES (1, '2022_07_07_210233_create_articulos_table', 0);
+INSERT INTO `migrations` VALUES (2, '2022_07_07_210233_create_pedidos_table', 0);
+INSERT INTO `migrations` VALUES (3, '2019_12_14_000001_create_personal_access_tokens_table', 1);
+INSERT INTO `migrations` VALUES (4, '2016_06_01_000001_create_oauth_auth_codes_table', 2);
+INSERT INTO `migrations` VALUES (5, '2016_06_01_000002_create_oauth_access_tokens_table', 2);
+INSERT INTO `migrations` VALUES (6, '2016_06_01_000003_create_oauth_refresh_tokens_table', 2);
+INSERT INTO `migrations` VALUES (7, '2016_06_01_000004_create_oauth_clients_table', 2);
+INSERT INTO `migrations` VALUES (8, '2016_06_01_000005_create_oauth_personal_access_clients_table', 2);
+INSERT INTO `migrations` VALUES (11, '2022_07_29_194246_create_carts_table', 3);
+INSERT INTO `migrations` VALUES (22, '2022_07_29_201649_create_carts_table', 4);
+INSERT INTO `migrations` VALUES (23, '2022_07_29_201724_create_cart_items_table', 5);
+INSERT INTO `migrations` VALUES (24, '2022_08_01_150037_create_cart_cart_item_table', 5);
+
+-- ----------------------------
+-- Table structure for motivo_reclamos
+-- ----------------------------
+DROP TABLE IF EXISTS `motivo_reclamos`;
+CREATE TABLE `motivo_reclamos`  (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `opcionId` varchar(100) CHARACTER SET utf8 COLLATE utf8_spanish_ci NOT NULL,
+  `opcion` varchar(250) CHARACTER SET utf8 COLLATE utf8_spanish_ci NOT NULL,
+  `menuId` varchar(20) CHARACTER SET utf8 COLLATE utf8_spanish_ci NOT NULL,
+  `guardar` tinyint(1) NOT NULL,
+  `area` varchar(20) CHARACTER SET utf8 COLLATE utf8_spanish_ci NOT NULL,
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 10 CHARACTER SET = utf8 COLLATE = utf8_spanish_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of motivo_reclamos
+-- ----------------------------
+INSERT INTO `motivo_reclamos` VALUES (1, 'A', 'Tu pedido aun no ha llegado?', '5', 0, '9');
+INSERT INTO `motivo_reclamos` VALUES (2, 'B', 'Te llego un producto equivocado?', '5', 0, '15');
+INSERT INTO `motivo_reclamos` VALUES (3, 'C', 'Tu pedido llego con otro importe?', '5', 0, '1');
+INSERT INTO `motivo_reclamos` VALUES (4, 'D', 'Tienes alguna sugerencia?', '5', 0, '13');
+
+-- ----------------------------
+-- Table structure for motivo_consultas
+-- ----------------------------
+DROP TABLE IF EXISTS `motivo_consultas`;
+CREATE TABLE `motivo_consultas`  (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `opcionId` varchar(100) CHARACTER SET utf8 COLLATE utf8_spanish_ci NOT NULL,
+  `opcion` varchar(250) CHARACTER SET utf8 COLLATE utf8_spanish_ci NOT NULL,
+  `menuId` varchar(20) CHARACTER SET utf8 COLLATE utf8_spanish_ci NOT NULL,
+  `guardar` tinyint(1) NOT NULL,
+  `area` varchar(20) CHARACTER SET utf8 COLLATE utf8_spanish_ci NOT NULL,
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 36 CHARACTER SET = utf8 COLLATE = utf8_spanish_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of motivo_consultas
+-- ----------------------------
+INSERT INTO `motivo_consultas` VALUES (34, 'A', 'Motivo VI', '15', 0, '1');
+INSERT INTO `motivo_consultas` VALUES (35, 'B', 'Motivo', '15', 0, '15');
+
+-- ----------------------------
+-- Table structure for msj_consultas
+-- ----------------------------
+DROP TABLE IF EXISTS `msj_consultas`;
+CREATE TABLE `msj_consultas`  (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `id_consulta` int(11) NOT NULL,
+  `tipo` int(11) NOT NULL,
+  `fecha` datetime(0) NOT NULL,
+  `mensaje` text CHARACTER SET utf8 COLLATE utf8_spanish_ci NOT NULL,
+  `respondido` int(11) NOT NULL,
+  `estado` varchar(250) CHARACTER SET utf8 COLLATE utf8_spanish_ci NOT NULL,
+  `canal` int(1) NULL DEFAULT NULL,
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 9 CHARACTER SET = utf8 COLLATE = utf8_spanish_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of msj_consultas
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for msj_reclamos
+-- ----------------------------
+DROP TABLE IF EXISTS `msj_reclamos`;
+CREATE TABLE `msj_reclamos`  (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `id_reclamo` int(11) NOT NULL,
+  `tipo` int(11) NOT NULL,
+  `fecha` datetime(0) NOT NULL,
+  `mensaje` text CHARACTER SET utf8 COLLATE utf8_spanish_ci NOT NULL,
+  `respondido` int(11) NOT NULL,
+  `estado` varchar(250) CHARACTER SET utf8 COLLATE utf8_spanish_ci NOT NULL,
+  `canal` int(1) NULL DEFAULT -1,
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 10 CHARACTER SET = utf8 COLLATE = utf8_spanish_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of msj_reclamos
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for oauth_access_tokens
+-- ----------------------------
+DROP TABLE IF EXISTS `oauth_access_tokens`;
+CREATE TABLE `oauth_access_tokens`  (
+  `id` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `user_id` bigint(20) UNSIGNED NULL DEFAULT NULL,
+  `client_id` bigint(20) UNSIGNED NOT NULL,
+  `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `scopes` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
+  `revoked` tinyint(1) NOT NULL,
+  `created_at` timestamp(0) NULL DEFAULT NULL,
+  `updated_at` timestamp(0) NULL DEFAULT NULL,
+  `expires_at` datetime(0) NULL DEFAULT NULL,
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `oauth_access_tokens_user_id_index`(`user_id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of oauth_access_tokens
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for oauth_auth_codes
+-- ----------------------------
+DROP TABLE IF EXISTS `oauth_auth_codes`;
+CREATE TABLE `oauth_auth_codes`  (
+  `id` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `user_id` bigint(20) UNSIGNED NOT NULL,
+  `client_id` bigint(20) UNSIGNED NOT NULL,
+  `scopes` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
+  `revoked` tinyint(1) NOT NULL,
+  `expires_at` datetime(0) NULL DEFAULT NULL,
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `oauth_auth_codes_user_id_index`(`user_id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Table structure for oauth_clients
+-- ----------------------------
+DROP TABLE IF EXISTS `oauth_clients`;
+CREATE TABLE `oauth_clients`  (
+  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) UNSIGNED NULL DEFAULT NULL,
+  `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `secret` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `provider` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `redirect` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `personal_access_client` tinyint(1) NOT NULL,
+  `password_client` tinyint(1) NOT NULL,
+  `revoked` tinyint(1) NOT NULL,
+  `created_at` timestamp(0) NULL DEFAULT NULL,
+  `updated_at` timestamp(0) NULL DEFAULT NULL,
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `oauth_clients_user_id_index`(`user_id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of oauth_clients
+-- ----------------------------
+INSERT INTO `oauth_clients` VALUES (1, 0, 'client', '0aQ4T87z0fGpzg4JOQ1TAeEc9AGulS0nFVsS9Jn3', NULL, 'http://127.0.0.1:8000/auth/callback', 0, 0, 0, '2022-07-28 15:49:43', '2022-07-28 15:49:43');
+
+-- ----------------------------
+-- Table structure for oauth_personal_access_clients
+-- ----------------------------
+DROP TABLE IF EXISTS `oauth_personal_access_clients`;
+CREATE TABLE `oauth_personal_access_clients`  (
+  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `client_id` bigint(20) UNSIGNED NOT NULL,
+  `created_at` timestamp(0) NULL DEFAULT NULL,
+  `updated_at` timestamp(0) NULL DEFAULT NULL,
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Table structure for oauth_refresh_tokens
+-- ----------------------------
+DROP TABLE IF EXISTS `oauth_refresh_tokens`;
+CREATE TABLE `oauth_refresh_tokens`  (
+  `id` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `access_token_id` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `revoked` tinyint(1) NOT NULL,
+  `expires_at` datetime(0) NULL DEFAULT NULL,
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `oauth_refresh_tokens_access_token_id_index`(`access_token_id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Table structure for password_resets
+-- ----------------------------
+DROP TABLE IF EXISTS `password_resets`;
+CREATE TABLE `password_resets`  (
+  `email` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `token` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `created_at` timestamp(0) NULL DEFAULT NULL,
+  INDEX `password_resets_email_index`(`email`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Table structure for pedidos
+-- ----------------------------
+DROP TABLE IF EXISTS `pedidos`;
+CREATE TABLE `pedidos`  (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `clienteId` varchar(50) CHARACTER SET utf8 COLLATE utf8_spanish_ci NULL DEFAULT NULL,
+  `fecha` datetime(0) NULL DEFAULT NULL,
+  `producto` varchar(50) CHARACTER SET utf8 COLLATE utf8_spanish_ci NULL DEFAULT NULL,
+  `descripcion` varchar(250) CHARACTER SET utf8 COLLATE utf8_spanish_ci NULL DEFAULT NULL,
+  `cantidad` varchar(50) CHARACTER SET utf8 COLLATE utf8_spanish_ci NULL DEFAULT NULL,
+  `precio` varchar(10) CHARACTER SET utf8 COLLATE utf8_spanish_ci NULL DEFAULT NULL,
+  `descuento` varchar(10) CHARACTER SET utf8 COLLATE utf8_spanish_ci NULL DEFAULT NULL,
+  `pedidoid` text CHARACTER SET utf8 COLLATE utf8_spanish_ci NULL,
+  `pagado` tinyint(1) NULL DEFAULT 0,
+  `telefono` text CHARACTER SET utf8 COLLATE utf8_spanish_ci NULL,
+  `dato5` text CHARACTER SET utf8 COLLATE utf8_spanish_ci NULL,
+  `dato6` text CHARACTER SET utf8 COLLATE utf8_spanish_ci NULL,
+  `dato7` text CHARACTER SET utf8 COLLATE utf8_spanish_ci NULL,
+  `dato8` text CHARACTER SET utf8 COLLATE utf8_spanish_ci NULL,
+  `dato9` text CHARACTER SET utf8 COLLATE utf8_spanish_ci NULL,
+  `subtotal` varchar(10) CHARACTER SET utf8 COLLATE utf8_spanish_ci NULL DEFAULT NULL,
+  `flag` int(11) NULL DEFAULT NULL,
+  `vendedorId` varchar(18) CHARACTER SET utf8 COLLATE utf8_spanish_ci NULL DEFAULT NULL,
+  `repartidor_id` varchar(18) CHARACTER SET utf8 COLLATE utf8_spanish_ci NULL DEFAULT NULL,
+  `fecha_asignacion` datetime(0) NULL DEFAULT NULL,
+  `fecha_notificacion` datetime(0) NULL DEFAULT NULL,
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 258 CHARACTER SET = utf8 COLLATE = utf8_spanish_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of pedidos
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for permiso
+-- ----------------------------
+DROP TABLE IF EXISTS `permiso`;
+CREATE TABLE `permiso`  (
+  `idpermiso` int(11) NOT NULL AUTO_INCREMENT,
+  `nombre` varchar(30) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+  PRIMARY KEY (`idpermiso`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 12 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of permiso
+-- ----------------------------
+INSERT INTO `permiso` VALUES (1, 'Panel de control');
+INSERT INTO `permiso` VALUES (2, 'Reclamos');
+INSERT INTO `permiso` VALUES (3, 'Consultas');
+INSERT INTO `permiso` VALUES (4, 'Ventas');
+INSERT INTO `permiso` VALUES (5, 'Seguridad');
+INSERT INTO `permiso` VALUES (6, 'Mensajes masivos');
+INSERT INTO `permiso` VALUES (8, 'Base de datos');
+INSERT INTO `permiso` VALUES (9, 'Vendedores');
+INSERT INTO `permiso` VALUES (10, 'Repartos');
+INSERT INTO `permiso` VALUES (11, 'Configuración');
+
+-- ----------------------------
+-- Table structure for personal_access_tokens
+-- ----------------------------
+DROP TABLE IF EXISTS `personal_access_tokens`;
+CREATE TABLE `personal_access_tokens`  (
+  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `tokenable_type` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `tokenable_id` bigint(20) UNSIGNED NOT NULL,
+  `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `token` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `abilities` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
+  `last_used_at` timestamp(0) NULL DEFAULT NULL,
+  `created_at` timestamp(0) NULL DEFAULT NULL,
+  `updated_at` timestamp(0) NULL DEFAULT NULL,
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `personal_access_tokens_token_unique`(`token`) USING BTREE,
+  INDEX `personal_access_tokens_tokenable_type_tokenable_id_index`(`tokenable_type`, `tokenable_id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Table structure for reclamos
+-- ----------------------------
+DROP TABLE IF EXISTS `reclamos`;
+CREATE TABLE `reclamos`  (
+  `reclamoId` int(11) NOT NULL AUTO_INCREMENT,
+  `empresa` varchar(100) CHARACTER SET utf8 COLLATE utf8_spanish_ci NOT NULL,
+  `fecha_ingreso` datetime(0) NOT NULL,
+  `clienteId` varchar(100) CHARACTER SET utf8 COLLATE utf8_spanish_ci NOT NULL,
+  `telefono` varchar(100) CHARACTER SET utf8 COLLATE utf8_spanish_ci NOT NULL,
+  `nick` varchar(250) CHARACTER SET utf8 COLLATE utf8_spanish_ci NOT NULL,
+  `motivo` varchar(250) CHARACTER SET utf8 COLLATE utf8_spanish_ci NOT NULL,
+  `area` varchar(250) CHARACTER SET utf8 COLLATE utf8_spanish_ci NOT NULL,
+  `detalle` text CHARACTER SET utf8 COLLATE utf8_spanish_ci NOT NULL,
+  `fecha_resolucion` datetime(0) NULL DEFAULT NULL,
+  `resolucion` text CHARACTER SET utf8 COLLATE utf8_spanish_ci NOT NULL,
+  `estado` varchar(100) CHARACTER SET utf8 COLLATE utf8_spanish_ci NOT NULL DEFAULT 'Pendiente',
+  `notificado` int(11) NOT NULL DEFAULT 0,
+  `anulado` tinyint(1) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`reclamoId`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 30 CHARACTER SET = utf8 COLLATE = utf8_spanish_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of reclamos
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for repartidores
+-- ----------------------------
+DROP TABLE IF EXISTS `repartidores`;
+CREATE TABLE `repartidores`  (
+  `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `nombre` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `telefono` varchar(18) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of repartidores
+-- ----------------------------
+INSERT INTO `repartidores` VALUES (3, 'Leandro Lezac', '5491132980398');
+INSERT INTO `repartidores` VALUES (4, 'Diego Motta', '5493764278402');
+
+-- ----------------------------
+-- Table structure for rubros_emprendedores
+-- ----------------------------
+DROP TABLE IF EXISTS `rubros_emprendedores`;
+CREATE TABLE `rubros_emprendedores`  (
+  `id` int(11) NOT NULL,
+  `opcionId` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+  `rubro` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
+  `menuId` varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
+  PRIMARY KEY (`id`, `opcionId`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of rubros_emprendedores
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for solicitudes
+-- ----------------------------
+DROP TABLE IF EXISTS `solicitudes`;
+CREATE TABLE `solicitudes`  (
+  `id` bigint(50) NOT NULL AUTO_INCREMENT,
+  `nombre` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `direccion` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `localidad` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `telefono` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `estado` tinyint(1) UNSIGNED NOT NULL DEFAULT 0,
+  `fecha` timestamp(6) NULL DEFAULT NULL,
+  `cuit` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `latitud` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `longitud` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of solicitudes
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for telefonos
+-- ----------------------------
+DROP TABLE IF EXISTS `telefonos`;
+CREATE TABLE `telefonos`  (
+  `clienteId` varchar(250) CHARACTER SET utf8 COLLATE utf8_spanish_ci NOT NULL,
+  `telefono` varchar(100) CHARACTER SET utf8 COLLATE utf8_spanish_ci NOT NULL,
+  `activo` int(11) NOT NULL,
+  PRIMARY KEY (`telefono`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_spanish_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of telefonos
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for users
+-- ----------------------------
+DROP TABLE IF EXISTS `users`;
+CREATE TABLE `users`  (
+  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `email` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `email_verified_at` timestamp(0) NULL DEFAULT NULL,
+  `password` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `remember_token` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `created_at` timestamp(0) NULL DEFAULT NULL,
+  `updated_at` timestamp(0) NULL DEFAULT NULL,
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `users_email_unique`(`email`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of users
+-- ----------------------------
+INSERT INTO `users` VALUES (1, 'diego', 'diego@diego.com', NULL, '$2y$10$0IwWIpleBGBMznEekooeF.PPCwWRxxkFC3CaNMegSqX0yZ/hq0ZH6', NULL, NULL, NULL);
+
+-- ----------------------------
+-- Table structure for usuario
+-- ----------------------------
+DROP TABLE IF EXISTS `usuario`;
+CREATE TABLE `usuario`  (
+  `idusuario` int(11) NOT NULL AUTO_INCREMENT,
+  `nombre` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+  `tipo_documento` varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+  `num_documento` varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+  `direccion` varchar(70) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
+  `telefono` varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
+  `email` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
+  `cargo` varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
+  `login` varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+  `clave` varchar(64) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+  `imagen` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+  `condicion` tinyint(4) NOT NULL DEFAULT 1,
+  PRIMARY KEY (`idusuario`) USING BTREE,
+  UNIQUE INDEX `login_UNIQUE`(`login`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of usuario
+-- ----------------------------
+INSERT INTO `usuario` VALUES (1, 'Atiende', 'DNI', '0000000', 'Calle los alpes 210', '547821', 'atiende@gmail.com', 'Administrador', 'atiende', 'Incubadora#*2022', '1646772875.png', 1);
+
+-- ----------------------------
+-- Table structure for usuario_permiso
+-- ----------------------------
+DROP TABLE IF EXISTS `usuario_permiso`;
+CREATE TABLE `usuario_permiso`  (
+  `idusuario_permiso` int(11) NOT NULL AUTO_INCREMENT,
+  `idusuario` int(11) NOT NULL,
+  `idpermiso` int(11) NOT NULL,
+  PRIMARY KEY (`idusuario_permiso`) USING BTREE,
+  INDEX `fk_u_permiso_usuario_idx`(`idusuario`) USING BTREE,
+  INDEX `fk_usuario_permiso_idx`(`idpermiso`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 300 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of usuario_permiso
+-- ----------------------------
+INSERT INTO `usuario_permiso` VALUES (255, 1, 1);
+INSERT INTO `usuario_permiso` VALUES (256, 1, 2);
+INSERT INTO `usuario_permiso` VALUES (257, 1, 3);
+INSERT INTO `usuario_permiso` VALUES (258, 1, 4);
+INSERT INTO `usuario_permiso` VALUES (259, 1, 5);
+INSERT INTO `usuario_permiso` VALUES (260, 1, 6);
+INSERT INTO `usuario_permiso` VALUES (261, 1, 7);
+INSERT INTO `usuario_permiso` VALUES (262, 1, 8);
+INSERT INTO `usuario_permiso` VALUES (263, 1, 9);
+INSERT INTO `usuario_permiso` VALUES (264, 1, 10);
+
+-- ----------------------------
+-- Table structure for vendedores
+-- ----------------------------
+DROP TABLE IF EXISTS `vendedores`;
+CREATE TABLE `vendedores`  (
+  `codigo` varchar(50) CHARACTER SET utf8 COLLATE utf8_spanish_ci NOT NULL,
+  `nombre` varchar(250) CHARACTER SET utf8 COLLATE utf8_spanish_ci NULL DEFAULT NULL,
+  `telefono` varchar(120) CHARACTER SET utf8 COLLATE utf8_spanish_ci NULL DEFAULT NULL,
+  `version` varchar(120) CHARACTER SET utf8 COLLATE utf8_spanish_ci NULL DEFAULT NULL,
+  `supervisor` varchar(10) CHARACTER SET utf8 COLLATE utf8_spanish_ci NOT NULL,
+  `atencion` varchar(255) CHARACTER SET utf8 COLLATE utf8_spanish_ci NULL DEFAULT NULL,
+  PRIMARY KEY (`codigo`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_spanish_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of vendedores
+-- ----------------------------
+INSERT INTO `vendedores` VALUES ('1', 'SAYEGH JULIO', '5491128054005', ' ', '1', NULL);
+INSERT INTO `vendedores` VALUES ('2', 'DISCUY S.R.L. ICOM. CL.ESP (San  Juan)', '5493764278502', ' ', '11', NULL);
+INSERT INTO `vendedores` VALUES ('3', 'CHALIDUM GUSTAVO', '5493764278402', ' ', '', NULL);
+
+SET FOREIGN_KEY_CHECKS = 1;

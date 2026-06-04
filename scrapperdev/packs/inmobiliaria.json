@@ -1,0 +1,74 @@
+[
+  {
+    "trigger": "/propiedad_ficha",
+    "content": "Hola {cliente}! Te paso la ficha de la propiedad que te interesó:\n\n📍 *{direccion}*\n🛏 Ambientes: {ambientes}\n📐 Superficie: {superficie} m²\n💰 Precio: {precio}\n💸 Expensas: {expensas}\n\n{detalle_extra}\n\n¿Querés coordinar una visita? Decime qué días y horarios te vienen bien.",
+    "variables": ["cliente", "direccion", "ambientes", "superficie", "precio", "expensas", "detalle_extra"],
+    "category": "inmobiliaria"
+  },
+  {
+    "trigger": "/visita_coordinar",
+    "content": "Hola {cliente}! Con gusto coordinamos la visita a {direccion}.\n\nTengo disponibilidad para mostrarte la propiedad el {fecha} a las {hora}. ¿Te viene bien?\n\nSi preferís otro horario, decime y busco una opción.",
+    "variables": ["cliente", "direccion", "fecha", "hora"],
+    "category": "inmobiliaria"
+  },
+  {
+    "trigger": "/visita_confirmacion",
+    "content": "Hola {cliente}! Te confirmo la visita a *{direccion}* para el {fecha} a las {hora}.\n\nTe espero ahí. Si por algún motivo no podés ir, avisame con anticipación.\n\nHasta entonces! {asesor}",
+    "variables": ["cliente", "direccion", "fecha", "hora", "asesor"],
+    "category": "inmobiliaria"
+  },
+  {
+    "trigger": "/disponible",
+    "content": "Hola {cliente}! La propiedad en {direccion} sigue disponible.\n\nEl precio actual es {precio}. ¿Querés que coordinemos una visita esta semana?",
+    "variables": ["cliente", "direccion", "precio"],
+    "category": "inmobiliaria"
+  },
+  {
+    "trigger": "/no_disponible",
+    "content": "Hola {cliente}, lamentablemente la propiedad en {direccion} ya fue reservada/alquilada.\n\nPero tengo otras opciones similares que podrían interesarte. ¿Querés que te mande algunas alternativas?",
+    "variables": ["cliente", "direccion"],
+    "category": "inmobiliaria"
+  },
+  {
+    "trigger": "/requisitos_alquiler",
+    "content": "Hola {cliente}! Te paso los requisitos para alquilar la propiedad en {direccion}:\n\n*Documentación:*\n• DNI del/los inquilino/s\n• Últimos 3 recibos de sueldo (o cert. de ingresos)\n• Constancia de ARCA/AFIP (monotributo/autónomo)\n\n*Garantía (elegís 2 opciones):*\n• Propietario/a garante con título de propiedad\n• Seguro de caución\n• Aval bancario\n• Garantía personal con recibos de sueldo\n\n*Al momento de la firma:*\n• 1 mes de depósito\n• 1 mes adelantado\n• Honorarios: {honorarios}\n\n¿Tenés alguna duda?",
+    "variables": ["cliente", "direccion", "honorarios"],
+    "category": "inmobiliaria"
+  },
+  {
+    "trigger": "/reserva_instrucciones",
+    "content": "Hola {cliente}! Para reservar la propiedad en {direccion} necesitamos:\n\n• Seña de reserva: ${monto_senia}\n• Forma de pago: {forma_pago}\n• Datos bancarios: CBU {cbu} / Alias {alias} a nombre de {titular}\n\nUna vez confirmado el pago, agendamos la firma del contrato.\n\nCualquier duda, estoy a disposición. {asesor}",
+    "variables": ["cliente", "direccion", "monto_senia", "forma_pago", "cbu", "alias", "titular", "asesor"],
+    "category": "inmobiliaria"
+  },
+  {
+    "trigger": "/post_visita",
+    "content": "Hola {cliente}! Espero que la visita a {direccion} haya sido de tu agrado.\n\n¿Qué te pareció? Si te interesa avanzar o tenés alguna consulta, escribime sin compromiso.\n\nSaludos, {asesor}",
+    "variables": ["cliente", "direccion", "asesor"],
+    "category": "inmobiliaria"
+  },
+  {
+    "trigger": "/renovacion_contrato",
+    "content": "Hola {cliente}:\n\nTe escribo porque el contrato de alquiler de {direccion} vence el {fecha_vencimiento}.\n\nPara coordinar la renovación necesitamos que nos contactes antes del {fecha_limite}. De lo contrario, puede quedar sin efecto la continuidad del contrato.\n\nQuedo a disposición. {asesor}",
+    "variables": ["cliente", "direccion", "fecha_vencimiento", "fecha_limite", "asesor"],
+    "category": "inmobiliaria"
+  },
+  {
+    "trigger": "/actualizacion_alquiler",
+    "content": "Hola {cliente}:\n\nTe informo que a partir del {fecha} el valor de tu alquiler en {direccion} se actualiza a ${monto_nuevo} mensuales, conforme el índice {indice} vigente.\n\nCualquier consulta, estoy a tu disposición.\n\nSaludos, {asesor}",
+    "variables": ["cliente", "fecha", "direccion", "monto_nuevo", "indice", "asesor"],
+    "category": "inmobiliaria"
+  },
+  {
+    "trigger": "/devolucion_deposito",
+    "content": "Hola {cliente}:\n\nEn relación a la finalización del contrato de {direccion}, te informo que el depósito en garantía de ${monto_deposito} será devuelto una vez realizada la inspección del inmueble y verificado que no hay deudas pendientes de servicios.\n\nCoordinamos el {fecha} a las {hora} para la inspección final y entrega de llaves. ¿Te viene bien?\n\nSaludos, {asesor}",
+    "variables": ["cliente", "direccion", "monto_deposito", "fecha", "hora", "asesor"],
+    "category": "inmobiliaria"
+  },
+  {
+    "trigger": "/contacto_inicial",
+    "content": "Hola {cliente}! Soy {asesor} de {inmobiliaria}.\n\nVi que consultaste por {propiedad}. Contame un poco más sobre lo que estás buscando (zona, ambientes, presupuesto) y con gusto te ayudo a encontrar la mejor opción.\n\nEstoy a tu disposición!",
+    "variables": ["cliente", "asesor", "inmobiliaria", "propiedad"],
+    "category": "inmobiliaria"
+  }
+]

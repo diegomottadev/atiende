@@ -1,0 +1,122 @@
+[
+  {
+    "trigger": "/cotizar",
+    "content": "Hola {cliente}, soy {abogado} del Estudio {estudio}.\n\nRecebi tu consulta y con gusto te cuento cómo trabajamos. Para poder darte un presupuesto preciso necesito que me cuentes un poco más sobre la situación.\n\n¿Tenés unos minutos para hablar hoy o mañana?",
+    "variables": ["cliente", "abogado", "estudio"],
+    "category": "legal"
+  },
+  {
+    "trigger": "/honorarios",
+    "content": "Hola {cliente}:\n\nEn función de lo conversado, mis honorarios por el caso son los siguientes:\n\n• Consulta inicial: ${monto_consulta}\n• Honorarios por gestión completa: ${monto_total}\n• Forma de pago: {forma_pago}\n\nEste importe incluye {detalle_servicios}.\n\nQuedo a disposición para cualquier consulta.",
+    "variables": ["cliente", "monto_consulta", "monto_total", "forma_pago", "detalle_servicios"],
+    "category": "legal"
+  },
+  {
+    "trigger": "/consulta_ok",
+    "content": "Hola {cliente}, gracias por comunicarte.\n\nAnalicé tu situación y te puedo adelantar lo siguiente: {resumen_situacion}.\n\nLo más conveniente sería {recomendacion}. Para avanzar, necesito que me acerqués la siguiente documentación: {documentacion}.\n\nCualquier duda, escribime.",
+    "variables": ["cliente", "resumen_situacion", "recomendacion", "documentacion"],
+    "category": "legal"
+  },
+  {
+    "trigger": "/intimacion",
+    "content": "Buenos días {destinatario}:\n\nPor medio del presente y en representación de {cliente}, lo intimo fehacientemente a que en el plazo de {plazo} días hábiles proceda al pago de la suma de ${monto} en concepto de {concepto}, bajo apercibimiento de iniciar las acciones legales pertinentes con más intereses, costas y costos.\n\nLe informo que esta comunicación quedará registrada como antecedente de la gestión extrajudicial.\n\nDr./Dra. {abogado} - Mat. {matricula}",
+    "variables": ["destinatario", "cliente", "plazo", "monto", "concepto", "abogado", "matricula"],
+    "category": "legal"
+  },
+  {
+    "trigger": "/pedido_docs",
+    "content": "Hola {cliente}:\n\nPara poder avanzar con tu caso necesito que me acerqués los siguientes documentos:\n\n{lista_documentos}\n\nPodés enviármelos por este mismo medio en formato foto o PDF. Cualquier duda, avisame.\n\nSaludos, {abogado}",
+    "variables": ["cliente", "lista_documentos", "abogado"],
+    "category": "legal"
+  },
+  {
+    "trigger": "/turno_confirmacion",
+    "content": "Hola {cliente}:\n\nTe confirmo tu turno para el día {fecha} a las {hora} en {direccion}.\n\nTe pido que traigas: {documentacion}.\n\nSi necesitás reprogramar, avisame con al menos 24 hs de anticipación.\n\nHasta entonces, {abogado}",
+    "variables": ["cliente", "fecha", "hora", "direccion", "documentacion", "abogado"],
+    "category": "legal"
+  },
+  {
+    "trigger": "/turno_recordatorio",
+    "content": "Hola {cliente}, te recuerdo que mañana {fecha} a las {hora} tenemos reunión en {direccion}.\n\nSi no podés asistir, avisame a la brevedad para coordinar otro horario.\n\nSaludos, {abogado}",
+    "variables": ["cliente", "fecha", "hora", "direccion", "abogado"],
+    "category": "legal"
+  },
+  {
+    "trigger": "/audiencia_recordatorio",
+    "content": "Hola {cliente}:\n\nTe recuerdo que la audiencia en los autos *{expediente}* está fijada para el {fecha} a las {hora} en {juzgado}.\n\nEs importante que estés disponible ese día. Si surge algún inconveniente, avisame de inmediato.\n\nSaludos, {abogado}",
+    "variables": ["cliente", "expediente", "fecha", "hora", "juzgado", "abogado"],
+    "category": "legal"
+  },
+  {
+    "trigger": "/vencimiento_plazo",
+    "content": "Hola {cliente}:\n\nTe aviso que el plazo para {accion} vence el {fecha}. Es indispensable que {instruccion} antes de esa fecha para no perder el derecho.\n\nPor favor confirmame recepción de este mensaje.\n\nSaludos, {abogado}",
+    "variables": ["cliente", "accion", "fecha", "instruccion", "abogado"],
+    "category": "legal"
+  },
+  {
+    "trigger": "/novedad_expediente",
+    "content": "Hola {cliente}:\n\nTe comento que en los autos *{expediente}* se registró la siguiente novedad: {novedad}.\n\nEl próximo paso a seguir es {proximo_paso}. Te mantendré informado/a ante cualquier avance.\n\nSaludos, {abogado}",
+    "variables": ["cliente", "expediente", "novedad", "proximo_paso", "abogado"],
+    "category": "legal"
+  },
+  {
+    "trigger": "/sentencia",
+    "content": "Hola {cliente}:\n\nTe informo que en los autos *{expediente}* se dictó sentencia con el siguiente resultado: {resultado}.\n\n{explicacion}\n\nQuedo a disposición para que coordinemos una reunión y analicemos los pasos a seguir.\n\nSaludos, {abogado}",
+    "variables": ["cliente", "expediente", "resultado", "explicacion", "abogado"],
+    "category": "legal"
+  },
+  {
+    "trigger": "/datos_transferencia",
+    "content": "Hola {cliente}:\n\nTe paso mis datos bancarios para la transferencia de honorarios:\n\n• Titular: {titular}\n• CBU: {cbu}\n• Alias: {alias}\n• CUIT: {cuit}\n• Banco: {banco}\n\nCuando realices la transferencia, enviame el comprobante por este medio.\n\nGracias, {abogado}",
+    "variables": ["cliente", "titular", "cbu", "alias", "cuit", "banco", "abogado"],
+    "category": "legal"
+  },
+  {
+    "trigger": "/fuera_horario",
+    "content": "Gracias por comunicarte. En este momento estoy fuera del horario de atención ({horario}).\n\nTu consulta es importante. Te respondo a la brevedad el próximo día hábil.\n\nSi es urgente, podés llamarme al {telefono}.\n\nDr./Dra. {abogado}",
+    "variables": ["horario", "telefono", "abogado"],
+    "category": "legal"
+  },
+  {
+    "trigger": "/presupuesto",
+    "content": "Hola {cliente}:\n\nEn función de tu consulta, te acerco el siguiente presupuesto:\n\n*Servicio:* {servicio}\n*Honorarios:* ${monto}\n*Incluye:* {detalle}\n*Forma de pago:* {forma_pago}\n\nEste presupuesto tiene validez por {validez} días.\n\nQuedo a disposición para cualquier consulta o para coordinar una reunión.\n\nSaludos, {abogado}",
+    "variables": ["cliente", "servicio", "monto", "detalle", "forma_pago", "validez", "abogado"],
+    "category": "legal"
+  },
+  {
+    "trigger": "/seguimiento",
+    "content": "Hola {cliente}:\n\nTe escribo para darte un breve resumen del estado de tu caso:\n\n*Expediente:* {expediente}\n*Estado actual:* {estado}\n*Últimas actuaciones:* {actuaciones}\n*Próximos pasos:* {proximos_pasos}\n\nCualquier novedad te aviso de inmediato.\n\nSaludos, {abogado}",
+    "variables": ["cliente", "expediente", "estado", "actuaciones", "proximos_pasos", "abogado"],
+    "category": "legal"
+  },
+  {
+    "trigger": "/acuerdo_honorarios",
+    "content": "Hola {cliente}:\n\nConfirmo que acordamos los siguientes honorarios por mi intervención profesional:\n\n• Monto: ${monto}\n• Concepto: {concepto}\n• Forma de pago: {forma_pago}\n• Fecha de pago: {fecha_pago}\n\nCon la aceptación de este mensaje, queda constancia del acuerdo.\n\nMuchas gracias por la confianza. {abogado}",
+    "variables": ["cliente", "monto", "concepto", "forma_pago", "fecha_pago", "abogado"],
+    "category": "legal"
+  },
+  {
+    "trigger": "/derivacion",
+    "content": "Hola {cliente}:\n\nTu consulta excede mi área de especialización. Para atenderte de la mejor manera, te recomiendo consultar al colega {colega} ({especialidad}), quien es de mi confianza.\n\nSu contacto es: {contacto_colega}\n\nSi necesitás algo más de mi parte, no dudes en escribirme.\n\nSaludos, {abogado}",
+    "variables": ["cliente", "colega", "especialidad", "contacto_colega", "abogado"],
+    "category": "legal"
+  },
+  {
+    "trigger": "/recibo_docs",
+    "content": "Hola {cliente}:\n\nConfirmo que recibí la documentación que me enviaste: {lista_docs}.\n\nLa voy a revisar y te escribo a la brevedad, como máximo el {plazo}.\n\nGracias, {abogado}",
+    "variables": ["cliente", "lista_docs", "plazo", "abogado"],
+    "category": "legal"
+  },
+  {
+    "trigger": "/poder_requerido",
+    "content": "Hola {cliente}:\n\nPara poder representarte en este trámite necesito que firmes un poder ante escribano público.\n\nEl poder debe ser para {acto} y debe incluir las facultades de {facultades}.\n\nCuando lo tengas listo, coordinamos la entrega. Cualquier duda, escribime.\n\nSaludos, {abogado}",
+    "variables": ["cliente", "acto", "facultades", "abogado"],
+    "category": "legal"
+  },
+  {
+    "trigger": "/cierre_caso",
+    "content": "Hola {cliente}:\n\nMe alegra comunicarte que el caso llegó a su fin con el siguiente resultado: {resultado}.\n\nFue un placer acompañarte durante este proceso. Si en el futuro necesitás asesoramiento legal, no dudes en contactarme.\n\nMuchas gracias por la confianza depositada.\n\nSaludos cordiales, {abogado}",
+    "variables": ["cliente", "resultado", "abogado"],
+    "category": "legal"
+  }
+]
