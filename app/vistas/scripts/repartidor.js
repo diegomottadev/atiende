@@ -41,6 +41,7 @@ function mostrarform(flag){
     if(flag){
         $('#btnCancel').show();
         $("#panelRepartidores").hide();
+        $("#filtrosRepartidor").hide();
         $("#panelFormRepartidor").show();
         $("#btnGuardar").show();
         $("#btnExportar").hide();
@@ -50,6 +51,7 @@ function mostrarform(flag){
     }else{
         $('#btnCancel').hide();
         $("#panelRepartidores").show();
+        $("#filtrosRepartidor").show();
         $("#panelFormRepartidor").hide();
         $("#btnGuardar").hide();
         $("#btnExportar").show();
@@ -116,23 +118,39 @@ function listar(){
             });
         },
         "language": lenguajeTable,
-        "aProcessing": true,//activamos el procedimiento del datatable
-        "aServerSide": true,//paginacion y filrado realizados por el server
-        dom: 'Bfrtip',//definimos los elementos del control de la tabla
+        "aProcessing": true,
+        "aServerSide": false,
+        dom: 'Brtip',
         buttons: [],
         "ajax":
             {
                 url:'../ajax/repartidor.php?op=listar',
                 type: "get",
                 dataType : "json",
+                dataSrc: "aaData",
                 error:function(e){
                     console.log(e.responseText);
                 }
             },
         "bDestroy":true,
-        "iDisplayLength":10,//paginacion
-        "order":[[0,"desc"]]//ordenar (columna, orden)
+        "iDisplayLength":10,
+        "order":[[0,"desc"]]
     }).DataTable();
+
+    // ── Filtro global con debounce ──
+    var _debounceTimer = null;
+    $('#fBuscar').on('input', function(){
+        clearTimeout(_debounceTimer);
+        var v = $(this).val();
+        _debounceTimer = setTimeout(function(){
+            tabla.search(v).draw();
+        }, 300);
+    });
+
+    $('#fLimpiar').on('click', function(){
+        $('#fBuscar').val('');
+        tabla.search('').draw();
+    });
 }
 
 $(function(){

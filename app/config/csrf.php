@@ -10,6 +10,28 @@
  * Precondición: auth.php ya corrió y pobló $_SESSION['csrf_token'].
  */
 
+if (!function_exists('ensureCsrfToken')) {
+    /**
+     * Garantiza que exista un token CSRF per-sesión y lo devuelve.
+     *
+     * Único punto de generación del token: lo llaman tanto config/auth.php
+     * (ruta AJAX) como vistas/headerv1.php (render de vistas), de modo que el
+     * token SIEMPRE esté disponible al emitir `globalCsrfToken` en el front.
+     * Sin esto, una sesión recién logueada renderiza la vista sin token (el
+     * login `op=verificar` no pasa por auth.php) y toda mutación devuelve 403.
+     */
+    function ensureCsrfToken(): string
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        if (empty($_SESSION['csrf_token'])) {
+            $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+        }
+        return $_SESSION['csrf_token'];
+    }
+}
+
 if (!function_exists('requireCsrf')) {
     /**
      * Exige un token CSRF válido. Si falta o no coincide → 403 JSON + exit.

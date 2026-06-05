@@ -11,7 +11,16 @@ $canal=isset($_POST["canal"])? limpiarCadena($_POST["canal"]):"";
 
 
 $op = $_GET['op'] ?? '';
-csrfGuard($op, ['mostrar', 'listarp', 'listarMensajes']);
+csrfGuard($op, ['mostrar', 'listarp', 'listarMensajes', 'filtros']);
+
+// Formatea un datetime crudo de la DB al mismo formato que daba el listarp() original
+// (CONCAT(DATE_FORMAT(..., '%d/%m/%Y %H:%i'),' hs')). Cadena vacía/NULL → ''.
+function _fechaReclamo($raw){
+    if ($raw === null || $raw === '' || $raw === '0000-00-00 00:00:00') return '';
+    $ts = strtotime($raw);
+    if ($ts === false) return '';
+    return date('d/m/Y H:i', $ts).' hs';
+}
 
 switch ($_GET["op"]) {
 	case 'guardaryeditar':
@@ -49,53 +58,84 @@ switch ($_GET["op"]) {
 		break;
 
     case 'listarp':
-		$rspta=$reclamo->listarp();
-		
+		// Server-side processing (DataTables): devuelve SOLO la página pedida + totales.
+		// Escala a millones de filas: la DB hace WHERE/ORDER/LIMIT con índices; el navegador
+		// recibe ~10-50 filas. Las columnas calculadas (badge, fechas, razonSocial, area, #)
+		// se reconstruyen acá EXACTO como en el listado original.
+		$draw    = isset($_REQUEST['draw'])   ? intval($_REQUEST['draw'])   : 1;
+		$start   = isset($_REQUEST['start'])  ? intval($_REQUEST['start'])  : 0;
+		$length  = isset($_REQUEST['length']) ? intval($_REQUEST['length']) : 10;
+		$buscar  = isset($_REQUEST['search']['value']) ? $_REQUEST['search']['value'] : '';
+		$orden   = (isset($_REQUEST['order'])   && is_array($_REQUEST['order']))   ? $_REQUEST['order']   : array();
+		$columns = (isset($_REQUEST['columns']) && is_array($_REQUEST['columns'])) ? $_REQUEST['columns'] : array();
+
+		// Lookup secundario: ids de reclamo con respuesta pendiente (tabla chica → se trae completa).
 		$lista=$reclamo->listarRespuesta();
 		$array = array();
 		while ($reg=$lista->fetch_object()) {
 			$array[]=$reg->id_reclamo;
         }
-		
+
+		// Mapas de las tablas chicas para reemplazar los JOIN del listarp() original.
+		$mapaAreas    = $reclamo->mapaAreas();      // id_area  → nombre de área
+		$mapaClientes = $reclamo->mapaClientes();   // clienteId → razonSocial
+
+		$res  = $reclamo->listarpServerSide($start, $length, $buscar, $orden, $columns);
+
 		$data=Array();
 //SELECT `reclamoId`, `empresa`, `fecha_ingreso`, `clienteId`, `telefono`, `nick`, `motivo`, `area`, `detalle`, `fecha_resolucion`, `resolucion`, `estado`, `notificado`, `anulado` FROM `reclamos` WHERE 1
-		while ($reg=$rspta->fetch_object()) {
+		foreach ($res['rows'] as $reg) {
 		$disabled="";
-		$clave = array_search($reg->reclamoId, $array);
+		$clave = array_search($reg['reclamoId'], $array);
 		if(strlen ($clave)>0)$clave=$clave+1;
 		$estado= '<span class="badge badge-danger-lighten rounded-pill">Pendiente</span>';
-		if($reg->estado=='Finalizado'){
+		if($reg['estado']=='Finalizado'){
 		   $estado= '<span class="badge badge-success-lighten rounded-pill">Finalizado</span>';
 		  // $disabled="disabled";
 		   }
-     	if($reg->estado=='En analisis')
+     	if($reg['estado']=='En analisis')
 		   $estado= '<span class="badge badge-warning-lighten rounded-pill">En analisis</span>';
-		   if(strlen ($reg->_area)==0)
-		   $reg->_area=$reg->area;
+		// _area: nombre desde el mapa de areas; fallback a la columna base `area` (igual que el JOIN+fallback original)
+		$_area = isset($mapaAreas[(string)$reg['area']]) ? $mapaAreas[(string)$reg['area']] : '';
+		   if(strlen ($_area)==0)
+		   $_area=$reg['area'];
+		$razonSocial   = isset($mapaClientes[(string)$reg['clienteId']]) ? $mapaClientes[(string)$reg['clienteId']] : '';
+		$_fecha           = _fechaReclamo($reg['fecha_ingreso']);
+		$_fecha_resolucion= _fechaReclamo($reg['fecha_resolucion']);
 			$data[]=array(
-				"0"=>'<button class="btn btn-warning btn-sm btn-icon-line" onclick="mostrar('.$reg->reclamoId.')" '.$disabled.' ><i class="mdi mdi-lead-pencil m-n2"></i></button>',
-				"1"=>"<div class='tbdato' style='font-size: 13px;'>". $estado."</div>",
-            	"2"=>$reg->reclamoId,
-            	"3"=>"<div style='font-size: 11px;' class='tbdato'>".$reg->_fecha."</div>",
-            	"4"=>"<div style='font-size: 11px;' class='tbdato'>".$reg->telefono."</div>",
-				"5"=>"<div style='font-size: 11px;' class='tbdato'>".$reg->clienteId."</div>",
-				"6"=>"<div style='font-size: 11px;' class='tbdato'>".$reg->razonSocial."</div>",
-				"7"=>"<div style='font-size: 11px;' class='tbdato'>".$reg->motivo."</div>",
-				"8"=>"<div style='font-size: 11px;' class='tbdato'>".$reg->_area."</div>",
-//				"9"=>"<div style='font-size: 11px;' class='tbdato'>".substr($reg->detalle,0,40)."...</div>",
-//				"10"=>"<div style='font-size: 11px;' class='tbdato'>".$reg->resolucion."</div>",
-				"9"=>"<div style='font-size: 11px;' class='tbdato'>".$reg->_fecha_resolucion."</div>",
+				"0"=>'<button class="btn btn-warning btn-sm btn-icon-line" onclick="mostrar('.$reg['reclamoId'].')" '.$disabled.' ><i class="mdi mdi-lead-pencil m-n2"></i></button>',
+				"1"=>"<div class='tbdato'>". $estado."</div>",
+            	"2"=>$reg['reclamoId'],
+            	"3"=>"<div class='tbdato'>".$_fecha."</div>",
+            	"4"=>"<div class='tbdato'>".$reg['telefono']."</div>",
+				"5"=>"<div class='tbdato'>".$reg['clienteId']."</div>",
+				"6"=>"<div class='tbdato'>".$razonSocial."</div>",
+				"7"=>"<div class='tbdato'>".$reg['motivo']."</div>",
+				"8"=>"<div class='tbdato'>".$_area."</div>",
+//				"9"=>"<div class='tbdato'>".substr($reg['detalle'],0,40)."...</div>",
+//				"10"=>"<div class='tbdato'>".$reg['resolucion']."</div>",
+				"9"=>"<div class='tbdato'>".$_fecha_resolucion."</div>",
 				"10"=> $clave,
 			 );
-		//'<button class="btn btn-warning btn-xs" onclick="mostrar('.$reg->idpersona.')"><i class="fa fa-pencil"></i></button>'.' '.'<button class="btn btn-danger btn-xs" onclick="eliminar('.$reg->idpersona.')"><i class="fa fa-trash"></i></button>'	  
-	//	Codigo	Fecha	Telefono Cliente	Nick	Motivo	Area	Detalle	Resolucion	Estado	Editar	  
+		//'<button class="btn btn-warning btn-xs" onclick="mostrar('.$reg->idpersona.')"><i class="fa fa-pencil"></i></button>'.' '.'<button class="btn btn-danger btn-xs" onclick="eliminar('.$reg->idpersona.')"><i class="fa fa-trash"></i></button>'
+	//	Codigo	Fecha	Telefono Cliente	Nick	Motivo	Area	Detalle	Resolucion	Estado	Editar
 		}
-		$results=array(
-             "sEcho"=>1,//info para datatables
-             "iTotalRecords"=>count($data),//enviamos el total de registros al datatable
-             "iTotalDisplayRecords"=>count($data),//enviamos el total de registros a visualizar
-             "aaData"=>$data); 
-		echo json_encode($results);
+		echo json_encode(array(
+             "draw"            => $draw,
+             "recordsTotal"    => $res['recordsTotal'],
+             "recordsFiltered" => $res['recordsFiltered'],
+             "data"            => $data
+		), JSON_UNESCAPED_UNICODE);
+		break;
+
+	case 'filtros':
+		// Valores distintos para los dropdowns de filtro (estado / area / motivo).
+		// Nota: 'area' guarda el id de área en `reclamos`; el dropdown se puebla con esos valores.
+		echo json_encode(array(
+			"estado" => $reclamo->distinctReclamo('estado'),
+			"area"   => $reclamo->listaAreas(),            // {id, area}: value=id (lo que filtra), label=nombre
+			"motivo" => $reclamo->distinctReclamo('motivo')
+		), JSON_UNESCAPED_UNICODE);
 		break;
 
 	case 'listarMensajes':

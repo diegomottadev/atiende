@@ -39,13 +39,43 @@ function generarTicketPdf($pedidoId)
 
     $w = 170; // ancho útil (A4 210 - márgenes 20*2)
 
-    // Encabezado con fondo de color
+    // ===== Datos de la empresa (tenant) — viven en bot_config (singleton id=1) =====
+    $empRow = mysqli_fetch_assoc(Connection::runQuery(
+        "SELECT nombre_empresa, razon_social, cuit, telefono, logo FROM bot_config LIMIT 1"
+    ));
+    $empNombre = ($empRow && trim($empRow['nombre_empresa'] ?? '') !== '') ? $empRow['nombre_empresa'] : 'Atiende';
+    $empRazon  = $empRow['razon_social'] ?? '';
+    $empCuit   = $empRow['cuit'] ?? '';
+    $empTel    = $empRow['telefono'] ?? '';
+    $empLogo   = $empRow['logo'] ?? '';
+
+    // Logo de la empresa (opcional, centrado arriba del encabezado)
+    $logoPath = ($empLogo !== '') ? __ROOT__ . '/files/empresa/' . $empLogo : '';
+    if ($logoPath !== '' && is_file($logoPath) && @getimagesize($logoPath) !== false) {
+        $info  = getimagesize($logoPath);
+        $ratio = ($info[1] > 0) ? $info[0] / $info[1] : 1;
+        $logoH = 20; // mm
+        $logoW = $logoH * $ratio;
+        if ($logoW > 60) { $logoW = 60; $logoH = $logoW / $ratio; }
+        $pdf->Image($logoPath, (210 - $logoW) / 2, 15, $logoW, $logoH);
+        $pdf->Ln($logoH + 2);
+    }
+
+    // Encabezado con fondo de color — nombre de la empresa
     $pdf->SetFillColor(60, 141, 188);
     $pdf->SetTextColor(255, 255, 255);
     $pdf->SetFont('Arial', 'B', 16);
-    $pdf->Cell($w, 12, 'Atiende', 0, 1, 'C', true);
-    $pdf->SetFont('Arial', '', 9);
-    $pdf->Cell($w, 7, 'info@atiende.com', 0, 1, 'C', true);
+    $pdf->Cell($w, 12, utf8_decode($empNombre), 0, 1, 'C', true);
+
+    // Línea secundaria con razón social / CUIT / teléfono (solo lo que esté cargado)
+    $detalle = [];
+    if (trim($empRazon) !== '') $detalle[] = $empRazon;
+    if (trim($empCuit)  !== '') $detalle[] = 'CUIT: ' . $empCuit;
+    if (trim($empTel)   !== '') $detalle[] = 'Tel: ' . $empTel;
+    if ($detalle) {
+        $pdf->SetFont('Arial', '', 9);
+        $pdf->Cell($w, 7, utf8_decode(implode('   |   ', $detalle)), 0, 1, 'C', true);
+    }
     $pdf->SetTextColor(0, 0, 0);
     $pdf->Ln(6);
 

@@ -31,6 +31,15 @@ profundidad y seguís sus convenciones sin excepción.
 │  - Faltan endpoints o estructura de request/response    │
 │  - El schema SQL no está especificado                   │
 │  - Hay flujos de error sin respuesta definida           │
+├─────────────────────────────────────────────────────────┤
+│  UX/UI DESIGNER      →  agents/ux-ui-designer.md       │
+│  Trabajar JUNTOS siempre que la tarea tenga diseño:     │
+│  - ANTES de codear una vista, modal, form o tabla:      │
+│    pedile el wireframe + markup Bootstrap                │
+│  - No improvises UI: vos cableás la lógica, él define   │
+│    la UX, jerarquía visual y los estados                │
+│  - Si la lógica te obliga a cambiar el markup, avisale  │
+│    y acordá la solución (no rompas el patrón solo)       │
 └─────────────────────────────────────────────────────────┘
 ```
 

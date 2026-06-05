@@ -1,4 +1,5 @@
 var tabla;
+var _debounceMotCons;
 
 //funcion que se ejecuta al inicio
 function init(){
@@ -17,6 +18,19 @@ function init(){
         guardaryeditar(e);
     });
     document.getElementById('bloquea').style.display='none';
+
+    // buscador global con debounce
+    $("#fBuscarMotivoConsulta").on("input", function(){
+        clearTimeout(_debounceMotCons);
+        var v = $(this).val();
+        _debounceMotCons = setTimeout(function(){ tabla.search(v).draw(); }, 300);
+    });
+
+    // limpiar filtros
+    $("#fLimpiarMotivoConsulta").on("click", function(){
+        $("#fBuscarMotivoConsulta").val("");
+        tabla.search("").draw();
+    });
 }
 
 //funcion limpiar
@@ -34,6 +48,7 @@ function mostrarform(flag){
     if(flag){
         $('#btnCancelar').show();
         $("#listadoregistros").hide();
+        $("#filtrosMotivoConsulta").hide();
         $("#formularioregistros").show();
         $("#btnGuardar").prop("disabled",false);
         $("#btnAgregar").hide();
@@ -43,6 +58,7 @@ function mostrarform(flag){
 
         $('#btnCancelar').hide();
         $("#listadoregistros").show();
+        $("#filtrosMotivoConsulta").show();
         $("#formularioregistros").hide();
         $("#btnAgregar").show();
 
@@ -57,33 +73,28 @@ function cancelarform(){
 
 //funcion listar
 function listar(){
-    tabla=$('#tbllistado').dataTable({
+    tabla=$('#tbllistado').DataTable({
         drawCallback:function(){
             $(".dataTables_paginate > .pagination").addClass("pagination-rounded")
         },
         "language": lenguajeTable,
-        "aProcessing": true,//activamos el procedimiento del datatable
-        "aServerSide": true,//paginacion y filrado realizados por el server
-        dom: 'Bfrtip',//definimos los elementos del control de la tabla
-        buttons: [
-            'copyHtml5',
-            'excelHtml5',
-            'csvHtml5',
-            'pdf'
-        ],
+        "processing": true,
+        "serverSide": false,
+        "dom": 'lrtip',
         "ajax":
             {
                 url:'../ajax/motivoConsulta.php?op=listarp',
                 type: "get",
                 dataType : "json",
+                dataSrc: "aaData",
                 error:function(e){
                     console.log(e.responseText);
                 }
             },
-        "bDestroy":true,
+        "destroy": true,
         //"iDisplayLength":12,//paginacion
         //"order":[[0,"desc"]]//ordenar (columna, orden)
-    }).DataTable();
+    });
 }
 //funcion para guardaryeditar
 function guardaryeditar(e){

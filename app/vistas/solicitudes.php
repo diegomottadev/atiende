@@ -20,8 +20,7 @@ if (!isset($_SESSION['nombre'])) {
         <div class="row">
             <div class="col-12">
                 <div class="page-title-box">
-                    <div class="page-title-right">
-                        <ol class="breadcrumb m-0">
+                    <ol class="breadcrumb m-0">
                             <li class="breadcrumb-item" style="margin-top: -0.7em">
                                 <a href="javascript: void(0);">                            
                                     <img src="../public/img/logo30x30.png" alt="" class="icono-ruta-ClubPedido" >            
@@ -31,13 +30,12 @@ if (!isset($_SESSION['nombre'])) {
                             <li class="breadcrumb-item"><a href="javascript: void(0);">Base de Datos</a></li>
                             <li class="breadcrumb-item active"> Solicitudes </li>
                         </ol>
-                    </div>
-                   <!--<div class="float-start mt-3"><h4 class="page-title"> &nbsp;&nbsp;&nbsp;&nbsp;Mis Reclamos </h4></div>-->
+                   <!---->
                 </div>
             </div>
         </div>
         <div class="row mb-2 mt-n2">
-            <div class="col-sm-12"><div class="float-start "><h4 class="page-title"> &nbsp;&nbsp;&nbsp;&nbsp;Solicitudes </h4></div>            
+            <div class="col-sm-12">            
                 <div class="text-sm-end">                    
                     <button class="btn btn-light rounded-pill sombra-logo" id="btnCancel" onclick="cancelarform()" type="button">
                             <i class="mdi mdi-arrow-left-circle me-1"></i> Volver
@@ -49,10 +47,34 @@ if (!isset($_SESSION['nombre'])) {
         <div class="row">
             <div class="col-12">
                 <div class="card sombra-panel" style="border-top:3px solid #727cf5;">
+                    <div class="card-body pb-2">
+                        <!-- Filtros (server-side: buscan en TODO el dataset, no solo la página) -->
+                        <div id="filtrosSolicitud" class="row g-2 align-items-end">
+                            <div class="col-12 col-md-5">
+                                <label class="form-label mb-1" style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#6c757d;">Buscar</label>
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text bg-white text-muted"><i class="mdi mdi-magnify"></i></span>
+                                    <input type="text" id="fBuscar" class="form-control" placeholder="Buscar por nombre, CUIT, dirección, teléfono...">
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <label class="form-label mb-1" style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#6c757d;">Localidad</label>
+                                <select id="fLocalidad" class="form-select form-select-sm"><option value="">Todas</option></select>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <label class="form-label mb-1" style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#6c757d;">Estado</label>
+                                <select id="fEstado" class="form-select form-select-sm"><option value="">Todos</option></select>
+                            </div>
+                            <div class="col-6 col-md-1">
+                                <button type="button" id="fLimpiar" class="btn btn-sm btn-soft-secondary w-100" data-bs-toggle="tooltip" data-bs-trigger="hover" title="Borrar filtros"><i class="mdi mdi-filter-remove-outline"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                    <hr class="my-0">
                     <div class="card-body p-0">
                             <div class="table-responsive" id="tblSolicitudesMain"> <!-- dt-responsive -->
                                 
-                                <table id="tblSolicitudes" class="table table-sm table-striped table-centered dt-responsive mb-0  nowrap w-100">
+                                <table id="tblSolicitudes" class="table table-striped table-centered dt-responsive mb-0  nowrap w-100">
                                     <thead >
                                         <th width="60">Acciones</th>
                                         <th>Nombre</th>

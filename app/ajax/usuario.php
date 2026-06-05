@@ -100,7 +100,7 @@ switch ($_GET["op"]) {
 		$img = "<img src='".$imgFile."' alt='avatar' class='rounded-circle sombra-logo' style='width:40px;height:40px;object-fit:cover;' onerror=\"this.src='../files/usuarios/user.png'\">";
 		
 		$data[]=array(
-			"0"=>($reg->condicion)?'<button class="btn btn-warning btn-sm btn-icon-line" onclick="mostrar('.$reg->idusuario.')"><i class="mdi mdi-lead-pencil m-n2"></i></button>'.' '.'<button class="btn btn-danger btn-sm btn-icon-line" title="Desactivar" onclick="desactivar('.$reg->idusuario.')"><i class="uil uil-times-circle m-n2"></i></button>':'<button class="btn btn-warning btn-sm btn-icon-line" onclick="mostrar('.$reg->idusuario.')"><i class="mdi mdi-lead-pencil m-n2"></i></button>'.' '.'<button class="btn btn-primary btn-sm btn-icon-line" title="Activar" onclick="activar('.$reg->idusuario.')"><i class="mdi mdi-checkbox-marked-circle-outline m-n2"></i></button>',
+			"0"=>($reg->condicion)?'<button class="btn btn-warning btn-sm btn-icon-line" data-bs-toggle="tooltip" data-bs-trigger="hover" title="Editar" onclick="mostrar('.$reg->idusuario.')"><i class="mdi mdi-lead-pencil m-n2"></i></button>'.' '.'<button class="btn btn-danger btn-sm btn-icon-line" data-bs-toggle="tooltip" data-bs-trigger="hover" title="Desactivar" onclick="desactivar('.$reg->idusuario.')"><i class="uil uil-times-circle m-n2"></i></button>':'<button class="btn btn-warning btn-sm btn-icon-line" data-bs-toggle="tooltip" data-bs-trigger="hover" title="Editar" onclick="mostrar('.$reg->idusuario.')"><i class="mdi mdi-lead-pencil m-n2"></i></button>'.' '.'<button class="btn btn-primary btn-sm btn-icon-line" data-bs-toggle="tooltip" data-bs-trigger="hover" title="Activar" onclick="activar('.$reg->idusuario.')"><i class="mdi mdi-checkbox-marked-circle-outline m-n2"></i></button>',
 			"1"=>$reg->nombre,
 			"2"=>$reg->tipo_documento,
 			"3"=>$reg->num_documento,
@@ -108,7 +108,7 @@ switch ($_GET["op"]) {
 			"5"=>$reg->email,
 			"6"=>$reg->login,
 			"7"=> $img,
-			"8"=>($reg->condicion)?'<span class="label bg-green">Activado</span>':'<span class="label bg-red">Desactivado</span>'
+			"8"=>($reg->condicion)?'<span class="badge bg-success">Activo</span>':'<span class="badge bg-danger">Inactivo</span>'
 		);
 	}
 
@@ -148,7 +148,12 @@ switch ($_GET["op"]) {
 		// Solo mostrar si el tenant/usuario logueado tiene este módulo habilitado
 		if ($sessionKey !== null && empty($_SESSION[$sessionKey])) continue;
 		$sw=in_array($reg->idpermiso,$valores)?'checked':'';
-		echo '<li><input type="checkbox" '.$sw.' name="permiso[]" value="'.$reg->idpermiso.'">'.$reg->nombre.'</li>';
+		$chkId='permisoChk'.$reg->idpermiso;
+		echo '<div class="col-12 col-md-6">'
+			.'<div class="form-check">'
+			.'<input class="form-check-input" type="checkbox" '.$sw.' name="permiso[]" value="'.$reg->idpermiso.'" id="'.$chkId.'">'
+			.'<label class="form-check-label" for="'.$chkId.'">'.$reg->nombre.'</label>'
+			.'</div></div>';
 	}
 	break;
 

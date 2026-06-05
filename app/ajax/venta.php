@@ -136,7 +136,7 @@ switch ($_GET["op"]) {
                 $modal='<a href="#" class="text-info" data-bs-toggle="tooltip" title="Ver observación" onclick="comentario(\''.$obs[$key].'\')" ><i class="mdi mdi-comment-processing" style="font-size:1rem;vertical-align:middle;"></i></a>';
             }
             $nombreVendedor = '';
-            $url='../reportes/exTicket.php?id=';
+            $url='/ticket/';
             if($reg->estado==-1)
               $estado="<span class='badge bg-primary'>Pendiente</span>";
             if($reg->estado==0 || $reg->estado==1)

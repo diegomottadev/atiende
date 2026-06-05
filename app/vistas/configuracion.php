@@ -10,15 +10,12 @@ if (!isset($_SESSION['nombre'])) {
     <div class="row">
         <div class="col-12">
             <div class="page-title-box">
-                <div class="page-title-right">
-                    <ol class="breadcrumb m-0">
+                <ol class="breadcrumb m-0">
                         <li class="breadcrumb-item" style="margin-top:-0.7em">
                             <a href="javascript:void(0);"><img src="../public/img/logo30x30.png" class="icono-ruta-ClubPedido" alt=""> Atiende</a>
                         </li>
                         <li class="breadcrumb-item active">Configuración del Bot</li>
                     </ol>
-                </div>
-                <div class="float-start mt-3"><h4 class="page-title"><i class="mdi mdi-robot me-1"></i> Configuración del Bot</h4></div>
             </div>
         </div>
     </div>
@@ -28,7 +25,13 @@ if (!isset($_SESSION['nombre'])) {
         <div class="col-12">
             <div class="card sombra-panel">
                 <div class="card-body">
-                    <ul class="nav nav-tabs nav-bordered mb-3" id="cfgTabs">
+                    <style>
+                        /* Tabs más compactos (menos espacio entre cada uno) */
+                        #cfgTabs .nav-item { margin: 0; }
+                        #cfgTabs .nav-link { padding: .45rem .8rem; font-size: .85rem; }
+                        #cfgTabs.nav-tabs { gap: 0; }
+                    </style>
+                    <ul class="nav nav-tabs nav-bordered mb-2" id="cfgTabs">
                         <li class="nav-item">
                             <a href="#tab-menu" data-bs-toggle="tab" class="nav-link active">
                                 <i class="mdi mdi-format-list-bulleted me-1"></i> Menú Principal
@@ -52,6 +55,11 @@ if (!isset($_SESSION['nombre'])) {
                         <li class="nav-item">
                             <a href="#tab-token" data-bs-toggle="tab" class="nav-link">
                                 <i class="mdi mdi-key-outline me-1"></i> Token WhatsApp
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#tab-empresa" data-bs-toggle="tab" class="nav-link">
+                                <i class="mdi mdi-domain me-1"></i> Empresa
                             </a>
                         </li>
                     </ul>
@@ -141,6 +149,45 @@ if (!isset($_SESSION['nombre'])) {
                                 <button class="btn btn-primary" onclick="guardarToken()">
                                     <i class="mdi mdi-content-save me-1"></i> Guardar credenciales
                                 </button>
+                            </div>
+                        </div>
+
+                        <!-- ===== EMPRESA ===== -->
+                        <div class="tab-pane" id="tab-empresa">
+                            <p class="text-muted mb-3">Datos de tu empresa. Se usan en los tickets y comprobantes.</p>
+                            <div style="max-width:560px">
+                                <div class="row g-3">
+                                    <div class="col-md-7">
+                                        <label class="form-label fw-bold">Nombre de la empresa</label>
+                                        <input type="text" class="form-control" id="empNombre" placeholder="Mi Empresa S.A.">
+                                    </div>
+                                    <div class="col-md-5">
+                                        <label class="form-label fw-bold">CUIT</label>
+                                        <input type="text" class="form-control" id="empCuit" placeholder="30-12345678-9">
+                                    </div>
+                                    <div class="col-md-7">
+                                        <label class="form-label fw-bold">Razón Social</label>
+                                        <input type="text" class="form-control" id="empRazonSocial" placeholder="Mi Empresa Sociedad Anónima">
+                                    </div>
+                                    <div class="col-md-5">
+                                        <label class="form-label fw-bold">Teléfono</label>
+                                        <input type="text" class="form-control" id="empTelefono" placeholder="3764000000">
+                                    </div>
+                                    <div class="col-12">
+                                        <label for="empLogo" class="form-label fw-bold">Logo</label>
+                                        <input class="form-control" type="file" id="empLogo" accept="image/jpeg,image/png">
+                                        <small class="text-muted d-block mt-1"><i class="mdi mdi-information-outline"></i> JPG o PNG · Tamaño máximo: <strong>2 MB</strong></small>
+                                        <div class="mt-2">
+                                            <div style="position:relative;display:inline-block;">
+                                                <img src="" alt="" id="empLogoPreview" onerror="this.style.display='none';var b=document.getElementById('empLogoQuitar');if(b)b.style.display='none';" style="width:96px;height:96px;border-radius:12px;object-fit:contain;background:#fff;display:none;border:2px solid #e2e0f0;box-shadow:0 2px 6px rgba(0,0,0,.08);">
+                                                <button type="button" id="empLogoQuitar" data-bs-toggle="tooltip" data-bs-trigger="hover" title="Quitar" style="display:none;position:absolute;top:-2px;right:-2px;width:26px;height:26px;padding:0;border-radius:50%;background:#fa5c7c;color:#fff;border:2px solid #fff;font-size:15px;line-height:20px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,.3);cursor:pointer;"><i class="mdi mdi-close"></i></button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-12">
+                                        <button class="btn btn-primary" onclick="guardarEmpresa()"><i class="mdi mdi-content-save me-1"></i> Guardar datos</button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -242,6 +289,7 @@ if (!isset($_SESSION['nombre'])) {
                 if (t === '#tab-consultas') cargarTabla('consultas');
                 if (t === '#tab-areas') cargarTablaAreas();
                 if (t === '#tab-token') cargarToken();
+                if (t === '#tab-empresa') cargarEmpresa();
             });
         });
         cargarToken();
@@ -289,6 +337,72 @@ if (!isset($_SESSION['nombre'])) {
             } else {
                 Swal.fire({ icon: 'error', text: 'Error al guardar' });
             }
+        });
+    }
+
+    // ===== EMPRESA =====
+    function cargarEmpresa() {
+        $.getJSON('../ajax/configuracion.php?op=getEmpresa', function (r) {
+            if (!r || !r.ok) return;
+            document.getElementById('empNombre').value      = r.nombre      || '';
+            document.getElementById('empCuit').value        = r.cuit        || '';
+            document.getElementById('empRazonSocial').value = r.razonSocial || '';
+            document.getElementById('empTelefono').value    = r.telefono    || '';
+            var prev = document.getElementById('empLogoPreview');
+            var btn  = document.getElementById('empLogoQuitar');
+            if (r.logo) {
+                prev.src = '../files/empresa/' + r.logo + '?t=' + Date.now();
+                prev.style.display = ''; btn.style.display = '';
+            } else {
+                prev.src = ''; prev.style.display = 'none'; btn.style.display = 'none';
+            }
+        });
+    }
+    $(document).on('change', '#empLogo', function () {
+        var f = this.files && this.files[0];
+        if (!f) return;
+        if (['image/jpeg','image/jpg','image/png'].indexOf(f.type) === -1) {
+            Swal.fire({ icon:'error', title:'Formato no permitido', text:'Solo se aceptan JPG o PNG.' });
+            this.value = ''; return;
+        }
+        if (f.size > 2*1024*1024) {
+            Swal.fire({ icon:'error', title:'Imagen demasiado grande', text:'El máximo permitido es 2 MB.' });
+            this.value = ''; return;
+        }
+        var rd = new FileReader();
+        rd.onload = function (e) {
+            var prev = document.getElementById('empLogoPreview');
+            prev.src = e.target.result; prev.style.display = '';
+            document.getElementById('empLogoQuitar').style.display = '';
+        };
+        rd.readAsDataURL(f);
+    });
+    $(document).on('click', '#empLogoQuitar', function () {
+        document.getElementById('empLogo').value = '';
+        var prev = document.getElementById('empLogoPreview');
+        prev.src = ''; prev.style.display = 'none';
+        this.style.display = 'none';
+    });
+    function guardarEmpresa() {
+        var fd = new FormData();
+        fd.append('nombre',      document.getElementById('empNombre').value.trim());
+        fd.append('cuit',        document.getElementById('empCuit').value.trim());
+        fd.append('razonSocial', document.getElementById('empRazonSocial').value.trim());
+        fd.append('telefono',    document.getElementById('empTelefono').value.trim());
+        var lf = document.getElementById('empLogo').files[0];
+        if (lf) fd.append('logo', lf);
+        $.ajax({
+            url: '../ajax/configuracion.php?op=guardarEmpresa',
+            type: 'POST', data: fd, contentType: false, processData: false, dataType: 'json',
+            success: function (r) {
+                if (r && r.ok) {
+                    Swal.fire({ icon:'success', text:'Datos de la empresa guardados', timer:1300, showConfirmButton:false });
+                    cargarEmpresa();
+                } else {
+                    Swal.fire({ icon:'error', text:(r && r.error) ? r.error : 'No se pudo guardar' });
+                }
+            },
+            error: function () { Swal.fire({ icon:'error', text:'Error de conexión' }); }
         });
     }
 

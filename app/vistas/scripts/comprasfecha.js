@@ -17,12 +17,7 @@ var  fecha_inicio = $("#fecha_inicio").val();
 		"aProcessing": true,//activamos el procedimiento del datatable
 		"aServerSide": true,//paginacion y filrado realizados por el server
 		dom: 'Bfrtip',//definimos los elementos del control de la tabla
-		buttons: [
-                  'copyHtml5',
-                  'excelHtml5',
-                  'csvHtml5',
-                  'pdf'
-		],
+		buttons: [],
 		"ajax":
 		{
 			url:'../ajax/consultas.php?op=comprasfecha',

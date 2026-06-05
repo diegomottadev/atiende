@@ -4,6 +4,12 @@ if (strlen(session_id()) < 1)
 define('__ROOT__', dirname(dirname(__FILE__)));
 require (__ROOT__.'/config/global.php');
 
+// CSRF: garantizar el token al renderizar CUALQUIER vista. El login no pasa por
+// auth.php (única ruta que lo generaba), así que sin esto la primera carga tras
+// loguearse emite globalCsrfToken vacío y toda mutación AJAX devuelve 403.
+require_once (__ROOT__.'/config/csrf.php');
+ensureCsrfToken();
+
 ?>
 <!DOCTYPE html>
 <html>
@@ -38,6 +44,33 @@ require (__ROOT__.'/config/global.php');
             font-weight: 600;
             padding: .35em .55em;
         }
+        /* Topbar más fino (70px -> 56px) con el perfil (avatar + nombre) centrado en flex. */
+        .navbar-custom { min-height: 56px !important; height: 56px !important; box-shadow: none !important; padding-right: 0 !important; }
+        /* Quitar la sombra propia del tema en el topbar, el menú lateral y el dropdown del perfil (look plano) */
+        .leftside-menu { box-shadow: none !important; }
+        /* Dropdown de perfil: elevación sutil tipo Hyper (hairline + sombra mínima), no plano */
+        .navbar-custom .profile-dropdown { box-shadow: 0 0 0 1px rgba(0,0,0,.05), 0 4px 16px rgba(0,0,0,.10) !important; border: 0 !important; border-radius: 8px !important; padding: 6px !important; min-width: 220px; overflow: hidden; }
+        /* Encabezado de usuario dentro del dropdown */
+        .profile-dropdown .dd-userbox { display: flex; align-items: center; gap: 10px; padding: 8px 10px; }
+        .profile-dropdown .dd-userbox img { width: 40px; height: 40px; object-fit: cover; flex: 0 0 40px; }
+        .profile-dropdown .dd-userbox .dd-name { font-weight: 600; font-size: .85rem; color: #313a46; line-height: 1.2; }
+        .profile-dropdown .dd-userbox .dd-sub { font-size: .72rem; color: #98a6ad; line-height: 1.2; }
+        .profile-dropdown .dropdown-divider { margin: 4px 0; }
+        /* Opción Salir: alineada a la izquierda, tono rojo de marca, hover suave */
+        .profile-dropdown .dd-logout { display: flex; align-items: center; gap: 8px; min-height: 36px; padding: 8px 10px; border-radius: 6px; color: #fa5c7c !important; font-weight: 500; transition: background-color .12s ease; }
+        .profile-dropdown .dd-logout i { font-size: 1rem; }
+        .profile-dropdown .dd-logout:hover, .profile-dropdown .dd-logout:focus { background-color: rgba(250,92,124,.10); color: #fa5c7c !important; }
+        .navbar-custom .topbar-menu { height: 56px; }
+        .navbar-custom .nav-user { display: inline-flex !important; align-items: center !important; height: 56px !important; min-height: 56px !important; margin-right: 0 !important; padding: 0 12px 0 16px !important; background-color: transparent !important; }
+        .navbar-custom .account-user-avatar { position: static !important; display: inline-flex; align-items: center; margin-right: 8px; }
+        .navbar-custom .account-user-avatar img { width: 34px !important; height: 34px !important; vertical-align: middle; }
+        .navbar-custom .account-user-name { margin: 0 !important; line-height: 1.1; }
+        .navbar-custom .button-menu-mobile { height: 56px !important; line-height: 56px !important; }
+        .content-page { padding-top: 56px !important; }
+        /* Breadcrumb más grande y en negrita */
+        .breadcrumb { margin-bottom: .25rem; }
+        .breadcrumb-item, .breadcrumb-item > a, .breadcrumb-item.active { font-size: .9rem !important; font-weight: 600 !important; }
+        .breadcrumb-item + .breadcrumb-item::before { font-size: .9rem; }
         .sombra-logo {
             box-shadow: 1.5px 1.5px 1.5px rgba(0, 0, 0, 0.35) ;
         }
@@ -45,7 +78,7 @@ require (__ROOT__.'/config/global.php');
             box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.35) ;
         }
         .sombra-panel{
-            box-shadow: 2px 0px 15px rgba(0, 0, 0, 0.25);
+            box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06);
         }
         #tbllistado_wrapper > div.dt-buttons.btn-group.flex-wrap{
             margin-bottom: -1.5em;
@@ -87,6 +120,102 @@ require (__ROOT__.'/config/global.php');
         .icono-ruta-ClubPedido{
             height: 2em;
             margin-bottom: 1em;
+        }
+        /* ===== Indicador de orden UNIFICADO para TODAS las DataTables =====
+           DataTables (bootstrap5 css) dibuja las flechas como caracteres
+           Unicode en los pseudo-elementos del th:
+             :before = "↑"  (content)
+             :after  = "↓"  (content)
+           Para evitar dos flechas y los saltos verticales en tablas compactas,
+           ocultamos todos los :before y usamos UN solo :after a la IZQUIERDA del
+           label, con el glifo correcto por estado (sin ordenar ↓ tenue, asc ↑,
+           desc ↓), siempre en la misma posición vertical, y la columna activa en
+           negrita + color de marca. Aplica a toda tabla DataTable, sin importar id. */
+        table.dataTable thead > tr > th.sorting,
+        table.dataTable thead > tr > th.sorting_asc,
+        table.dataTable thead > tr > th.sorting_desc {
+            padding-left: 24px !important;
+            padding-right: 12px !important;
+        }
+        /* Un SOLO indicador (:after) a la izquierda del label; ocultamos todos
+           los :before del tema para que no haya dos flechas ni saltos. */
+        table.dataTable thead .sorting:before,
+        table.dataTable thead .sorting_asc:before,
+        table.dataTable thead .sorting_desc:before { display: none !important; }
+
+        table.dataTable thead .sorting:after,
+        table.dataTable thead .sorting_asc:after,
+        table.dataTable thead .sorting_desc:after {
+            position: absolute !important;
+            left: .5em !important;
+            right: auto !important;
+            top: 50% !important;
+            bottom: auto !important;
+            transform: translateY(-50%);
+            display: block !important;
+            font-size: .7rem;
+        }
+        /* sin ordenar: flecha ↓ tenue (indicador de columna ordenable) */
+        table.dataTable thead .sorting:after      { content: "↓" !important; opacity: .35 !important; }
+        /* ASCENDENTE: flecha ↑ sólida */
+        table.dataTable thead .sorting_asc:after  { content: "↑" !important; opacity: 1 !important; }
+        /* DESCENDENTE: flecha ↓ sólida */
+        table.dataTable thead .sorting_desc:after { content: "↓" !important; opacity: 1 !important; }
+        /* columna activa: header en negrita + color de marca (tiñe la flecha) */
+        table.dataTable thead > tr > th.sorting_asc,
+        table.dataTable thead > tr > th.sorting_desc {
+            font-weight: 700 !important;
+            color: #6650EA !important;
+        }
+        /* ===== Ancho UNIFICADO para TODAS las tablas de listado =====
+           Igual que en articulo.php: la tabla ocupa el 100% del ancho de su
+           contenedor (la card). DataTables, con autoWidth activo, fija un
+           ancho en px segun el contenido -> tablas con pocas columnas o texto
+           corto quedaban mas angostas. Forzamos 100% en la tabla y su wrapper
+           para que TODAS midan lo mismo, sin importar su contenido ni el id. */
+        #tbllistado,
+        #tbllistado.dataTable,
+        table.dataTable {
+            width: 100% !important;
+            margin-left: 0 !important;
+            margin-right: 0 !important;
+        }
+        .dataTables_wrapper,
+        #tbllistado_wrapper,
+        .table-responsive {
+            width: 100% !important;
+        }
+        /* ===== Alto de fila UNIFICADO para TODAS las tablas de listado =====
+           Igual que articulo.php (table-sm): mismo padding vertical y contenido
+           centrado, tengan o no la clase table-sm. Así todas las filas miden
+           lo mismo en todas las vistas. */
+        #tbllistado > thead > tr > th,
+        #tbllistado > tbody > tr > td,
+        table.dataTable > thead > tr > th,
+        table.dataTable > tbody > tr > td {
+            padding-top: .25rem !important;
+            padding-bottom: .25rem !important;
+            vertical-align: middle !important;
+        }
+        /* Imágenes/avatars en celdas: alto acotado para no inflar la fila */
+        #tbllistado td img,
+        table.dataTable td img {
+            max-height: 38px;
+        }
+        /* ===== Cursor "manito" en TODOS los botones del sistema al hacer hover ===== */
+        .btn:not(:disabled),
+        button:not(:disabled),
+        [role="button"]:not(:disabled),
+        a[onclick]:not(:disabled),
+        .page-link,
+        .dropdown-item,
+        .dropdown-toggle { cursor: pointer !important; }
+
+        /* ===== Botones de filtro "Limpiar": borde del mismo gris que la línea de
+           los inputs (--ct-input-border-color: #dee2e6) para integrarlos con la
+           barra de filtros en TODAS las vistas. ===== */
+        .btn[id^="fLimpiar"] {
+            border: 1px solid var(--ct-input-border-color, #dee2e6) !important;
         }
     </style>
 </head>
@@ -149,7 +278,7 @@ require (__ROOT__.'/config/global.php');
 
 <div class="wrapper">
     <!-- ========== Left Sidebar Start ========== -->
-    <div class="leftside-menu sombra">    
+    <div class="leftside-menu">
         <!-- LOGO -->
         <a href="escritorio.php" class="logo  logo-light">
             <span class="logo-lg"  style = "margin-left: 2em;" >
@@ -235,29 +364,6 @@ require (__ROOT__.'/config/global.php');
                         </div>
                     </li>
                 <?php } 
-                if ($_SESSION['mensajes'] == 1) {?>
-                    <!--<li class="side-nav-item">
-                        <a data-bs-toggle="collapse" href="#sidebarMensajesMasivoa" aria-expanded="false" aria-controls="sidebarMensajesMasivoa" class="side-nav-link">
-                            <i class="uil-comment"></i>
-                            <span> Mensajes Masivo </span>
-                            <span class="menu-arrow"></span>
-                        </a>
-                        <div class="collapse" id="sidebarMensajesMasivoa">
-                            <ul class="side-nav-second-level">
-                                <li>                            
-                                    <a href="mensajesB2B.php">
-                                        <i class="uil-circle"></i> Mensajes a clientes
-                                    </a> 
-                                </li>
-                                <li>
-                                    <a href="mensajesB2C.php">
-                                        <i class="uil-circle"></i> Mensajes a prospectos
-                                    </a>
-                                </li>                                                                                 
-                            </ul>
-                        </div>
-                    </li> -->
-                <?php }
                 if ($_SESSION['consultas'] == 1) {?>
                     <li class="side-nav-item">
                         <a data-bs-toggle="collapse" href="#sidebarConsultas" aria-expanded="false" aria-controls="sidebarConsultas" class="side-nav-link">
@@ -390,7 +496,7 @@ require (__ROOT__.'/config/global.php');
     <div class="content-page">
         <div class="content">
             <!-- Topbar Start -->
-            <div class="navbar-custom sombra">
+            <div class="navbar-custom">
 
                 <ul class="list-unstyled topbar-menu float-end mb-0">
                     <li class="dropdown notification-list">
@@ -410,21 +516,21 @@ require (__ROOT__.'/config/global.php');
                                 <?php echo $_SESSION['nombre']; ?>
                             </span>
                         </a>
-                        <div class="dropdown-menu dropdown-menu-end dropdown-menu-animated topbar-dropdown-menu profile-dropdown sombra ">                            
-                            <!-- item-->
-<!--                            <a href="javascript:void(0);" class="dropdown-item notify-item  text-center text-muted" >-->
-<!--                                <span class="account-user-avatar"> -->
-<!--                                    <img src="../files/usuarios/--><?php //echo $_SESSION['imagen']; ?><!--"  alt="user" class="img-thumbnail rounded-circle sombra-logo" style="height: 70px!important" >-->
-<!--                                </span> <br>-->
-<!--                                <span>-->
-<!--                                    <span class="account-user-name">--><?php //echo $_SESSION['nombre']; ?><!--</span> <br> -->
-<!--                                    <span class="account-position"><small>--><?php //echo date("d-m-Y"); ?><!--</small></span>-->
-<!--                                </span>-->
-<!--                            </a>-->
-                            <a href="../ajax/usuario.php?op=salir"  class="dropdown-item text-center text-primary notify-item border-top border-light py-2">
-                                <i class="mdi mdi-logout me-1"></i>
+                        <div class="dropdown-menu dropdown-menu-end dropdown-menu-animated topbar-dropdown-menu profile-dropdown">
+                            <!-- Encabezado de usuario -->
+                            <div class="dd-userbox">
+                                <img src="<?php echo $img; ?>" alt="user" onerror="this.src='../files/usuarios/user.png'" class="rounded-circle">
+                                <div class="overflow-hidden">
+                                    <div class="dd-name text-truncate"><?php echo $_SESSION['nombre']; ?></div>
+                                    <div class="dd-sub">Sesión activa</div>
+                                </div>
+                            </div>
+                            <div class="dropdown-divider"></div>
+                            <!-- Acción: cerrar sesión -->
+                            <a href="../ajax/usuario.php?op=salir" class="dropdown-item notify-item dd-logout">
+                                <i class="mdi mdi-logout"></i>
                                 <span>Salir</span>
-                            </a> 
+                            </a>
                         </div>
                     </li>
                 </ul>

@@ -51,7 +51,11 @@ CREATE TABLE `articulos`  (
   `deposito` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
   `stock` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
   `orden` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
-  PRIMARY KEY (`codigo`) USING BTREE
+  PRIMARY KEY (`codigo`) USING BTREE,
+  KEY `idx_rubro` (`rubro`),
+  KEY `idx_subrubro` (`subrubro`),
+  KEY `idx_linea` (`linea`),
+  KEY `idx_marca` (`marca`)
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE =utf8mb4_general_ci ROW_FORMAT = Dynamic;
 
 CREATE TABLE `cart_cart_item`  (
@@ -118,7 +122,11 @@ CREATE TABLE `clientes`  (
   `latitud` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `longitud` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
-  PRIMARY KEY (`id`) USING BTREE
+  PRIMARY KEY (`id`) USING BTREE,
+  KEY `idx_vendedor` (`vendedor`),
+  KEY `idx_zona` (`zona`),
+  KEY `idx_lista` (`lista`),
+  KEY `idx_ramo` (`ramo`)
 ) ENGINE = InnoDB AUTO_INCREMENT = 1014 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 CREATE TABLE `consultas`  (
@@ -136,7 +144,14 @@ CREATE TABLE `consultas`  (
   `estado` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Pendiente',
   `notificado` int(11) NOT NULL DEFAULT 0,
   `anulado` tinyint(1) NOT NULL DEFAULT 0,
-  PRIMARY KEY (`consultaId`) USING BTREE
+  PRIMARY KEY (`consultaId`) USING BTREE,
+  KEY `idx_consultas_estado` (`estado`),
+  KEY `idx_consultas_area` (`area`),
+  KEY `idx_consultas_fecha_ingreso` (`fecha_ingreso`),
+  KEY `idx_consultas_fecha_resolucion` (`fecha_resolucion`),
+  KEY `idx_consultas_telefono` (`telefono`),
+  KEY `idx_consultas_clienteId` (`clienteId`),
+  KEY `idx_consultas_motivo` (`motivo`)
 ) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 CREATE TABLE `contactos`  (
@@ -411,7 +426,11 @@ CREATE TABLE `reclamos`  (
   `estado` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Pendiente',
   `notificado` int(11) NOT NULL DEFAULT 0,
   `anulado` tinyint(1) NOT NULL DEFAULT 0,
-  PRIMARY KEY (`reclamoId`) USING BTREE
+  PRIMARY KEY (`reclamoId`) USING BTREE,
+  KEY `idx_reclamos_estado` (`estado`),
+  KEY `idx_reclamos_area` (`area`),
+  KEY `idx_reclamos_motivo` (`motivo`),
+  KEY `idx_reclamos_clienteId` (`clienteId`)
 ) ENGINE = InnoDB AUTO_INCREMENT = 30 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 CREATE TABLE `repartidores`  (
@@ -440,7 +459,10 @@ CREATE TABLE `solicitudes`  (
   `cuit` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
   `latitud` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
   `longitud` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
-  PRIMARY KEY (`id`) USING BTREE
+  PRIMARY KEY (`id`) USING BTREE,
+  KEY `idx_solic_estado` (`estado`),
+  KEY `idx_solic_localidad` (`localidad`),
+  KEY `idx_solic_fecha` (`fecha`)
 ) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
 
 CREATE TABLE `telefonos`  (
@@ -541,6 +563,10 @@ CREATE TABLE `bot_config`  (
   `id` tinyint(1) NOT NULL DEFAULT 1,
   `menu_json` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `telefono` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `nombre_empresa` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `razon_social` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `cuit` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `logo` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`) USING BTREE,
   CONSTRAINT `chk_single_row` CHECK (`id` = 1)

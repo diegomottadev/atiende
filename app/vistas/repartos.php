@@ -13,8 +13,7 @@ if (!isset($_SESSION['nombre'])) {
         <div class="row">
             <div class="col-12">
                 <div class="page-title-box">
-                    <div class="page-title-right">
-                        <ol class="breadcrumb m-0">
+                    <ol class="breadcrumb m-0">
                             <li class="breadcrumb-item" style="margin-top: -0.7em">
                                 <a href="javascript: void(0);">                            
                                     <img src="../public/img/logo30x30.png" alt="" class="icono-ruta-ClubPedido" >            
@@ -24,8 +23,6 @@ if (!isset($_SESSION['nombre'])) {
                             <li class="breadcrumb-item"><a href="javascript: void(0);">Repartos</a></li>
                             <li class="breadcrumb-item active"> Asignacion de Pedidos </li>
                         </ol>
-                    </div>
-                    <div class="float-start mt-3"><h4 class="page-title"> Asignacion de Pedidos</h4></div>
                 </div>
             </div>
         </div>
@@ -54,11 +51,11 @@ if (!isset($_SESSION['nombre'])) {
                                             data-bs-toggle="tooltip" data-bs-trigger="hover" title="Asignar los pedidos tildados al repartidor elegido">
                                         <i class="uil-check-circle"></i> Asignar
                                     </button>
-                                    <span id="filtroRepartoSlot" class="d-flex align-items-center gap-1 ms-2"></span>
+                                    <span id="filtroRepartoSlot" class="d-flex align-items-center gap-2 ms-auto"></span>
                                 </div>
                             </div>
                             <div class=" table-responsive mt-n2" id="listadoregistros">
-                                <table id="tbllistadoRepartos"  class="table table-sm table-striped table-centered mb-0  nowrap w-100">
+                                <table id="tbllistadoRepartos"  class="table table-striped table-centered mb-0  nowrap w-100">
                                     <thead >
                                         <th style="width:40px; text-align:center;">#</th>
                                         <th  style="min-width: 100px;">Acciones</th>

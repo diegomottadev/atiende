@@ -54,6 +54,7 @@ function mostrarform(flag){
 	if(flag){
 		$("#btnCancel").show();
 		$("#listadoregistros").hide();
+		$("#filtrosUsuario").hide();
 		$("#formularioregistros").show();
 		$("#btnGuardar").prop("disabled",false);
 		$("#btnagregar").hide();
@@ -61,6 +62,7 @@ function mostrarform(flag){
 	}else{
 		$("#btnCancel").hide();
 		$("#listadoregistros").show();
+		$("#filtrosUsuario").show();
 		$("#formularioregistros").hide();
 		$("#btnagregar").show();
 	}
@@ -76,31 +78,53 @@ function cancelarform(){
 function listar(){
 	tabla=$('#tbllistado').dataTable({
 		drawCallback:function(){
-            $(".dataTables_paginate > .pagination").addClass("pagination-rounded")
+            $(".dataTables_paginate > .pagination").addClass("pagination-rounded");
+            document.querySelectorAll('#tbllistado [data-bs-toggle="tooltip"]').forEach(function(el){
+                try {
+                    var existing = bootstrap.Tooltip.getInstance(el);
+                    if (existing) { existing.hide(); existing.dispose(); }
+                    new bootstrap.Tooltip(el, {trigger: 'hover', animation: false});
+                } catch(e) {}
+            });
         },
 		"language":lenguajeTable,
-		"aProcessing": true,//activamos el procedimiento del datatable
-		"aServerSide": true,//paginacion y filrado realizados por el server
-		dom: 'Bfrtip',//definimos los elementos del control de la tabla
-		buttons: [
-                  'copyHtml5',
-                  'excelHtml5',
-                  'csvHtml5',
-                  'pdf'
-		],
+		"aProcessing": true,
+		"aServerSide": false,// client-side: filtra sobre todo el dataset
+		dom: 'Brtip',// sin 'f': buscador nativo reemplazado por #fBuscar
+		buttons: [],
 		"ajax":
 		{
 			url:'../ajax/usuario.php?op=listar',
 			type: "get",
 			dataType : "json",
+			dataSrc: "aaData",
 			error:function(e){
 				console.log(e.responseText);
 			}
 		},
 		"bDestroy":true,
-		"iDisplayLength":5,//paginacion
-		"order":[[0,"desc"]]//ordenar (columna, orden)
+		"iDisplayLength":5,
+		"order":[[0,"desc"]]
 	}).DataTable();
+
+	// --- Filtros client-side ---
+	var _buscarTimer = null;
+	$("#fBuscar").off("input.usr").on("input.usr", function(){
+		var v = $(this).val();
+		clearTimeout(_buscarTimer);
+		_buscarTimer = setTimeout(function(){ tabla.search(v).draw(); }, 300);
+	});
+
+	$("#fEstado").off("change.usr").on("change.usr", function(){
+		// Búsqueda exacta sobre el texto del badge en columna 8
+		tabla.column(8).search(this.value, false, false).draw();
+	});
+
+	$("#fLimpiar").off("click.usr").on("click.usr", function(){
+		$("#fBuscar").val("");
+		$("#fEstado").val("");
+		tabla.search("").columns().search("").draw();
+	});
 }
 //funcion para guardaryeditar
 function guardaryeditar(e){
@@ -239,6 +263,7 @@ function readURL(input) {
 	  reader.onload = function(e) { //Al cargar el contenido lo pasamos como atributo de la imagen de arriba
 		$('#imagenmuestra').attr('src', e.target.result).show();
 		$('#btnQuitarImagen').show();
+		try { bootstrap.Tooltip.getOrCreateInstance(document.getElementById('btnQuitarImagen'), {trigger:'hover', animation:false}); } catch(err){}
 	  }
 	  
 	  reader.readAsDataURL(input.files[0]);
@@ -247,6 +272,7 @@ function readURL(input) {
 
 /* Quitar la imagen seleccionada */
 function limpiarImagen(){
+	var t = bootstrap.Tooltip.getInstance(document.getElementById('btnQuitarImagen')); if(t){ t.hide(); }
 	$("#imagen").val("");
 	var actual = $("#imagenactual").val();
 	$("#imagenmuestra").attr("src", actual ? "../files/usuarios/"+actual : "../files/usuarios/user.png").show();

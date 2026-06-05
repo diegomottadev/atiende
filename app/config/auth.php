@@ -10,6 +10,4 @@ if (empty($_SESSION['idusuario'])) {
 // Protección CSRF: lazy-init del token per-sesión. Generarlo acá (y no en el
 // login) cubre las sesiones ya activas durante el deploy sin forzar re-login.
 require_once __DIR__ . '/csrf.php';
-if (empty($_SESSION['csrf_token'])) {
-    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-}
+ensureCsrfToken();

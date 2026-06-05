@@ -26,7 +26,7 @@ $telefono=isset($_POST["telefono"])? limpiarCadena($_POST["telefono"]):"";
 
 
 $op = $_GET['op'] ?? '';
-csrfGuard($op, ['mostrar', 'listarp', 'listarc']);
+csrfGuard($op, ['mostrar', 'listarp', 'listarc', 'filtros']);
 
 switch ($_GET["op"]) {
 	case 'guardaryeditar':
@@ -75,33 +75,40 @@ switch ($_GET["op"]) {
 		break;
 
 		  case 'listarc':
-		$rspta=$persona->listarc();
-		$data=Array();
-//SELECT `codigo`, `vendedor`, `razonSocial`, `direccion`, `localidad`, `ramo`, `zona`, `lista` FROM `clientes` WHERE 1
-		while ($reg=$rspta->fetch_object()) {
-			$data[]=array(
-            "0"=>'<button class="btn btn-warning btn-sm btn-icon-line" onclick="mostrar('.$reg->codigo.')"><i class="mdi mdi-lead-pencil m-n2"></i></button>'.' '.'<button class="btn btn-danger btn-sm btn-icon-line" onclick="eliminar('.$reg->codigo.')"><i class="mdi mdi-delete m-n2"></i></button>',
-            "1"=>$reg->codigo,
-			"2"=>$reg->vendedor,
-            "3"=>$reg->razonSocial,
-            "4"=>$reg->direccion,
-            "5"=>$reg->localidad,
-			"6"=>$reg->telefono,
-            "7"=>$reg->ramo,
-			"8"=>$reg->zona,
-			"9"=>$reg->lista,
-			"10"=>$reg->latitud,
-			"11"=>$reg->longitud,
-            "12"=>$reg->deposito,
-              );
-			 // latitud y longitud
+		// Server-side processing (DataTables): solo la página pedida + totales → escala a millones de filas.
+		$draw    = isset($_REQUEST['draw'])   ? intval($_REQUEST['draw'])   : 1;
+		$start   = isset($_REQUEST['start'])  ? intval($_REQUEST['start'])  : 0;
+		$length  = isset($_REQUEST['length']) ? intval($_REQUEST['length']) : 10;
+		$buscar  = isset($_REQUEST['search']['value']) ? $_REQUEST['search']['value'] : '';
+		$orden   = (isset($_REQUEST['order'])   && is_array($_REQUEST['order']))   ? $_REQUEST['order']   : array();
+		$columns = (isset($_REQUEST['columns']) && is_array($_REQUEST['columns'])) ? $_REQUEST['columns'] : array();
+
+		$resc = $persona->listarcServerSide($start, $length, $buscar, $orden, $columns);
+		$data = array();
+		foreach ($resc['rows'] as $reg) {
+			$cod = $reg['codigo'];
+			$data[] = array(
+				'<button class="btn btn-warning btn-sm btn-icon-line" onclick="mostrar('.$cod.')"><i class="mdi mdi-lead-pencil m-n2"></i></button> <button class="btn btn-danger btn-sm btn-icon-line" onclick="eliminar('.$cod.')"><i class="mdi mdi-delete m-n2"></i></button>',
+				$reg['codigo'], $reg['vendedor'], $reg['razonSocial'], $reg['direccion'], $reg['localidad'],
+				$reg['telefono'], $reg['ramo'], $reg['zona'], $reg['lista'], $reg['latitud'], $reg['longitud'], $reg['deposito']
+			);
 		}
-		$results=array(
-             "sEcho"=>1,//info para datatables
-             "iTotalRecords"=>count($data),//enviamos el total de registros al datatable
-             "iTotalDisplayRecords"=>count($data),//enviamos el total de registros a visualizar
-             "aaData"=>$data); 
-		echo json_encode($results);
+		echo json_encode(array(
+			"draw"            => $draw,
+			"recordsTotal"    => $resc['recordsTotal'],
+			"recordsFiltered" => $resc['recordsFiltered'],
+			"data"            => $data
+		), JSON_UNESCAPED_UNICODE);
+		break;
+
+	case 'filtros':
+		// Valores distintos para los dropdowns de filtro (vendedor / zona / lista / ramo)
+		echo json_encode(array(
+			"vendedor" => $persona->distinctCliente('vendedor'),
+			"zona"     => $persona->distinctCliente('zona'),
+			"lista"    => $persona->distinctCliente('lista'),
+			"ramo"     => $persona->distinctCliente('ramo')
+		), JSON_UNESCAPED_UNICODE);
 		break;
 }
  ?>

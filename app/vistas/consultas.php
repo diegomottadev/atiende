@@ -18,8 +18,7 @@ if (!isset($_SESSION['nombre'])) {
     <div class="row">
             <div class="col-12">
                 <div class="page-title-box">
-                    <div class="page-title-right">
-                        <ol class="breadcrumb m-0">
+                    <ol class="breadcrumb m-0">
                             <li class="breadcrumb-item" style="margin-top: -0.7em">
                                 <a href="javascript: void(0);">                            
                                     <img src="../public/img/logo30x30.png" alt="" class="icono-ruta-ClubPedido" >            
@@ -28,13 +27,12 @@ if (!isset($_SESSION['nombre'])) {
                             </li>
                             <li class="breadcrumb-item"><a href="javascript: void(0);">Reclamos</a></li>
                             <li class="breadcrumb-item active"> Mis Consultas </li>
-                        </ol>
-                    </div>                   
+                        </ol>                   
                 </div>
             </div>
         </div>
         <div class="row mb-2 mt-n2">
-            <div class="col-sm-12"><div class="float-start "><h4 class="page-title"> &nbsp;&nbsp;&nbsp;&nbsp;Mis Consultas </h4></div>            
+            <div class="col-sm-12">            
                 <div class="text-sm-end">
                     <button class="btn btn-success rounded-pill pull-right sombra-logo" id="btnExportar" onclick="aExcel()">
                         <i class="mdi mdi-file-excel-outline me-1"></i> Exportar
@@ -49,6 +47,30 @@ if (!isset($_SESSION['nombre'])) {
         <div class="row">
             <div class="col-12">
                 <div class="card sombra-panel" style="border-top:3px solid #727cf5;">
+                    <div class="card-body pb-2">
+                        <!-- Filtros (server-side: buscan en TODO el dataset, no solo la página) -->
+                        <div id="filtrosConsulta" class="row g-2 align-items-end">
+                            <div class="col-12 col-md-5">
+                                <label class="form-label mb-1" style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#6c757d;">Buscar</label>
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text bg-white text-muted"><i class="mdi mdi-magnify"></i></span>
+                                    <input type="text" id="fBuscar" class="form-control" placeholder="Buscar por N° consulta, teléfono, cliente, motivo...">
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <label class="form-label mb-1" style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#6c757d;">Estado</label>
+                                <select id="fEstado" class="form-select form-select-sm"><option value="">Todos</option></select>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <label class="form-label mb-1" style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#6c757d;">Área</label>
+                                <select id="fArea" class="form-select form-select-sm"><option value="">Todas</option></select>
+                            </div>
+                            <div class="col-6 col-md-1">
+                                <button type="button" id="fLimpiar" class="btn btn-sm btn-soft-secondary w-100" data-bs-toggle="tooltip" data-bs-trigger="hover" title="Borrar filtros"><i class="mdi mdi-filter-remove-outline"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                    <hr class="my-0">
                     <div class="card-body p-0">
                             <div class="table-responsive" id="tablaConsultas"> <!-- dt-responsive -->
 <!--                                table dt-responsive nowrap w-100 dataTable no-footer dtr-inline-->
@@ -179,11 +201,7 @@ if (!isset($_SESSION['nombre'])) {
                             #tbllistado{
                                 }
                                 #tbllistado tbody tr td .tbdato{
-                                    height: 20px !important;
-                                    overflow: hidden;
                                     overflow-wrap: break-word;
-
-
                                 }
                                 .table>tbody>tr>td, .table>tbody>tr>th, .table>tfoot>tr>td, .table>tfoot>tr>th, .table>thead>tr>td, .table>thead>tr>th{
                                      vertical-align: middle;

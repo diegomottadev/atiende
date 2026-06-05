@@ -25,6 +25,7 @@ function limpiar(){
 function mostrarform(flag){
     limpiar();
     if(flag){
+        $("#filtrosAreaConsulta").hide();
         $("#listadoregistros").hide();
         $("#btnCancel").show();
         $("#formularioregistros").show();
@@ -33,6 +34,7 @@ function mostrarform(flag){
         $('#ribbon-text').text('Nuevo Sector');
     }else{
         $("#btnCancel").hide();
+        $("#filtrosAreaConsulta").show();
         $("#listadoregistros").show();
         $("#formularioregistros").hide();
         $("#btnAgregar").show();
@@ -52,28 +54,38 @@ function listar(){
             $(".dataTables_paginate > .pagination").addClass("pagination-rounded")
         },
         "language": lenguajeTable,
-        "aProcessing": true,//activamos el procedimiento del datatable
-        "aServerSide": true,//paginacion y filrado realizados por el server
-        dom: 'Bfrtip',//definimos los elementos del control de la tabla
-        buttons: [
-            'copyHtml5',
-            'excelHtml5',
-            'csvHtml5',
-            'pdf'
-        ],
+        "aProcessing": true,
+        "aServerSide": false,
+        dom: 'Brtip',
+        buttons: [],
         "ajax":
             {
                 url:'../ajax/areaConsulta.php?op=listarp',
                 type: "get",
                 dataType : "json",
+                dataSrc: "aaData",
                 error:function(e){
                     console.log(e.responseText);
                 }
             },
         "bDestroy":true,
-        "iDisplayLength":10,//paginacion
-        "order":[[0,"desc"]]//ordenar (columna, orden)
+        "iDisplayLength":10,
+        "order":[[1,"asc"]]
     }).DataTable();
+
+    // Filtro global con debounce 300ms
+    var buscarTimer;
+    $('#fBuscar').on('keyup input', function(){
+        var v = this.value;
+        clearTimeout(buscarTimer);
+        buscarTimer = setTimeout(function(){ tabla.search(v).draw(); }, 300);
+    });
+
+    // Limpiar filtros
+    $('#fLimpiar').on('click', function(){
+        $('#fBuscar').val('');
+        tabla.search('').draw();
+    });
 }
 //funcion para guardaryeditar
 function guardaryeditar(e){

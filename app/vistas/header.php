@@ -107,7 +107,21 @@ require (__ROOT__.'/config/global.php');
             padding: 5px;
         ;
         }
-
+        /* ===== Ancho UNIFICADO para TODAS las tablas de listado =====
+           Igual que en articulo.php: la tabla ocupa el 100% del ancho de su
+           contenedor, sin importar su contenido ni el id. */
+        #tbllistado,
+        #tbllistado.dataTable,
+        table.dataTable {
+            width: 100% !important;
+            margin-left: 0 !important;
+            margin-right: 0 !important;
+        }
+        .dataTables_wrapper,
+        #tbllistado_wrapper,
+        .table-responsive {
+            width: 100% !important;
+        }
 
 
     </style>
@@ -301,24 +315,6 @@ $(document).ajaxError(function(event, xhr) {
                 }
                 ?>
 
-                <?php
-                if ($_SESSION['mensajes'] == 1) {
-
-                    echo '<li class="treeview">
-                      <a href="#">
-                        <i class="fa fa-comment"></i> <span>Mensajes Masivo</span>
-                        <span class="pull-right-container">
-                          <i class="fa fa-angle-left pull-right"></i>
-                        </span>
-                      </a>
-                      <ul class="treeview-menu">
-                         <li data-id="Mensajes a clientes"><a href="mensajesB2B.php"><i class="fa fa-circle-o"></i>Mensajes a clientes</a></li>
-                        <!-- <li><a href="#"><i class="fa fa-circle-o"></i>Grupos</a></li>-->
-                        <li data-id="Mensajes a clientes"><a href="mensajesB2C.php"><i class="fa fa-circle-o"></i>Mensajes a prospectos</a></li>
-                      </ul>
-                    </li>';
-
-                }
                 ?>
                 <?php
 

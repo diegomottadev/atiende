@@ -61,8 +61,7 @@ if (!isset($_SESSION['nombre'])) {
         <div class="row">
             <div class="col-12">
                 <div class="page-title-box">
-                    <div class="page-title-right">
-                        <ol class="breadcrumb m-0">
+                    <ol class="breadcrumb m-0">
                             <li class="breadcrumb-item" style="margin-top:-.7em">
                                 <a href="javascript:void(0);">
                                     <img src="../public/img/logo30x30.png" alt="" class="icono-ruta-ClubPedido">
@@ -72,10 +71,6 @@ if (!isset($_SESSION['nombre'])) {
                             <li class="breadcrumb-item"><a href="javascript:void(0);">Ventas</a></li>
                             <li class="breadcrumb-item active">Consulta de Ventas</li>
                         </ol>
-                    </div>
-                    <div class="float-start mt-2 mb-n2">
-                        <h4 class="page-title">&nbsp;&nbsp;&nbsp;&nbsp;Consulta de Ventas</h4>
-                    </div>
                 </div>
             </div>
         </div>
@@ -134,7 +129,7 @@ if (!isset($_SESSION['nombre'])) {
                             </div>
                         </div>
                         <div class="table-responsive mt-0">
-                            <table id="tbllistado" class="table table-sm table-striped table-centered mb-0 nowrap w-100">
+                            <table id="tbllistado" class="table table-striped table-centered mb-0 nowrap w-100">
                                 <thead>
                                     <th>Fecha</th>
                                     <th>Cod</th>

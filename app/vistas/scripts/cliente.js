@@ -8,6 +8,34 @@ function init(){
    $("#formulario").on("submit",function(e){
    	guardaryeditar(e);
    });
+
+   // --- Filtros profesionales (server-side: la DB busca/filtra sobre TODO el dataset) ---
+   function filtrarColumna(idx, val){ tabla.column(idx).search(val || '').draw(); } // exact match en el server
+   var buscarTimer;
+   $('#fBuscar').on('keyup input', function(){
+      var v = this.value;
+      clearTimeout(buscarTimer);
+      buscarTimer = setTimeout(function(){ tabla.search(v).draw(); }, 350); // debounce
+   });
+   $('#fVendedor').on('change', function(){ filtrarColumna(2, this.value); });
+   $('#fRamo').on('change',     function(){ filtrarColumna(7, this.value); });
+   $('#fZona').on('change',     function(){ filtrarColumna(8, this.value); });
+   $('#fLista').on('change',    function(){ filtrarColumna(9, this.value); });
+   $('#fLimpiar').on('click', function(){
+      $('#fBuscar').val('');
+      $('#fVendedor,#fRamo,#fZona,#fLista').val('');
+      tabla.search('').columns([2,7,8,9]).search('').draw();
+   });
+   // Poblar los dropdowns con los valores distintos (del server, no solo la página visible)
+   $.get('../ajax/persona.php?op=filtros', function(r){
+      try { if (typeof r === 'string') r = JSON.parse(r); } catch(e){ return; }
+      function fill(sel, arr){
+         var $s = $(sel); if (!$s.length) return;
+         $s.find('option:not(:first)').remove();
+         (arr || []).forEach(function(v){ if (v !== null && String(v).trim() !== '') $s.append($('<option>').attr('value', v).text(v)); });
+      }
+      fill('#fVendedor', r.vendedor); fill('#fRamo', r.ramo); fill('#fZona', r.zona); fill('#fLista', r.lista);
+   }, 'json');
 }
 
 //funcion limpiar
@@ -36,6 +64,7 @@ function mostrarform(flag){
 		$('#btnCancel').show();
 		$("#listadoregistros").hide();
 		$("#subirarchivo").hide();
+		$("#filtrosCliente").hide();
 		$("#formularioregistros").show();
 		
 		$("#btnGuardar").prop("disabled",false);
@@ -46,6 +75,7 @@ function mostrarform(flag){
 
 		$("#listadoregistros").show();
 		$("#subirarchivo").show();
+		$("#filtrosCliente").show();
 		$("#formularioregistros").hide();
 		$("#btnagregar").show();
 		$('#btnExportar').show();
@@ -67,18 +97,13 @@ function listar(){
         },
 		"language": lenguajeTable,
 		"aProcessing": true,//activamos el procedimiento del datatable
-		"aServerSide": true,//paginacion y filrado realizados por el server
-		dom: 'Bfrtip',//definimos los elementos del control de la tabla
-		buttons: [
-                  'copyHtml5',
-                  'excelHtml5',
-                  'csvHtml5',
-                  'pdf'
-		],
+		"aServerSide": true,// server-side real: la DB hace búsqueda/orden/paginado → escala a millones
+		dom: 'rtip',//sin 'f' (usamos buscador propio)
+		"columnDefs":[{ "orderable": false, "targets": 0 }],//la columna de acciones no se ordena
 		"ajax":
 		{
 			url:'../ajax/persona.php?op=listarc',
-			type: "get",
+			type: "post",// POST: los params de DataTables no entran cómodos en la URL
 			dataType : "json",
 			error:function(e){
 				console.log(e.responseText);
@@ -86,7 +111,7 @@ function listar(){
 		},
 		"bDestroy":true,
 		"iDisplayLength":10,//paginacion
-		"order":[[0,"desc"]]//ordenar (columna, orden)
+		"order":[[1,"desc"]]//ordenar por código (col 0 = acciones)
 	}).DataTable();
 }
 //funcion para guardaryeditar

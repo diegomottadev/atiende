@@ -1,5 +1,4 @@
 var tabla;
-var select = ' <select class="float-start form-control-sm" name="filter" id="filter" onchange="filtrar()">  <option value="0">--Seleccionar--</option> <option value="1" selected >Pendientes</option> <option value="2">Aprobados</option> <option value="3">Todos</option> </select>';
 //funcion que se ejecuta al inicio
 function init(){
     mostrarform(false);
@@ -7,6 +6,36 @@ function init(){
     $("#editSolicitudForm").on("submit",function(e){
         guardar(e);
     });
+
+    // --- Filtros profesionales (server-side: la DB busca/filtra sobre TODO el dataset) ---
+    function filtrarColumna(idx, val){ tabla.column(idx).search(val || '').draw(); } // exact match en el server
+    var buscarTimer;
+    $('#fBuscar').on('keyup input', function(){
+        var v = this.value;
+        clearTimeout(buscarTimer);
+        buscarTimer = setTimeout(function(){ tabla.search(v).draw(); }, 350); // debounce
+    });
+    $('#fLocalidad').on('change', function(){ filtrarColumna(4, this.value); });
+    $('#fEstado').on('change',    function(){ filtrarColumna(7, this.value); });
+    $('#fLimpiar').on('click', function(){
+        $('#fBuscar').val('');
+        $('#fLocalidad,#fEstado').val('');
+        tabla.search('').columns([4,7]).search('').draw();
+    });
+    // Poblar dropdowns con los valores distintos (desde el server, no solo la página visible)
+    $.get('../ajax/solicitud.php?op=filtros', function(r){
+        try { if (typeof r === 'string') r = JSON.parse(r); } catch(e){ return; }
+        var $loc = $('#fLocalidad');
+        if ($loc.length) {
+            $loc.find('option:not(:first)').remove();
+            (r.localidad || []).forEach(function(v){ if (v !== null && String(v).trim() !== '') $loc.append($('<option>').attr('value', v).text(v)); });
+        }
+        var $est = $('#fEstado');
+        if ($est.length) {
+            $est.find('option:not(:first)').remove();
+            (r.estado || []).forEach(function(o){ $est.append($('<option>').attr('value', o.v).text(o.t)); });
+        }
+    }, 'json');
 }
 
 //funcion limpiar
@@ -34,10 +63,12 @@ function mostrarform(flag){
     limpiar();
     if(flag){
         $('#btnCancel').show();
+        $("#filtrosSolicitud").hide();
         $("#tblSolicitudesMain").hide();
         $("#editSolicitudMain").show();
         $("#editSolicitudTitle").show();
     }else{
+        $("#filtrosSolicitud").show();
         $("#tblSolicitudesMain").show();
         $("#editSolicitudMain").hide();
         $("#editSolicitudTitle").hide();
@@ -57,31 +88,18 @@ function listar(){
         drawCallback:function(){
             $(".dataTables_paginate > .pagination").addClass("pagination-rounded")
         },
-        "language": {
-            "processing": "Procesando...",
-            "lengthMenu": "Mostrar _MENU_ registros",
-            "zeroRecords": "No se encontraron resultados",
-            "emptyTable": "Ningún dato disponible en esta tabla",
-            "infoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
-            "infoFiltered": "(filtrado de un total de _MAX_ registros)",
-            "search": "Buscar:",            
-            "loadingRecords": "Cargando...",
-            "paginate": {
-                "first": "Primero",
-                "last": "Último",
-                "next": "Siguiente",
-                "previous": "Anterior"
-            },
-            "info": "Mostrando _START_ a _END_ de _TOTAL_ registros",            
-        },
+        "language": lenguajeTable,
+        "columnDefs":[
+            { "orderable": false, "targets": 0 }
+        ],
         "aProcessing": true,//activamos el procedimiento del datatable
-        "aServerSide": true,//paginacion y filrado realizados por el server
-        dom: 'Bfr<"toolbar">tip',//definimos los elementos del control de la tabla
+        "aServerSide": true,// server-side: la DB hace búsqueda/orden/paginado → escala a millones de filas
+        dom: 'Brtip',//sin 'f' (usamos buscador propio)
         buttons: [],
         "ajax":
             {
-                url:'../ajax/solicitud.php?op=listar&filter=' + 1,
-                type: "get",
+                url:'../ajax/solicitud.php?op=listar',
+                type: "post",
                 dataType : "json",
                 error:function(e){
                     console.log(e.responseText);
@@ -89,37 +107,8 @@ function listar(){
             },
         "bDestroy":true,
         "iDisplayLength":12,//paginacion
-        //"order":[[5,"desc"]]//ordenar (columna, orden)
+        "order":[[6,"desc"]]//ordenar por fecha (col 6) desc
     }).DataTable();
-    $( "#tblSolicitudes_filter" ).append(select);
-}
-
-function filtrar() {
-    var filter = $('#filter').val(); 
-    tabla = $('#tblSolicitudes').dataTable({
-        drawCallback:function(){
-            $(".dataTables_paginate > .pagination").addClass("pagination-rounded")
-        },
-        "language": lenguajeTable,
-        "aProcessing": true,//activamos el procedimiento del datatable
-        "aServerSide": true,//paginacion y filrado realizados por el server
-        dom: 'Bfr<"toolbar">tip',//definimos los elementos del control de la tabla
-        buttons: [],
-        "ajax":
-            {
-                url: '../ajax/solicitud.php?op=listar&filter=' + filter,
-                type: "get",
-                dataType: "json",
-                error: function (e) {
-                    console.log(e.responseText);
-                }
-            },
-        "bDestroy": true,
-        "iDisplayLength": 12,//paginacion
-        //"order":[[5,"desc"]]//ordenar (columna, orden)
-    }).DataTable();
-    $( "#tblSolicitudes_filter" ).append(select);
-    $("#filter").val(filter);   
 }
 //funcion para guardaryeditar
 function guardar(e){

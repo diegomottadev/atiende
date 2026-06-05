@@ -24,7 +24,7 @@ $filter=isset($_GET["filter"])? limpiarCadena($_GET["filter"]):"";
 
 
 $op = $_GET['op'] ?? '';
-csrfGuard($op, ['mostrar', 'listar', 'nextCodigo']);
+csrfGuard($op, ['mostrar', 'listar', 'filtros', 'nextCodigo']);
 
 switch ($_GET["op"]) {
     case 'guardarNuevoCliente':
@@ -38,26 +38,53 @@ switch ($_GET["op"]) {
         break;
 
     case 'listar':
-        $rspta = $solicitud->listar($filter);
-        $data = Array();
-        while ($reg = $rspta->fetch_object()) {
+        // Server-side processing (DataTables): devuelve SOLO la página pedida + totales.
+        // La DB hace búsqueda/orden/paginado con índices → escala a millones de filas.
+        $draw    = isset($_REQUEST['draw'])   ? intval($_REQUEST['draw'])   : 1;
+        $start   = isset($_REQUEST['start'])  ? intval($_REQUEST['start'])  : 0;
+        $length  = isset($_REQUEST['length']) ? intval($_REQUEST['length']) : 10;
+        $buscar  = isset($_REQUEST['search']['value']) ? $_REQUEST['search']['value'] : '';
+        $orden   = (isset($_REQUEST['order'])   && is_array($_REQUEST['order']))   ? $_REQUEST['order']   : array();
+        $columns = (isset($_REQUEST['columns']) && is_array($_REQUEST['columns'])) ? $_REQUEST['columns'] : array();
+
+        $res = $solicitud->listarServerSide($start, $length, $buscar, $orden, $columns);
+
+        $data = array();
+        foreach ($res['rows'] as $reg) {
+            $id     = $reg['id'];
+            $estado = $reg['estado'];
+            $acciones = $estado
+                ? '<button class="btn btn-danger btn-sm btn-icon-line" onclick="eliminar(\'' . $id . '\')"><i class="mdi mdi-delete m-n2"></i></button>'
+                : '<button class="btn btn-warning btn-sm btn-icon-line" onclick="asignar(\'' . $id . '\')"><i class="mdi mdi-lead-pencil m-n2"></i></button>' . ' ' . '<button class="btn btn-danger btn-sm btn-icon-line" onclick="eliminar(\'' . $id . '\')"><i class="mdi mdi-delete m-n2"></i></button>';
             $data[] = array(
-                "0" => $reg->estado ? '<button class="btn btn-danger btn-sm btn-icon-line" onclick="eliminar(\'' . $reg->id . '\')"><i class="mdi mdi-delete m-n2"></i></button>' : '<button class="btn btn-warning btn-sm btn-icon-line" onclick="asignar(\'' . $reg->id . '\')"><i class="mdi mdi-lead-pencil m-n2"></i></button>' . ' ' . '<button class="btn btn-danger btn-sm btn-icon-line" onclick="eliminar(\'' . $reg->id . '\')"><i class="mdi mdi-delete m-n2"></i></button>',
-                "1" => $reg->nombre,
-                "2" => $reg->cuit,
-                "3" => $reg->direccion,
-                "4" => $reg->localidad,
-                "5" => $reg->telefono,
-                "6" => $reg->fecha,
-                "7" => $reg->estado ?  '<span class="badge bg-success">Aprobado</span>' : '<span class="badge bg-danger">Pendiente</span>' ,
+                "0" => $acciones,
+                "1" => $reg['nombre'],
+                "2" => $reg['cuit'],
+                "3" => $reg['direccion'],
+                "4" => $reg['localidad'],
+                "5" => $reg['telefono'],
+                "6" => $reg['fecha'],
+                "7" => $estado ? '<span class="badge bg-success">Aprobado</span>' : '<span class="badge bg-danger">Pendiente</span>',
             );
         }
-        $results = array(
-            "sEcho" => 1,//info para datatables
-            "iTotalRecords" => count($data),//enviamos el total de registros al datatable
-            "iTotalDisplayRecords" => count($data),//enviamos el total de registros a visualizar
-            "aaData" => $data);
-        echo json_encode($results);
+        echo json_encode(array(
+            "draw"            => $draw,
+            "recordsTotal"    => $res['recordsTotal'],
+            "recordsFiltered" => $res['recordsFiltered'],
+            "data"            => $data
+        ), JSON_UNESCAPED_UNICODE);
+        break;
+
+    case 'filtros':
+        // Valores distintos para los dropdowns de filtro.
+        // Estado es 0/1 → lo mapeamos a etiquetas (col 7 filtra por valor exacto = 0|1).
+        echo json_encode(array(
+            "localidad" => $solicitud->distinctSolicitud('localidad'),
+            "estado"    => array(
+                array("v"=>"0", "t"=>"Pendiente"),
+                array("v"=>"1", "t"=>"Aprobado")
+            )
+        ), JSON_UNESCAPED_UNICODE);
         break;
 
     case 'eliminar':

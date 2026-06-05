@@ -259,7 +259,7 @@ function mostrar(idventa) {
             $("#btnCancelar").show();
             $("#btnAgregarArt").hide();
             //------------------------------
-            $("#imprimir").html("<a class='btn btn-info btn-sm btn-icon-line' target='_blank' href='../reportes/exTicket.php?id=" + data.pedidoid + "'> <i class='mdi mdi-printer m-n2'></i> </a>");
+            $("#imprimir").html("<a class='btn btn-info btn-sm btn-icon-line' target='_blank' href='/ticket/" + data.pedidoid + "'> <i class='mdi mdi-printer m-n2'></i> </a>");
             $("#cambiarEstado").html('<button type="button" class="btn btn-secondary btn-sm btn-icon-line" onclick="enProceso(' + data.pedidoid + ')" ><i class="mdi mdi-cog m-n2"></i></button>');
 
             $.post("../ajax/venta.php?op=listarMensajes&idventa=" + data.pedidoid, function (r) {

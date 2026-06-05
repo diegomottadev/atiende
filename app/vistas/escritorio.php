@@ -39,8 +39,7 @@ if (!isset($_SESSION['nombre'])) {
         <div class="row">
             <div class="col-12">
                 <div class="page-title-box">
-                    <div class="page-title-right">
-                        <ol class="breadcrumb m-0">
+                    <ol class="breadcrumb m-0">
                             <li class="breadcrumb-item" style="margin-top: -0.7em">
                                 <a href="javascript: void(0);">                            
                                     <img src="../public/img/logo30x30.png" alt="" class="icono-ruta-ClubPedido" >            
@@ -49,8 +48,6 @@ if (!isset($_SESSION['nombre'])) {
                             </li>
                             <li class="breadcrumb-item active"> Panel de Control </li>
                         </ol>
-                    </div>
-                    <div class="float-start mt-3"><h4 class="page-title"> Panel de Control</h4></div>
                 </div>
             </div>
         </div>

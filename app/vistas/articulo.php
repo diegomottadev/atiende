@@ -24,13 +24,24 @@ if (!isset($_SESSION['nombre'])) {
 .upload-zone__filename { font-size:.8rem; font-weight:600; color:#0acf97; }
 .upload-zone__clear { margin-left:auto; flex-shrink:0; background:none; border:none; color:#aaa; font-size:1rem; cursor:pointer; padding:0 2px; line-height:1; }
 .upload-zone__clear:hover { color:#fa5c7c; }
+/* (El indicador de orden — flecha única a la izquierda, asc/desc, negrita en
+   la columna activa — vive ahora GLOBAL en headerv1.php y aplica a todas las
+   tablas del sistema.) */
+/* miniaturas clickeables (abren modal de imagen ampliada) */
+#tbllistado tbody img { cursor:zoom-in; transition:transform .12s; }
+#tbllistado tbody img:hover { transform:scale(1.08); }
+/* Caja del código de barras */
+.barcode-box{border:1px solid #e3e7f1;border-radius:10px;padding:12px;background:#fff;text-align:center;}
+.barcode-box svg{max-width:100%;height:auto;}
+/* Filas más compactas en la tabla de artículos */
+#tbllistado tbody td{padding-top:.2rem!important;padding-bottom:.2rem!important;vertical-align:middle;}
+#tbllistado tbody img{border-radius:5px;}
 </style>
         <!-- start page title -->
         <div class="row">
             <div class="col-12">
                 <div class="page-title-box">
-                    <div class="page-title-right">
-                        <ol class="breadcrumb m-0">
+                    <ol class="breadcrumb m-0">
                             <li class="breadcrumb-item" style="margin-top: -0.7em">
                                 <a href="javascript: void(0);">                            
                                     <img src="../public/img/logo30x30.png" alt="" class="icono-ruta-ClubPedido" >            
@@ -40,8 +51,6 @@ if (!isset($_SESSION['nombre'])) {
                             <li class="breadcrumb-item"><a href="javascript: void(0);">Base de Datos</a></li>
                             <li class="breadcrumb-item active"> Articulos </li>
                         </ol>
-                    </div>
-                    <div class="float-start mt-3"><h4 class="page-title"> Articulos</h4></div>
                 </div>
             </div>
         </div>
@@ -101,9 +110,44 @@ if (!isset($_SESSION['nombre'])) {
                                 // $row[]="#";
                                 $cabecera = array_keys($row);
                             }
+                            array_unshift($cabecera, "#");
                             $cabecera[] = "imagen";
-                            $cabecera[] = "#";
                         ?>
+                        <!-- Filtros (client-side: buscan en TODO el dataset, no solo la página) -->
+                        <div id="filtrosArticulo" class="d-flex flex-wrap align-items-end gap-2">
+                            <!-- Zona de filtros de datos (qué filas se ven) -->
+                            <div class="row g-2 align-items-end flex-grow-1">
+                                <div class="col-12 col-md-3">
+                                    <label class="form-label mb-1" style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#6c757d;">Buscar</label>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text bg-white text-muted"><i class="mdi mdi-magnify"></i></span>
+                                        <input type="text" id="fBuscar" class="form-control" placeholder="Buscar en todos los datos del producto...">
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-2">
+                                    <label class="form-label mb-1" style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#6c757d;">Rubro</label>
+                                    <select id="fRubro" class="form-select form-select-sm"><option value="">Todos</option></select>
+                                </div>
+                                <div class="col-6 col-md-2">
+                                    <label class="form-label mb-1" style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#6c757d;">Subrubro</label>
+                                    <select id="fSubrubro" class="form-select form-select-sm"><option value="">Todos</option></select>
+                                </div>
+                                <div class="col-6 col-md-2">
+                                    <label class="form-label mb-1" style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#6c757d;">Línea</label>
+                                    <select id="fLinea" class="form-select form-select-sm"><option value="">Todas</option></select>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <label class="form-label mb-1" style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#6c757d;">Marca</label>
+                                    <select id="fMarca" class="form-select form-select-sm"><option value="">Todas</option></select>
+                                </div>
+                            </div>
+                            <!-- Zona de controles de vista (qué columnas se ven) — cluster a la derecha -->
+                            <div class="d-flex align-items-end gap-2 ms-auto" id="vistaControls">
+                                <button type="button" id="fLimpiar" class="btn btn-sm btn-soft-secondary" data-bs-toggle="tooltip" data-bs-trigger="hover" title="Borrar filtros"><i class="mdi mdi-filter-remove-outline"></i></button>
+                                <!-- el JS (initComplete) inyecta acá el dropdown "Columnas" -->
+                                <div id="colvisHost" class="d-inline-block"></div>
+                            </div>
+                        </div>
                     </div>
                     <hr class="my-0">
                     <div class="card-body p-0">
@@ -157,23 +201,32 @@ if (!isset($_SESSION['nombre'])) {
                                     <div class="row">
                                         <div class="col-lg-6">
                                             <div class="mb-3 position-relative">
-                                                <label for="" class="form-label">Imagen: (jpg)</label>                                                
+                                                <label for="imagen" class="form-label">Imagen del producto</label>
                                                 <input class="form-control" type="file" name="imagen" id="imagen" accept="image/jpeg">
                                                 <input type="hidden" name="imagenactual" id="imagenactual">
-                                                <img src="" alt="" width="150px" height="120" id="imagenmuestra">
+                                                <small class="text-muted d-block mt-1"><i class="mdi mdi-information-outline"></i> Formato: JPG · Tamaño máximo: <strong>2 MB</strong></small>
+                                                <div class="mt-2">
+                                                    <div style="position:relative;display:inline-block;">
+                                                        <img src="" alt="" id="imagenmuestra" onerror="this.onerror=null;this.src='../files/articulos/camara.jpg';this.style.display='';var b=document.getElementById('btnQuitarImagen');if(b)b.style.display='none';" style="width:96px;height:96px;border-radius:12px;object-fit:cover;display:none;border:2px solid #e2e0f0;box-shadow:0 2px 6px rgba(0,0,0,.08);">
+                                                        <button type="button" id="btnQuitarImagen" data-bs-toggle="tooltip" data-bs-trigger="hover" title="Quitar" style="display:none;position:absolute;top:-2px;right:-2px;width:26px;height:26px;padding:0;border-radius:50%;background:#fa5c7c;color:#fff;border:2px solid #fff;font-size:15px;line-height:20px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,.3);cursor:pointer;"><i class="mdi mdi-close"></i></button>
+                                                    </div>
+                                                </div>
                                             </div>                                           
                                         </div>
                                         <div class="col-lg-6">
                                             <div class="mb-3 position-relative">
-                                                <label for="" class="form-label">Codigo</label>
-                                                <input class="form-control" type="text" name="codigo" id="codigo" placeholder="codigo del prodcuto" required>
-                                                <button class="btn btn-success" type="button" onclick="generarbarcode()">
-                                                    Generar
-                                                </button>
-                                                <button class="btn btn-info" type="button" onclick="imprimir()">Imprimir
-                                                </button>
-                                                <div id="print">
-                                                    <svg id="barcode"></svg>
+                                                <label class="form-label">Código <span class="text-muted fw-normal">(de barras)</span></label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text bg-white text-muted"><i class="mdi mdi-barcode"></i></span>
+                                                    <input class="form-control" type="text" name="codigo" id="codigo" placeholder="Código del producto" required>
+                                                    <button class="btn btn-outline-primary" type="button" id="btnGenerar" onclick="generarbarcode()">
+                                                        <span class="spinner-border spinner-border-sm me-1 d-none" id="genSpinner" role="status" aria-hidden="true"></span>
+                                                        <i class="mdi mdi-barcode-scan me-1" id="genIcon"></i>Generar
+                                                    </button>
+                                                </div>
+                                                <div id="barcodeWrap" class="barcode-box mt-2" style="display:none;">
+                                                    <div id="print"><svg id="barcode"></svg></div>
+                                                    <button class="btn btn-sm btn-soft-secondary mt-2" type="button" onclick="imprimir()"><i class="mdi mdi-printer me-1"></i>Imprimir</button>
                                                 </div>
                                             </div>                                           
                                         </div>
@@ -191,6 +244,24 @@ if (!isset($_SESSION['nombre'])) {
                 </div>
             </div>
         </div>
+
+        <!-- Modal: imagen ampliada del artículo -->
+        <div class="modal fade" id="modalImgArticulo" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <div>
+                            <h5 class="modal-title mb-0" id="modalImgTitulo"></h5>
+                            <small class="text-muted" id="modalImgSub"></small>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    </div>
+                    <div class="modal-body text-center">
+                        <img id="modalImgFoto" src="" alt="" class="img-fluid rounded" onerror="this.onerror=null;this.src='../files/articulos/camara.jpg';" style="max-height:72vh;">
+                    </div>
+                </div>
+            </div>
+        </div>
     <?php }
      else {
         require 'noacceso.php';
@@ -202,7 +273,7 @@ if (!isset($_SESSION['nombre'])) {
     </script>
     <script src="../public/js/JsBarcode.all.min.js"></script>
     <script src="../public/js/jquery.PrintArea.js"></script>
-    <script src="scripts/articulo.js"></script>
+    <script src="scripts/articulo.js?t=<?php echo time(); ?>"></script>
 
     <?php
 }

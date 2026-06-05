@@ -59,5 +59,41 @@ public function listarActivosVenta(){
 	$sql="SELECT a.idarticulo,a.idcategoria,c.nombre as categoria,a.codigo, a.nombre,a.stock,(SELECT precio_venta FROM detalle_ingreso WHERE idarticulo=a.idarticulo ORDER BY iddetalle_ingreso DESC LIMIT 0,1) AS precio_venta,a.descripcion,a.imagen,a.condicion FROM articulo a INNER JOIN Categoria c ON a.idcategoria=c.idcategoria WHERE a.condicion='1'";
 	return ejecutarConsulta($sql);
 }
+
+// ============================================================
+//  Server-side processing (DataTables) — escala a millones de filas
+// ============================================================
+
+// Whitelist: índice de columna DataTables → columna real de la tabla.
+// Solo estas columnas pueden ordenarse/filtrarse (evita SQL injection por nombre de columna).
+// La col 0 (botón editar) y la última (imagen) NO son columnas reales → no figuran.
+public function columnasServerSide(){
+	return array(
+		1=>'codigo', 2=>'descripcion',
+		3=>'lista1',4=>'lista2',5=>'lista3',6=>'lista4',7=>'lista5',8=>'lista6',9=>'lista7',
+		10=>'linea',11=>'rubro',12=>'subrubro',13=>'marca',
+		14=>'kilos',15=>'litros',16=>'color',17=>'tamano',18=>'palet',
+		19=>'capacidad',20=>'pack',21=>'impInt',22=>'codBarra',23=>'topecant',
+		24=>'iva',25=>'deposito',26=>'stock',27=>'orden'
+	);
+}
+
+// Devuelve solo la página pedida + totales (delega en el helper genérico Datatable).
+public function listarServerSide($start, $length, $buscar, $order, $columns){
+	global $conexion;
+	require_once dirname(__DIR__).'/config/Datatable.php';
+	$map = $this->columnasServerSide();
+	$req = array('start'=>$start, 'length'=>$length, 'search'=>array('value'=>$buscar), 'order'=>$order, 'columns'=>$columns);
+	return Datatable::serverSide($conexion, 'articulos', $map, array_values($map), array(
+		'select'=>'*', 'fetch'=>'num', 'defaultOrder'=>'`codigo` DESC', 'request'=>$req
+	));
+}
+
+// Valores distintos de una columna (para poblar los dropdowns de filtro)
+public function distinct($colNombre){
+	global $conexion;
+	require_once dirname(__DIR__).'/config/Datatable.php';
+	return Datatable::distinct($conexion, 'articulos', $colNombre, array_values($this->columnasServerSide()));
+}
 }
  ?>

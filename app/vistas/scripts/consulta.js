@@ -37,6 +37,7 @@ function mostrarConsultaFormulario(flag){
     limpiar();
     if(flag){
         $("#tablaConsultas").hide();
+        $("#filtrosConsulta").hide();
         $("#btnCancel").show();
         $("#formRespuestasConsultas").show();
         $("#btnGuardar").prop("disabled",false);
@@ -45,6 +46,7 @@ function mostrarConsultaFormulario(flag){
     }else{
         $("#btnCancel").hide();
         $("#tablaConsultas").show();
+        $("#filtrosConsulta").show();
         $("#formRespuestasConsultas").hide();
         $("#btnagregar").show();
         $("#btnExportar").show();
@@ -65,10 +67,11 @@ function listar(){
         },
         "language": lenguajeTable,
         "aProcessing": true,//activamos el procedimiento del datatable
-        "aServerSide": true,
+        "aServerSide": true,// server-side: la DB hace búsqueda/orden/paginado → escala a millones de filas
         buttons: [],//paginacion y filrado realizados por el server
-        dom: 'Bfrtip',//definimos los elementos del control de la tabla
+        dom: 'Brtip',//sin 'f' (usamos buscador propio)
         "columnDefs": [
+            { "orderable": false, "targets": 0 },// col 0 = acciones, no ordenable
             {
                 "targets": [ 10 ],
                 "visible": false,
@@ -78,7 +81,7 @@ function listar(){
         "ajax":
             {
                 url:'../ajax/consulta.php?op=listarp',
-                type: "get",
+                type: "post",// POST: los params de DataTables van por body (no en la URL)
                 dataType : "json",
                 error:function(e){
 
@@ -87,7 +90,7 @@ function listar(){
         "bDestroy":true,
         "iDisplayLength":10,//paginacion
         "bAutoWidth": false,
-        "order":[[10,"desc"],[0,"desc"]],//ordenar (columna, orden),
+        "order":[[2,"desc"]],//ordenar por N° Con (consultaId) descendente,
         "createdRow": function (row, data, dataIndex, cells) {
             if ( data[10]>0 )
             {
@@ -98,6 +101,36 @@ function listar(){
     }).DataTable();
 
     $('#tblConsultas tr').css('height', '10px');
+
+    // --- Filtros profesionales (server-side: la DB busca/filtra sobre TODO el dataset) ---
+    function filtrarColumna(idx, val){ tabla.column(idx).search(val || '').draw(); } // exact match en el server
+    var buscarTimer;
+    $('#fBuscar').off('keyup input').on('keyup input', function(){
+        var v = this.value;
+        clearTimeout(buscarTimer);
+        buscarTimer = setTimeout(function(){ tabla.search(v).draw(); }, 350); // debounce: no pegar al server por cada tecla
+    });
+    $('#fEstado').off('change').on('change', function(){ filtrarColumna(1, this.value); });
+    $('#fArea').off('change').on('change',   function(){ filtrarColumna(8, this.value); });
+    $('#fLimpiar').off('click').on('click', function(){
+        $('#fBuscar').val('');
+        $('#fEstado,#fArea').val('');
+        tabla.search('').columns([1,8]).search('').draw();
+    });
+    // Poblar los dropdowns con los valores distintos (desde el server, no solo la página visible)
+    $.get('../ajax/consulta.php?op=filtros', function(r){
+        try { if (typeof r === 'string') r = JSON.parse(r); } catch(e){ return; }
+        var $e = $('#fEstado');
+        if ($e.length) {
+            $e.find('option:not(:first)').remove();
+            (r.estado || []).forEach(function(v){ if (v !== null && String(v).trim() !== '') $e.append($('<option>').attr('value', v).text(v)); });
+        }
+        var $a = $('#fArea');
+        if ($a.length) {
+            $a.find('option:not(:first)').remove();
+            (r.area || []).forEach(function(o){ if (o && o.id != null) $a.append($('<option>').attr('value', o.id).text(o.nombre)); });
+        }
+    }, 'json');
 }
 //funcion para guardaryeditar
 function guardarEditarConsulta(e){

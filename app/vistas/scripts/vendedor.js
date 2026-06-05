@@ -24,6 +24,7 @@ function mostrarform(flag){
 
 		$("#subirarchivo").hide();
 		$("#listadoregistros").hide();
+		$("#filtrosVendedor").hide();
 		$("#btnExportar").hide();
 		$('#btnCancel').show();
 		$("#formularioregistros").show();
@@ -33,6 +34,7 @@ function mostrarform(flag){
 		$('#btnCancel').hide();
 		$("#subirarchivo").show();
 		$("#listadoregistros").show();
+		$("#filtrosVendedor").show();
 		$("#formularioregistros").hide();
 		$("#btnAgregar").show();
 		$("#btnExportar").show();
@@ -52,28 +54,40 @@ function listar(){
             $(".dataTables_paginate > .pagination").addClass("pagination-rounded")
         },
 		"language": lenguajeTable,
-		"aProcessing": true,//activamos el procedimiento del datatable
-		"aServerSide": true,//paginacion y filrado realizados por el server
-		dom: 'Bfrtip',//definimos los elementos del control de la tabla
-		buttons: [
-                  'copyHtml5',
-                  'excelHtml5',
-                  'csvHtml5',
-                  'pdf'
-		],
+		"aProcessing": true,
+		"aServerSide": false,
+		dom: 'Brtip',
+		buttons: [],
 		"ajax":
 		{
 			url:'../ajax/vendedor.php?op=listar',
 			type: "get",
 			dataType : "json",
+			dataSrc: "aaData",
 			error:function(e){
 				console.log(e.responseText);
 			}
 		},
 		"bDestroy":true,
-		"iDisplayLength":10,//paginacion
-		"order":[[0,"desc"]]//ordenar (columna, orden)
+		"iDisplayLength":10,
+		"order":[[0,"desc"]]
 	}).DataTable();
+
+	// Filtro global con debounce
+	var _debounceTimer;
+	$("#fBuscar").on("input", function(){
+		clearTimeout(_debounceTimer);
+		var v = $(this).val();
+		_debounceTimer = setTimeout(function(){
+			tabla.search(v).draw();
+		}, 300);
+	});
+
+	// Botón limpiar
+	$("#fLimpiar").on("click", function(){
+		$("#fBuscar").val("");
+		tabla.search("").draw();
+	});
 }
 //funcion para guardaryeditar
 function guardaryeditar(e){

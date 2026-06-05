@@ -58,7 +58,18 @@ switch ($_GET["op"]) {
 
     case 'editarEstado':
         $rspta=$reparto->editarEstado($_GET["pedidoid"]);
-        echo $rspta ? "Ingreso modificado correctamente" : "No se pudo modificar el ingreso";
+        if ($rspta) {
+            $datos = $reparto->mostrar($_GET["pedidoid"]);
+            echo json_encode([
+                "ok"       => true,
+                "pedidoid" => $datos["pedidoid"]   ?? $_GET["pedidoid"],
+                "fecha"    => $datos["fecha"]      ?? "",
+                "cliente"  => $datos["razonSocial"] ?? "",
+                "total"    => $datos["total"]      ?? ""
+            ]);
+        } else {
+            echo json_encode(["ok" => false]);
+        }
         break;
 
     case 'mostrar':
@@ -131,7 +142,7 @@ switch ($_GET["op"]) {
             if($key)
                 $modal='<a href="#" class="text-info" data-bs-toggle="tooltip" title="Ver observación" onclick="comentario(\''.$obs[$key].'\')" ><i class="mdi mdi-comment-processing" style="font-size:1rem;vertical-align:middle;"></i></a>';
 
-            $url='../reportes/exTicket.php?id=';
+            $url='/ticket/';
             if($reg->estado==-1)
                 $estado="<span class='badge bg-primary'>Pendiente</span>";
             if($reg->estado==0 || $reg->estado==1)

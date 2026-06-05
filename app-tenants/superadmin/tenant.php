@@ -52,6 +52,12 @@ include dirname(__DIR__) . '/views/layout/header.php';
     <input type="text" name="nombre" class="form-control" value="<?= htmlspecialchars($tenant['nombre']) ?>" required></div>
   <div class="mb-2"><label class="form-label">Email de contacto</label>
     <input type="email" name="email" class="form-control" value="<?= htmlspecialchars($tenant['email']) ?>" required></div>
+  <div class="mb-2"><label class="form-label">Razón social</label>
+    <input type="text" name="razon_social" class="form-control" value="<?= htmlspecialchars($tenant['razon_social'] ?? '') ?>" placeholder="Mi Empresa S.R.L."></div>
+  <div class="mb-2"><label class="form-label">CUIT</label>
+    <input type="text" name="cuit" class="form-control" value="<?= htmlspecialchars($tenant['cuit'] ?? '') ?>" placeholder="30-12345678-9"></div>
+  <div class="mb-2"><label class="form-label">Teléfono</label>
+    <input type="text" name="telefono" class="form-control" value="<?= htmlspecialchars($tenant['telefono'] ?? '') ?>" placeholder="3764000000"></div>
   <div class="mb-2"><label class="form-label">Slug (subdominio)</label>
     <input type="text" class="form-control" value="<?= htmlspecialchars($tenant['slug']) ?>" disabled>
     <div class="form-text">No editable: define el subdominio y la base de datos del tenant.</div></div>

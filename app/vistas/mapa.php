@@ -81,8 +81,7 @@ table.ventas td:nth-child(3)::before { content: "$ "; }
     <div class="row">
         <div class="col-12">
             <div class="page-title-box">
-                <div class="page-title-right">
-                    <ol class="breadcrumb m-0">
+                <ol class="breadcrumb m-0">
                         <li class="breadcrumb-item" style="margin-top:-0.7em">
                             <a href="javascript:void(0);">
                                 <img src="../public/img/logo30x30.png" alt="" class="icono-ruta-ClubPedido"> Atiende
@@ -90,8 +89,6 @@ table.ventas td:nth-child(3)::before { content: "$ "; }
                         </li>
                         <li class="breadcrumb-item active">Mapa de Ventas</li>
                     </ol>
-                </div>
-                <div class="float-start mt-2 mb-n2"><h4 class="page-title">Mapa de Ventas</h4></div>
             </div>
         </div>
     </div>

@@ -111,6 +111,26 @@
         <script src="../public/assets/js/vendor.min.js"></script>
         <script src="../public/assets/js/app.min.js"></script>
         <script src="../public/sweetAlert2/sweetalert2.all.min.js"></script>
-        <script src="scripts/login.js?t=<?php echo time(); ?>"></script>        
+        <!-- Global: el botón de confirmación de SweetAlert dice "Aceptar" (no "OK") -->
+        <script type="text/javascript">
+            (function () {
+                if (window.Swal && typeof Swal.fire === 'function' && !Swal.__aceptarPatched) {
+                    var _fire = Swal.fire.bind(Swal);
+                    Swal.fire = function () {
+                        var a = arguments;
+                        if (a.length === 1 && a[0] && typeof a[0] === 'object') {
+                            if (a[0].confirmButtonText === undefined) { a[0].confirmButtonText = 'Aceptar'; }
+                            return _fire(a[0]);
+                        }
+                        if (typeof a[0] === 'string') {
+                            return _fire({ title: a[0], html: a[1], icon: a[2], confirmButtonText: 'Aceptar' });
+                        }
+                        return _fire.apply(Swal, a);
+                    };
+                    Swal.__aceptarPatched = true;
+                }
+            })();
+        </script>
+        <script src="scripts/login.js?t=<?php echo time(); ?>"></script>
     </body>
 </html>

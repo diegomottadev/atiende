@@ -9,6 +9,9 @@ $pdo      = getPlatformPDO();
 $tenantId = (int)($_POST['tenant_id'] ?? 0);
 $nombre   = trim($_POST['nombre'] ?? '');
 $email    = trim($_POST['email']  ?? '');
+$razon    = trim($_POST['razon_social'] ?? '');
+$cuit     = trim($_POST['cuit']     ?? '');
+$telefono = trim($_POST['telefono'] ?? '');
 
 $stmt = $pdo->prepare('SELECT id FROM tenants WHERE id = ? AND deleted_at IS NULL');
 $stmt->execute([$tenantId]);
@@ -21,8 +24,8 @@ if ($nombre === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
     exit;
 }
 
-$pdo->prepare('UPDATE tenants SET nombre = ?, email = ? WHERE id = ?')
-    ->execute([$nombre, $email, $tenantId]);
+$pdo->prepare('UPDATE tenants SET nombre = ?, email = ?, razon_social = ?, cuit = ?, telefono = ? WHERE id = ?')
+    ->execute([$nombre, $email, $razon, $cuit, $telefono, $tenantId]);
 
 header('Location: ' . APP_URL . '/superadmin/tenant.php?id=' . $tenantId . '&saved=2');
 exit;

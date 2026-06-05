@@ -15,7 +15,7 @@ if (empty($_SESSION['configuracion'])) {
     exit;
 }
 
-csrfGuard($op, ['listarAreas', 'listarReclamos', 'listarConsultas', 'getMenuPrincipal', 'listarAreasAdmin', 'getToken']);
+csrfGuard($op, ['listarAreas', 'listarReclamos', 'listarConsultas', 'getMenuPrincipal', 'listarAreasAdmin', 'getToken', 'getEmpresa']);
 
 switch ($op) {
 
@@ -245,6 +245,80 @@ switch ($op) {
             error_log('[configuracion] ' . $e->getMessage());
             echo json_encode(['ok' => false, 'error' => 'Error interno']);
         }
+        break;
+
+    case 'getEmpresa':
+        // Identidad de empresa: FUENTE DE VERDAD en pedidos_platform.tenants (compartida con el superadmin).
+        // El logo es un archivo local del tenant → vive en bot_config.
+        $slug = (strncmp($_SESSION['tenant_db'] ?? '', 'atiende_', 8) === 0)
+            ? substr($_SESSION['tenant_db'], 8) : ($_SESSION['tenant_db'] ?? '');
+        $emp = ['nombre' => '', 'razon_social' => '', 'cuit' => '', 'telefono' => ''];
+        try {
+            $pp = new PDO('mysql:host=' . DB_HOST . ';dbname=pedidos_platform;charset=utf8mb4', DB_USERNAME, DB_PASSWORD, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC]);
+            $st = $pp->prepare('SELECT nombre, razon_social, cuit, telefono FROM tenants WHERE slug = ? AND deleted_at IS NULL LIMIT 1');
+            $st->execute([$slug]);
+            $t = $st->fetch();
+            if ($t) { $emp = $t; }
+        } catch (Exception $e) { error_log('[configuracion] getEmpresa: ' . $e->getMessage()); }
+        $logo = '';
+        $rl = mysqli_query($conexion, "SELECT logo FROM bot_config LIMIT 1");
+        if ($rl && ($rr = mysqli_fetch_assoc($rl))) { $logo = $rr['logo'] ?? ''; }
+        echo json_encode([
+            'ok'          => true,
+            'nombre'      => $emp['nombre'] ?? '',
+            'razonSocial' => $emp['razon_social'] ?? '',
+            'cuit'        => $emp['cuit'] ?? '',
+            'telefono'    => $emp['telefono'] ?? '',
+            'logo'        => $logo,
+        ]);
+        break;
+
+    case 'guardarEmpresa':
+        $nombre      = trim($_POST['nombre'] ?? '');
+        $razonSocial = trim($_POST['razonSocial'] ?? '');
+        $cuit        = trim($_POST['cuit'] ?? '');
+        $telefono    = trim($_POST['telefono'] ?? '');
+
+        // Logo (opcional): validación server-side de tamaño (2 MB) + contenido real (no el Content-Type del cliente)
+        $logoName = null;
+        if (isset($_FILES['logo']) && is_uploaded_file($_FILES['logo']['tmp_name'])) {
+            $MAX_IMG_BYTES = 2 * 1024 * 1024;
+            $allowedImg    = ['image/jpeg' => 'jpg', 'image/png' => 'png'];
+            if ($_FILES['logo']['size'] <= $MAX_IMG_BYTES) {
+                $finfo    = new finfo(FILEINFO_MIME_TYPE);
+                $realMime = $finfo->file($_FILES['logo']['tmp_name']);
+                $isImage  = @getimagesize($_FILES['logo']['tmp_name']) !== false;
+                if ($isImage && isset($allowedImg[$realMime])) {
+                    // nombre con prefijo del tenant para no colisionar entre empresas (files/ es compartido)
+                    $slug     = !empty($_SESSION['tenant_db']) ? $_SESSION['tenant_db'] : DB_NAME;
+                    $logoName = $slug . '_' . bin2hex(random_bytes(6)) . '.' . $allowedImg[$realMime];
+                    move_uploaded_file($_FILES['logo']['tmp_name'], __ROOT__ . '/files/empresa/' . $logoName);
+                }
+            }
+        }
+
+        // 1) Identidad de empresa → pedidos_platform.tenants (FUENTE DE VERDAD; visible en el superadmin)
+        $okT = false;
+        try {
+            $slug = (strncmp($_SESSION['tenant_db'] ?? '', 'atiende_', 8) === 0)
+                ? substr($_SESSION['tenant_db'], 8) : ($_SESSION['tenant_db'] ?? '');
+            $pp = new PDO('mysql:host=' . DB_HOST . ';dbname=pedidos_platform;charset=utf8mb4', DB_USERNAME, DB_PASSWORD, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
+            $okT = $pp->prepare('UPDATE tenants SET nombre = ?, razon_social = ?, cuit = ?, telefono = ? WHERE slug = ? AND deleted_at IS NULL')
+                      ->execute([$nombre, $razonSocial, $cuit, $telefono, $slug]);
+        } catch (Exception $e) { error_log('[configuracion] guardarEmpresa: ' . $e->getMessage()); }
+
+        // 2) Logo (+ teléfono como cache para el bot) → bot_config local del tenant
+        if ($logoName !== null) {
+            $stmt = $conexion->prepare("UPDATE bot_config SET logo = ?, telefono = ? WHERE id = 1");
+            $stmt->bind_param('ss', $logoName, $telefono);
+        } else {
+            $stmt = $conexion->prepare("UPDATE bot_config SET telefono = ? WHERE id = 1");
+            $stmt->bind_param('s', $telefono);
+        }
+        $stmt->execute();
+        $stmt->close();
+
+        echo json_encode(['ok' => (bool)$okT, 'logo' => $logoName]);
         break;
 
     default:

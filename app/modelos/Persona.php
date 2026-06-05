@@ -62,6 +62,41 @@ class Persona{
 		return ejecutarConsulta($sql);
 	}
 
+	// ============================================================
+	//  Server-side processing (DataTables) para clientes — escala a millones de filas
+	// ============================================================
+
+	// Whitelist: índice de columna DataTables → columna real de `clientes`.
+	// Col 0 (botones de acción) no figura → no ordenable/buscable.
+	public function columnasClienteServerSide(){
+		return array(
+			1=>'codigo', 2=>'vendedor', 3=>'razonSocial', 4=>'direccion', 5=>'localidad',
+			6=>'telefono', 7=>'ramo', 8=>'zona', 9=>'lista', 10=>'latitud', 11=>'longitud', 12=>'deposito'
+		);
+	}
+
+	// Devuelve solo la página pedida + totales. TODO input del usuario va por prepared statement.
+	public function listarcServerSide($start, $length, $buscar, $order, $columns){
+		global $conexion;
+		require_once dirname(__DIR__).'/config/Datatable.php';
+		$map = $this->columnasClienteServerSide();
+		$req = array('start'=>$start, 'length'=>$length, 'search'=>array('value'=>$buscar), 'order'=>$order, 'columns'=>$columns);
+		$searchCols = array('codigo','vendedor','razonSocial','direccion','localidad','telefono','ramo','zona','lista','deposito');
+		return Datatable::serverSide($conexion, 'clientes', $map, $searchCols, array(
+			'select'       => '`codigo`,`vendedor`,`razonSocial`,`direccion`,`localidad`,`telefono`,`ramo`,`zona`,`lista`,`latitud`,`longitud`,`deposito`',
+			'fetch'        => 'assoc',
+			'defaultOrder' => '`codigo` DESC',
+			'request'      => $req
+		));
+	}
+
+	// Valores distintos de una columna (para poblar los dropdowns de filtro)
+	public function distinctCliente($colNombre){
+		global $conexion;
+		require_once dirname(__DIR__).'/config/Datatable.php';
+		return Datatable::distinct($conexion, 'clientes', $colNombre, array_values($this->columnasClienteServerSide()));
+	}
+
 	public function listarClientes($json){
 		$obj = json_decode($json, TRUE);
 		$and="";

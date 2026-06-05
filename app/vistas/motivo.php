@@ -21,8 +21,7 @@ if (!isset($_SESSION['nombre'])) {
         <div class="row">
             <div class="col-12">
                 <div class="page-title-box">
-                    <div class="page-title-right">
-                        <ol class="breadcrumb m-0">
+                    <ol class="breadcrumb m-0">
                             <li class="breadcrumb-item" style="margin-top: -0.7em">
                                 <a href="javascript: void(0);">                            
                                     <img src="../public/img/logo30x30.png" alt="" class="icono-ruta-ClubPedido" >            
@@ -32,8 +31,6 @@ if (!isset($_SESSION['nombre'])) {
                             <li class="breadcrumb-item"><a href="javascript: void(0);">Reclamos</a></li>
                             <li class="breadcrumb-item active"> Motivos </li>
                         </ol>
-                    </div>
-                    <div class="float-start mt-3"><h4 class="page-title">Reclamos | Motivos</h4></div>
                 </div>
             </div>
         </div>
@@ -53,9 +50,25 @@ if (!isset($_SESSION['nombre'])) {
         <div class="row">
             <div class="col-12">
                 <div class="card sombra-panel" style="border-top:3px solid #727cf5;">
-                    <div class="card-body pb-2" id="listadoregistros">
+                    <div class="card-body pb-2">
+                        <!-- Filtros buscador (client-side) -->
+                        <div id="filtrosMotivo" class="row g-2 align-items-end">
+                            <div class="col-12 col-md-4">
+                                <label class="form-label mb-1" style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#6c757d;">Buscar</label>
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text bg-white text-muted"><i class="mdi mdi-magnify"></i></span>
+                                    <input type="text" id="fBuscarMotivo" class="form-control" placeholder="Buscar en todos los datos...">
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-1">
+                                <button type="button" id="fLimpiarMotivo" class="btn btn-sm btn-soft-secondary w-100" data-bs-toggle="tooltip" data-bs-trigger="hover" title="Borrar filtros"><i class="mdi mdi-filter-remove-outline"></i> Limpiar</button>
+                            </div>
+                        </div>
+                    </div>
+                    <hr class="my-0">
+                    <div class="card-body p-0" id="listadoregistros">
                         <div class="table-responsive">
-                            <table id="tbllistado" class="table table-sm table-striped table-centered mb-0 dt-responsive nowrap w-100">
+                            <table id="tbllistado" class="table table-striped table-centered mb-0 dt-responsive nowrap w-100">
                                 <thead >
                                     <th style="min-width: 6em!important;">Opciones</th>
                                     <th>Codigo</th>
@@ -196,7 +209,7 @@ if (!isset($_SESSION['nombre'])) {
     <script>
         document.title = "Atiende | Reclamos | Motivos";
     </script>
-    <script src="scripts/motivo.js"></script>
+    <script src="scripts/motivo.js?t=<?php echo time(); ?>"></script>
     <style>
         #codigo{
             text-transform: uppercase;

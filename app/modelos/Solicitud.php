@@ -132,6 +132,56 @@ class Solicitud{
         return ejecutarConsulta($sql);
     }
 
+    // ============================================================
+    //  Server-side processing (DataTables) — escala a millones de filas
+    // ============================================================
+
+    // Whitelist: índice de columna DataTables → columna real de la tabla.
+    // Solo estas columnas pueden ordenarse/filtrarse (evita SQL injection por nombre de columna).
+    // La col 0 (botones de acción) NO es una columna real → no figura.
+    // thead: 0=Acciones 1=Nombre 2=CUIT/DNI 3=Dirección 4=Localidad 5=Teléfono 6=Fecha 7=Estado
+    public function columnasSolicitudServerSide(){
+        return array(
+            1=>'nombre',
+            2=>'cuit',
+            3=>'direccion',
+            4=>'localidad',
+            5=>'telefono',
+            6=>'fecha',
+            7=>'estado'
+        );
+    }
+
+    // Devuelve solo la página pedida + totales (delega en el helper genérico Datatable).
+    public function listarServerSide($start, $length, $buscar, $order, $columns){
+        global $conexion;
+        require_once dirname(__DIR__).'/config/Datatable.php';
+        $map = $this->columnasSolicitudServerSide();
+        // Búsqueda global solo sobre columnas de texto (no estado, que es 0/1 ni fecha)
+        $searchCols = array('nombre','cuit','direccion','localidad','telefono');
+        $req = array(
+            'start'  => $start,
+            'length' => $length,
+            'search' => array('value'=>$buscar),
+            'order'  => $order,
+            'columns'=> $columns
+        );
+        return Datatable::serverSide($conexion, 'solicitudes', $map, $searchCols, array(
+            // fecha formateada para mostrar; se ordena/filtra por la columna real `fecha`
+            'select'       => "id, nombre, cuit, direccion, localidad, telefono, estado, latitud, longitud, CONCAT(DATE_FORMAT(fecha, '%d/%m/%Y %H:%i'),' hs') AS fecha",
+            'fetch'        => 'assoc',
+            'defaultOrder' => '`id` DESC',
+            'request'      => $req
+        ));
+    }
+
+    // Valores distintos de una columna (para poblar los dropdowns de filtro)
+    public function distinctSolicitud($colNombre){
+        global $conexion;
+        require_once dirname(__DIR__).'/config/Datatable.php';
+        return Datatable::distinct($conexion, 'solicitudes', $colNombre, array_values($this->columnasSolicitudServerSide()));
+    }
+
     public function eliminar($id){
         $sql="DELETE FROM solicitudes WHERE id='$id'";
         return ejecutarConsulta($sql);

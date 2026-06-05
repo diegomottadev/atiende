@@ -1,8 +1,8 @@
 var tablaRepartos;
-var select = '<div class="float-start d-flex align-items-center"> <label class="text-muted fw-bold me-1 mb-0" style="font-size:.72rem; letter-spacing:.3px;">Filtrar por estado:</label> <select class="form-control-sm" name="filter" id="filter" onchange="filtrar()" data-bs-toggle="tooltip" data-bs-trigger="hover" title="Mostrá solo los pedidos según su estado de reparto"> <option value="0">--Seleccionar--</option>';
+var select = '<div class="d-flex align-items-center flex-nowrap gap-2"> <div class="input-group input-group-sm" style="max-width:230px;"><span class="input-group-text bg-white text-muted"><i class="mdi mdi-magnify"></i></span><input type="text" id="fBuscarRep" class="form-control" placeholder="Buscar pedido..."></div> <label class="text-muted fw-bold mb-0" style="font-size:.72rem; letter-spacing:.3px; white-space:nowrap;">Filtrar por estado:</label> <select class="form-select form-select-sm" name="filter" id="filter" style="max-width:170px;" onchange="filtrar()" data-bs-toggle="tooltip" data-bs-trigger="hover" title="Mostrá solo los pedidos según su estado de reparto"> <option value="0">--Seleccionar--</option>';
 select += '<option value="3">Desasignados</option>  <option value="2">Asignados</option>';
 select += '<option value="4">Enviados</option><option value="1">Todos</option></select>';
-select += '&nbsp;<button  class="btn btn-sm btn-info" id="btnEnviarMsj" onclick="enviarMsj()" type="button" data-bs-toggle="tooltip" data-bs-trigger="hover" title="Enviar mensaje de notificación a los clientes de los pedidos tildados">';
+select += '<button class="btn btn-sm btn-info" id="btnEnviarMsj" onclick="enviarMsj()" type="button" data-bs-toggle="tooltip" data-bs-trigger="hover" title="Enviar mensaje de notificación a los clientes de los pedidos tildados">';
 select += ' <i class=" uil-envelope"></i> Enviar mensaje</button></div>';
 //funcion que se ejecuta al inicio
 function init() {
@@ -11,6 +11,12 @@ function init() {
     // Aplicar filtro "Desasignados" por defecto al cargar
     $('#filter').val('3');
     filtrar();
+    // Buscador del listado (client-side). El slot lo recrea filtrar(), por eso el handler va delegado.
+    $(document).off('input.repbuscar').on('input.repbuscar', '#fBuscarRep', function(){
+        var v = this.value;
+        clearTimeout(window._repBuscarTimer);
+        window._repBuscarTimer = setTimeout(function(){ if (tablaRepartos) tablaRepartos.search(v).draw(); }, 300);
+    });
     /*
        $("#formulario").on("submit",function(e){
            guardaryeditar(e);
@@ -78,10 +84,24 @@ function enProceso(pedidoid) {
         processData: false,
 
         success: function (datos) {
-            //console.log(datos);
-            Swal.fire({                    
-                text: datos
-            });
+            var d;
+            try { d = (typeof datos === 'string') ? JSON.parse(datos) : datos; } catch (e) { d = null; }
+
+            if (d && d.ok) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Estado del pedido modificado',
+                    html: '<div style="text-align:left;font-size:.9rem;line-height:1.6;">' +
+                              '<b>N° Pedido:</b> ' + (d.pedidoid || pedidoid) + '<br>' +
+                              '<b>Fecha:</b> ' + (d.fecha   || '-') + '<br>' +
+                              '<b>Cliente:</b> ' + (d.cliente || '-') + '<br>' +
+                              '<b>Total:</b> $' + (d.total   || '-') +
+                          '</div>',
+                    confirmButtonColor: '#727cf5'
+                });
+            } else {
+                Swal.fire({ icon: 'error', title: 'No se pudo modificar el estado del pedido' });
+            }
             mostrarform(false);
             listar();
         }
@@ -162,7 +182,7 @@ function listar() {
         "language": lenguajeTable,
         "aProcessing": true,//activamos el procedimiento del datatable
         "aServerSide": true,//paginacion y filrado realizados por el server
-        dom: 'Bfr<"toolbar">tip ',//definimos los elementos del control de la tabla
+        dom: 'Br<"toolbar">tip ',//definimos los elementos del control de la tabla
 
         buttons: [],
         "ajax":
@@ -317,7 +337,7 @@ function mostrar(idventa) {
             $("#btnCancelar").show();
             $("#btnAgregarArt").hide();
             //------------------------------
-            $("#imprimir").html("<a class='btn btn-info btn-sm btn-icon-line' target='_blank' href='../reportes/exTicket.php?id=" + data.pedidoid + "'> <i class='mdi mdi-printer m-n2'></i> </a>");
+            $("#imprimir").html("<a class='btn btn-info btn-sm btn-icon-line' target='_blank' href='/ticket/" + data.pedidoid + "'> <i class='mdi mdi-printer m-n2'></i> </a>");
             $("#cambiarEstado").html('<button type="button" class="btn btn-secondary btn-sm btn-icon-line" onclick="enProceso(' + data.pedidoid + ')" ><i class="mdi mdi-cog m-n2"></i></button>');
             /*
             $("#imprimir").html("<a target='_blank' href='../reportes/exTicket.php?id=" + data.pedidoid + "'> <button class='btn btn-info btn-xs'><i class='fa fa-print'></i></button> </a>");
@@ -589,7 +609,7 @@ function enviarLink(empresa) {
         "language": lenguajeTable,
         "aProcessing": true,//activamos el procedimiento del datatable
         "aServerSide": false,//paginacion y filrado realizados por el server
-        dom: 'Bfr<"toolbar">tip',//definimos los elementos del control de la tabla
+        dom: 'Br<"toolbar">tip',//definimos los elementos del control de la tabla
         buttons: [],
         "ajax":{
             url: '../ajax/reparto.php?op=listar&filter='+filter,

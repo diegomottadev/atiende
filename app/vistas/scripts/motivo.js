@@ -1,4 +1,5 @@
 var tabla;
+var _debounceMotivo;
 
 //funcion que se ejecuta al inicio
 function init(){
@@ -7,7 +8,7 @@ function init(){
 
    //cargamos los items al celect categoria
    $.post("../ajax/motivo.php?op=selectArea", function(r){
-   		$("#idarea").html(r);  
+   		$("#idarea").html(r);
 		$("#idarea").val("");
 		$("#idarea").trigger('change');
    });
@@ -17,6 +18,19 @@ function init(){
    	guardaryeditar(e);
    });
    document.getElementById('bloquea').style.display='none';
+
+   // buscador global con debounce
+   $("#fBuscarMotivo").on("input", function(){
+       clearTimeout(_debounceMotivo);
+       var v = $(this).val();
+       _debounceMotivo = setTimeout(function(){ tabla.search(v).draw(); }, 300);
+   });
+
+   // limpiar filtros
+   $("#fLimpiarMotivo").on("click", function(){
+       $("#fBuscarMotivo").val("");
+       tabla.search("").draw();
+   });
 }
 
 //funcion limpiar
@@ -34,6 +48,7 @@ function mostrarform(flag){
 	if(flag){
 		$("#btnCancel").show();
 		$("#listadoregistros").hide();
+		$("#filtrosMotivo").hide();
 		$("#formularioregistros").show();
 		$("#btnGuardar").prop("disabled",false);
 		$("#btnAgregar").hide();
@@ -42,6 +57,7 @@ function mostrarform(flag){
 		$("#btnCancel").hide();
 
 		$("#listadoregistros").show();
+		$("#filtrosMotivo").show();
 		$("#formularioregistros").hide();
 		$("#btnAgregar").show();
 	}
@@ -60,30 +76,25 @@ function listar(){
             $(".dataTables_paginate > .pagination").addClass("pagination-rounded")
         },
 		"language": lenguajeTable,
-		"processing": true,//activamos el procedimiento del datatable
-		//"serverSide": true,//paginacion y filrado realizados por el server
-		"dom": 'Bfrtip',//definimos los elementos del control de la tabla
-		"buttons": [
-            'copyHtml5',
-           	'excelHtml5',
-            'csvHtml5',
-           	'pdfHtml5'
-        ],
-		"ajax": 
+		"processing": true,
+		"serverSide": false,
+		"dom": 'lrtip',
+		"ajax":
 		{
 			url:'../ajax/motivo.php?op=listarp',
 			type: "get",
 			dataType : "json",
+			dataSrc: "data",
 			error:function(e){
 				console.log(e.responseText);
 			}
 		},
 		"destroy": true,
-		"deferRender": true,	
+		"deferRender": true,
 		/*	"iDisplayLength":12,//paginacion
-        "order":[[0,"desc"]]//ordenar (columna, orden)		*/	
+        "order":[[0,"desc"]]//ordenar (columna, orden)		*/
 	});
-	
+
 }
 //funcion para guardaryeditar
 function guardaryeditar(e){
