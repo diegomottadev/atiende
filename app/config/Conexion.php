@@ -15,6 +15,11 @@ if (mysqli_connect_errno()) {
 
 mysqli_query($conexion, 'SET NAMES "'.DB_ENCODE.'"');
 mysqli_query($conexion, "SET GLOBAL lc_time_names = 'es_ES'");
+// Compatibilidad MySQL 8: las queries legacy hacen GROUP BY con columnas no
+// agregadas (estilo MySQL 5.x). ONLY_FULL_GROUP_BY (default en MySQL 8.4) las
+// rechaza con error 1055 → la query devuelve false y el JSON de los endpoints
+// se rompe (no cargan pedidos/clientes). Lo desactivamos por conexión.
+mysqli_query($conexion, "SET SESSION sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''))");
 
 // Cargar credenciales WhatsApp del tenant desde pedidos_platform
 // Se hace aquí porque ya conocemos el DB del tenant (session)

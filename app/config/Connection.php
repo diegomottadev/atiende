@@ -42,6 +42,8 @@ public static function runQuery($query)
             exit;
         }
         mysqli_set_charset($link, "utf8mb4");
+        // Compat MySQL 8: quitar ONLY_FULL_GROUP_BY para las queries legacy (error 1055).
+        mysqli_query($link, "SET SESSION sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''))");
         $result = mysqli_query($link, $query);
         if ($result === false) {
             $err = mysqli_error($link);
@@ -66,6 +68,8 @@ public static function runQueryID($query)
 			exit;
 		}
         mysqli_set_charset($link, "utf8mb4");
+        // Compat MySQL 8: quitar ONLY_FULL_GROUP_BY para las queries legacy (error 1055).
+        mysqli_query($link, "SET SESSION sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''))");
 	     mysqli_query($link ,$query);
 		 $result = mysqli_insert_id($link);
 
