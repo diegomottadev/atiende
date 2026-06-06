@@ -151,6 +151,28 @@ class BotEngine
         return false;
     }
 
+    // Proyecta un array de menuItem aplicando visibilidad ("activo") y renumerando 1..N al vuelo.
+    // Es el punto único de verdad: display y match consumen la MISMA proyección, así el número
+    // que el usuario ve es exactamente el que matchea.
+    private function proyectarMenu(array $menuItem): array
+    {
+        $visibles = []; $salir = null;
+        foreach ($menuItem as $opt) {
+            if (empty($opt['opcionId']) && ($opt['menuId'] ?? '') !== '2.2') {
+                $visibles[] = $opt; continue;            // captura de texto libre: se conserva, no se renumera
+            }
+            if (($opt['menuId'] ?? '') === '2.2') { $salir = $opt; continue; } // Salir → al final
+            $activo = array_key_exists('activo', $opt) ? $opt['activo'] : 'true'; // legacy = visible
+            if ($activo === 'false') continue;            // oculta
+            $visibles[] = $opt;
+        }
+        $n = 1;
+        foreach ($visibles as &$o) { if (!empty($o['opcionId'])) { $o['opcionId'] = (string)$n; $n++; } }
+        unset($o);
+        if ($salir !== null) { $salir['opcionId'] = (string)$n; $salir['activo'] = 'true'; $visibles[] = $salir; }
+        return $visibles;
+    }
+
     private function procesarAccion($menu, $esperaRespuesta, $mensaje, $pushname, $user, $codigoCliente)
     {
         if ($menu === null || $menu === '') { $menu = '0'; } // estado inicial
@@ -194,7 +216,7 @@ class BotEngine
 
                     $hayMenuItem = false;
 
-                    $menuItem = $this->menuJson[$i]['menuItem'] ?? [];
+                    $menuItem = $this->proyectarMenu($this->menuJson[$i]['menuItem'] ?? []);
                     error_log('[BotEngine] menuItem count=' . count($menuItem));
 
                     for ($j = 0; $j < count($menuItem); $j++) {
@@ -287,7 +309,7 @@ class BotEngine
                     $esOpcionValida = false;
                     $numeroReclamo  = '';
                     $numeroConsulta = '';
-                    $menuItem       = $this->menuJson[$i]['menuItem'];
+                    $menuItem       = $this->proyectarMenu($this->menuJson[$i]['menuItem'] ?? []);
 
                     for ($j = 0; $j < count($menuItem); $j++) {
 

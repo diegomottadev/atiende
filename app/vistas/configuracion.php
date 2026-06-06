@@ -311,11 +311,20 @@ if (!isset($_SESSION['nombre'])) {
                 html += '<div class="card-header bg-light py-2"><strong>' + escHtml(g.label) + '</strong></div>';
                 html += '<div class="card-body p-2">';
                 html += '<table class="table table-sm table-bordered mb-2">';
-                html += '<thead class="table-light"><tr><th width="8%">Opción</th><th>Texto que ve el usuario</th></tr></thead><tbody>';
+                html += '<thead class="table-light"><tr><th width="8%">Opción</th><th>Texto que ve el usuario</th><th width="18%" class="text-center">Visible</th></tr></thead><tbody>';
                 g.items.forEach(function (it) {
                     var lbl = it.opcionId === '0' ? '0 (Salir)' : it.opcionId;
                     html += '<tr><td class="text-center fw-bold">' + lbl + '</td>';
-                    html += '<td><input type="text" class="form-control form-control-sm" data-menuid="' + escHtml(g.menuId) + '" data-opcionid="' + escHtml(it.opcionId) + '" value="' + escHtml(it.opcion) + '"></td></tr>';
+                    html += '<td><input type="text" class="form-control form-control-sm" data-menuid="' + escHtml(g.menuId) + '" data-opcionid="' + escHtml(it.opcionId) + '" value="' + escHtml(it.opcion) + '"></td>';
+                    html += '<td class="text-center align-middle">';
+                    if (it.esSalir === true) {
+                        html += '<span data-bs-toggle="tooltip" data-bs-trigger="hover" title="La opción Salir siempre debe estar visible.">';
+                        html += '<div class="form-check form-switch d-inline-block m-0"><input class="form-check-input menu-visible" type="checkbox" role="switch" data-menuid="' + escHtml(g.menuId) + '" data-opcionid="' + escHtml(it.opcionId) + '" checked disabled></div>';
+                        html += '</span>';
+                    } else {
+                        html += '<div class="form-check form-switch d-inline-block m-0"><input class="form-check-input menu-visible" type="checkbox" role="switch" data-menuid="' + escHtml(g.menuId) + '" data-opcionid="' + escHtml(it.opcionId) + '"' + (it.activo === 'true' ? ' checked' : '') + '></div>';
+                    }
+                    html += '</td></tr>';
                 });
                 html += '</tbody></table>';
                 html += '<button class="btn btn-primary btn-sm" onclick="guardarGrupoMenu(\'' + escJs(g.menuId) + '\')">';
@@ -323,13 +332,28 @@ if (!isset($_SESSION['nombre'])) {
                 html += '</div></div>';
             });
             document.getElementById('menuPrincipalList').innerHTML = html || '<p class="text-muted">Sin menús</p>';
+            document.querySelectorAll('#menuPrincipalList [data-bs-toggle="tooltip"]').forEach(function (el) {
+                new bootstrap.Tooltip(el, { trigger: 'hover', animation: false });
+            });
         });
     }
 
+    // Guardrail front: no permitir apagar el último switch visible de un grupo.
+    $(document).on('change', '.menu-visible:not([disabled])', function () {
+        if (this.checked) return;
+        var m = this.dataset.menuid;
+        var vis = document.querySelectorAll('.menu-visible[data-menuid="' + m + '"]:checked').length;
+        if (vis === 0) {
+            this.checked = true;
+            Swal.fire({ icon: 'warning', title: 'Al menos una opción visible', text: 'El menú debe mostrar como mínimo una opción al cliente.', timer: 2000, showConfirmButton: false });
+        }
+    });
+
     function guardarGrupoMenu(menuId) {
         var items = [];
-        document.querySelectorAll('input[data-menuid="' + menuId + '"]').forEach(function (inp) {
-            items.push({ opcionId: inp.dataset.opcionid, opcion: inp.value.trim() });
+        document.querySelectorAll('input[type="text"][data-menuid="' + menuId + '"]').forEach(function (inp) {
+            var sw = document.querySelector('.menu-visible[data-menuid="' + menuId + '"][data-opcionid="' + inp.dataset.opcionid + '"]');
+            items.push({ opcionId: inp.dataset.opcionid, opcion: inp.value.trim(), activo: (sw && sw.checked) ? 'true' : 'false' });
         });
         $.post('../ajax/configuracion.php?op=saveMenuPrincipal', { menuId: menuId, items: JSON.stringify(items) }, function (r) {
             if (r.ok) {

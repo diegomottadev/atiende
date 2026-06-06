@@ -109,7 +109,11 @@ switch ($op) {
             $items = [];
             foreach (($entry['menuItem'] ?? []) as $opt) {
                 if (!empty($opt['opcionId'])) {
-                    $items[] = ['opcionId' => $opt['opcionId'], 'opcion' => $opt['opcion']];
+                    $esSalir = (($opt['menuId'] ?? '') === '2.2');
+                    $activo  = $esSalir
+                        ? 'true'
+                        : (array_key_exists('activo', $opt) ? ($opt['activo'] === 'true' ? 'true' : 'false') : 'true');
+                    $items[] = ['opcionId' => $opt['opcionId'], 'opcion' => $opt['opcion'], 'activo' => $activo, 'esSalir' => $esSalir];
                 }
             }
             $groups[] = ['menuId' => $mid, 'label' => $editable[$mid], 'items' => $items];
@@ -123,8 +127,18 @@ switch ($op) {
     case 'saveMenuPrincipal':
         $incoming     = json_decode($_POST['items'] ?? '[]', true);
         $targetMenuId = $_POST['menuId'] ?? '';
-        $map          = [];
-        foreach ($incoming as $it) $map[$it['opcionId']] = $it['opcion'];
+        // Solo los menús previstos por la feature son editables (mismo allowlist que getMenuPrincipal).
+        if (!in_array($targetMenuId, ['200', '100'], true)) { echo json_encode(['ok' => false, 'error' => 'menú no editable']); break; }
+        if (!is_array($incoming)) { echo json_encode(['ok' => false, 'error' => 'menú inválido']); break; }
+        $txt = []; $vis = [];
+        foreach ($incoming as $it) {
+            $oid = $it['opcionId'] ?? '';
+            if ($oid === '') continue;
+            // Defensa en profundidad: el texto se muestra en el panel (escHtml) y se envía por WhatsApp (texto plano);
+            // acá se quitan tags y se acota el largo. El escape SQL se hace luego sobre el JSON completo.
+            $txt[$oid] = mb_substr(trim(strip_tags((string)($it['opcion'] ?? ''))), 0, 200);
+            $vis[$oid] = (($it['activo'] ?? '') === 'true') ? 'true' : 'false';
+        }
 
         $res  = mysqli_query($conexion, "SELECT menu_json FROM bot_config LIMIT 1");
         $jrow = $res ? mysqli_fetch_assoc($res) : null;
@@ -138,9 +152,29 @@ switch ($op) {
             if (($entry['menuId'] ?? '') === $targetMenuId) {
                 $found = true;
                 foreach ($entry['menuItem'] as &$opt) {
-                    if (isset($map[$opt['opcionId']])) { $opt['opcion'] = $map[$opt['opcionId']]; }
+                    $oid     = $opt['opcionId'] ?? '';
+                    $esSalir = (($opt['menuId'] ?? '') === '2.2');
+                    if ($oid !== '' && array_key_exists($oid, $txt)) { $opt['opcion'] = $txt[$oid]; }
+                    if ($esSalir) {
+                        $opt['activo'] = 'true';                       // Salir: siempre visible, ignora el cliente
+                    } elseif ($oid !== '' && array_key_exists($oid, $vis)) {
+                        $opt['activo'] = $vis[$oid];
+                    } elseif ($oid !== '' && !array_key_exists('activo', $opt)) {
+                        $opt['activo'] = 'true';                       // default legacy = visible
+                    }
                 }
                 unset($opt);
+                // GUARDRAIL sobre el entry COMPLETO: ≥1 visible (Salir siempre cuenta).
+                $visibles = 0;
+                foreach ($entry['menuItem'] as $opt) {
+                    if (empty($opt['opcionId'])) continue;             // captura de texto libre no cuenta
+                    if (($opt['menuId'] ?? '') === '2.2') { $visibles++; continue; }
+                    if (($opt['activo'] ?? 'true') !== 'false') { $visibles++; }
+                }
+                if ($visibles < 1) {
+                    echo json_encode(['ok' => false, 'error' => 'Debe quedar al menos una opción visible']);
+                    break 2;
+                }
                 break;
             }
         }
