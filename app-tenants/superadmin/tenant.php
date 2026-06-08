@@ -28,7 +28,7 @@ include dirname(__DIR__) . '/views/layout/header.php';
 </h2>
 <p class="text-muted"><?= htmlspecialchars($tenant['email']) ?> · Slug: <code><?= htmlspecialchars($tenant['slug']) ?></code></p>
 
-<?php $atiendeUrl = 'http://' . $tenant['slug'] . '.atiende.localhost:81/vistas/login.php'; ?>
+<?php $atiendeUrl = tenantLoginUrl($tenant['slug']); ?>
 <div class="alert alert-light border d-flex align-items-center justify-content-between flex-wrap gap-2" style="max-width:640px">
   <div>
     <strong>Acceso al sistema</strong><br>
