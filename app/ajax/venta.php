@@ -166,6 +166,10 @@ switch ($_GET["op"]) {
             }else{
                 $pagoElectronico = '<span class="badge bg-secondary text-light">Pendiente</span>';
             }
+            // Pedido Entregado (flag=2) → la columna "Pagado" pasa a "Confirmado".
+            if ($reg->estado == 2) {
+                $pagoElectronico = '<span class="badge bg-success">Confirmado</span>';
+            }
             if($reg->vendedor!= null){
                 $ved = new Vendedor();
 
