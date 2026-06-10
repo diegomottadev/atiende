@@ -121,10 +121,16 @@ ALTER TABLE `clientes`
 - Aplicar por `ALTER` a cada DB de tenant existente (tolerar "ya existe").
 
 ### Cambios de código
-- `app/modelos/Cliente.php`: `insertar`/`editar`/`mostrar` deben incluir `cuil` y `dni`.
-- `app/ajax/cliente.php`: leer `cuil`/`dni` del POST (`limpiarCadena`), pasarlos al modelo en `guardaryeditar`.
-- `app/vistas/cliente.php`: dos inputs nuevos en el form de edición (bloque BS5 `==1`; **no** tocar el legacy `==10`), siguiendo el patrón de campos existentes. Opcionales (sin `required`).
-- `app/vistas/scripts/cliente.js`: `limpiar()` resetea ambos; `guardaryeditar` los envía; `mostrar()` los rellena desde la respuesta.
+
+> El modelo de clientes es **`Persona.php`** (clase `Persona`) y el endpoint es **`ajax/persona.php`**; la vista es `cliente.php` y su JS `cliente.js` (que postea a `../ajax/persona.php`). No existe `Cliente.php` ni `ajax/cliente.php`.
+
+- `app/modelos/Persona.php`: agregar `cuil`/`dni` a **dos métodos con firmas distintas** y a su SQL:
+  - `insertar($codigo,$vendedor,$nombre,$direccion,$localidad,$ramo,$zona,$lista,$telefono,$deposito,$latitud,$longitud)` → agregar `$cuil,$dni` al `INSERT`.
+  - `editar($idpersona,$vendedor,$nombre,$direccion,$localidad,$ramo,$zona,$lista,$telefono)` → agregar `$cuil,$dni` al `UPDATE`.
+  - `mostrar($idpersona)` ya hace `SELECT *`, así que devuelve las columnas nuevas sin cambios.
+- `app/ajax/persona.php`: leer `cuil`/`dni` del POST (`limpiarCadena`) y pasarlos en **ambos** call sites — `insertar(...)` (L39) y `editar(...)` (L43). Ojo: `editar` no recibe `deposito/latitud/longitud`, así que `cuil/dni` deben sumarse a cada lista de argumentos de forma independiente.
+- `app/vistas/cliente.php`: dos inputs nuevos en el form de edición (bloque BS5 `$_SESSION['ventas'] == 1`; **no** tocar el legacy `== 10`), siguiendo el patrón de campos existentes (`razonSocial`/`direccion`). Opcionales (sin `required`).
+- `app/vistas/scripts/cliente.js`: `limpiar()` resetea ambos; `guardaryeditar` los envía (FormData a `ajax/persona.php`); `mostrar()` los rellena desde la respuesta.
 
 > Alcance acotado: sin validación de formato de CUIL/DNI, sin uso en bot/ticket/exportación. Si luego se necesita, se especifica aparte.
 
@@ -137,7 +143,7 @@ ALTER TABLE `clientes`
 | `menu_json` (105/106 + opción en 100) | Define la estructura del flujo de vendedor | `bot_config.menu_json` por tenant |
 | `BotEngine::procesarAccion` (routing + acciones) | Identifica vendedor, valida cliente con reintento, cierra sesión, atribuye el link | `contactos`, `vendedores`, `clientes`, `link_pedidos` |
 | `contactos.vendedor_codigo` | Vínculo persistente teléfono↔vendedor (sesión) | ALTER por tenant |
-| ABM `clientes` (cuil/dni) | Persiste y edita CUIL/DNI | `clientes`, `Cliente.php`, `ajax/cliente.php`, `cliente.php`, `cliente.js` |
+| ABM `clientes` (cuil/dni) | Persiste y edita CUIL/DNI | `clientes`, `Persona.php`, `ajax/persona.php`, `vistas/cliente.php`, `cliente.js` |
 
 ---
 
