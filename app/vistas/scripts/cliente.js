@@ -128,7 +128,25 @@ function listar(){
 }
 //funcion para guardaryeditar
 function guardaryeditar(e){
-     e.preventDefault();//no se activara la accion predeterminada 
+     e.preventDefault();//no se activara la accion predeterminada
+     // En alta, confirmar que los datos son correctos antes de guardar.
+     if ($("#modo").val() === 'nuevo') {
+         Swal.fire({
+             title: 'Confirmar alta',
+             text: '¿Estás seguro de que los datos ingresados del cliente son correctos?',
+             icon: 'question',
+             showCancelButton: true,
+             confirmButtonColor: '#727cf5',
+             cancelButtonColor: '#fa5c7c',
+             cancelButtonText: 'Revisar',
+             confirmButtonText: 'Guardar'
+         }).then(function (r) { if (r.isConfirmed) { _guardarCliente(); } });
+     } else {
+         _guardarCliente();
+     }
+}
+
+function _guardarCliente(){
      $("#btnGuardar").prop("disabled",true);
      var formData=new FormData($("#formulario")[0]);
 
@@ -140,15 +158,13 @@ function guardaryeditar(e){
      	processData: false,
 
      	success: function(datos){
-     		Swal.fire({                    
+     		Swal.fire({
 				text: datos
 			});
      		mostrarform(false);
      		tabla.ajax.reload();
      	}
      });
-
-     limpiar();
 }
 
     /*   
