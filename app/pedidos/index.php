@@ -24,6 +24,16 @@ if ($tenantSlug !== '') {
     } catch (Exception $_e) {}
 }
 require(__ROOT__ . '/config/global.php');
+
+// Costo de envío configurable por tenant (bot_config). Si no está activo, no se muestra la línea.
+$costoEnvio = 0.0; $costoEnvioActivo = 0;
+try {
+    $__ce = Connection::runQuery("SELECT costo_envio, costo_envio_activo FROM bot_config LIMIT 1");
+    if ($__ce && ($__ceRow = mysqli_fetch_assoc($__ce))) {
+        $costoEnvio       = (float) $__ceRow['costo_envio'];
+        $costoEnvioActivo = (int) $__ceRow['costo_envio_activo'];
+    }
+} catch (Throwable $__ceE) { /* sin bot_config/columnas → línea oculta */ }
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -464,7 +474,9 @@ require(__ROOT__ . '/config/global.php');
                         var mensaje = "*"+nombre+"* Su pedido a sido confirmado. \n";
                         mensaje += "*Pedido N°:* "+ped+"\n";
                         mensaje += "*Monto: $* "+getTotales(pedido)+"\n";
-                        mensaje += "*Costo de envio:$* 0.00 \n";
+<?php if ($costoEnvioActivo): ?>
+                        mensaje += "*Costo de envio:$* <?php echo number_format($costoEnvio, 2, '.', ''); ?> \n";
+<?php endif; ?>
                         mensaje += "*Ticket:* 👇\n\n";
                         mensaje += url+"/reportes/exTicket.php?id="+ped+"\n\n";
                         $.ajax({ type:'POST', url:'send_wa.php', data:{ to:telefono, text:mensaje, ped:ped, t:tenantSlug },

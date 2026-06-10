@@ -70,6 +70,29 @@ if (!isset($_SESSION['nombre'])) {
                         <div class="tab-pane show active" id="tab-menu">
                             <p class="text-muted mb-3">Editá el texto y la visibilidad de cada opción. El número de la columna <strong>Opción</strong> es el que verá el cliente: al ocultar una opción, las demás se renumeran solas (1, 2, 3…) y <em>Salir</em> queda siempre al final.</p>
                             <div id="menuPrincipalList"></div>
+
+                            <!-- ===== Costo de envío ===== -->
+                            <div class="card border mt-3">
+                                <div class="card-header bg-light py-2"><strong>Costo de envío</strong></div>
+                                <div class="card-body p-3">
+                                    <p class="text-muted mb-3" style="font-size:.85rem;">Se muestra en el mensaje de confirmación del pedido, debajo del <strong>Monto</strong>. Si lo desactivás, esa línea no aparece en el mensaje.</p>
+                                    <div class="row g-2 align-items-end">
+                                        <div class="col-sm-4">
+                                            <label class="form-label mb-1" for="costoEnvioMonto">Monto ($)</label>
+                                            <input type="number" step="0.01" min="0" class="form-control form-control-sm" id="costoEnvioMonto" value="0.00">
+                                        </div>
+                                        <div class="col-sm-5">
+                                            <div class="form-check form-switch mt-2">
+                                                <input class="form-check-input" type="checkbox" role="switch" id="costoEnvioActivo">
+                                                <label class="form-check-label" for="costoEnvioActivo">Mostrar costo de envío</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-3 text-sm-end">
+                                            <button class="btn btn-primary btn-sm" id="btnGuardarCostoEnvio"><i class="mdi mdi-content-save me-1"></i>Guardar</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- ===== MOTIVOS RECLAMO ===== -->
@@ -280,6 +303,7 @@ if (!isset($_SESSION['nombre'])) {
             cargarTabla('reclamos');
             cargarTabla('consultas');
         });
+        cargarCostoEnvio();
 
         // recargar tablas al cambiar de tab
         document.querySelectorAll('#cfgTabs a[data-bs-toggle="tab"]').forEach(function (el) {
@@ -301,6 +325,26 @@ if (!isset($_SESSION['nombre'])) {
             cb && cb();
         });
     }
+
+    // ===== COSTO DE ENVÍO =====
+    function cargarCostoEnvio() {
+        $.getJSON('../ajax/configuracion.php?op=getCostoEnvio', function (r) {
+            if (!r || !r.ok) return;
+            document.getElementById('costoEnvioMonto').value   = r.costo;
+            document.getElementById('costoEnvioActivo').checked = !!r.activo;
+        });
+    }
+    $(document).on('click', '#btnGuardarCostoEnvio', function () {
+        var costo  = document.getElementById('costoEnvioMonto').value;
+        var activo = document.getElementById('costoEnvioActivo').checked ? '1' : '0';
+        $.post('../ajax/configuracion.php?op=saveCostoEnvio', { costo: costo, activo: activo }, function (r) {
+            if (r && r.ok) {
+                Swal.fire({ icon: 'success', text: 'Costo de envío actualizado', timer: 1200, showConfirmButton: false });
+            } else {
+                Swal.fire({ icon: 'error', text: 'Error al guardar' });
+            }
+        }, 'json');
+    });
 
     // ===== MENÚ PRINCIPAL =====
     function cargarMenuPrincipal() {

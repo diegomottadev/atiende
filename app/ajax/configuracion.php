@@ -15,7 +15,7 @@ if (empty($_SESSION['configuracion'])) {
     exit;
 }
 
-csrfGuard($op, ['listarAreas', 'listarReclamos', 'listarConsultas', 'getMenuPrincipal', 'listarAreasAdmin', 'getToken', 'getEmpresa']);
+csrfGuard($op, ['listarAreas', 'listarReclamos', 'listarConsultas', 'getMenuPrincipal', 'listarAreasAdmin', 'getToken', 'getEmpresa', 'getCostoEnvio']);
 
 switch ($op) {
 
@@ -353,6 +353,27 @@ switch ($op) {
         $stmt->close();
 
         echo json_encode(['ok' => (bool)$okT, 'logo' => $logoName]);
+        break;
+
+    case 'getCostoEnvio':
+        $costo = '0.00'; $activo = false;
+        $r = mysqli_query($conexion, "SELECT costo_envio, costo_envio_activo FROM bot_config LIMIT 1");
+        if ($r && ($rr = mysqli_fetch_assoc($r))) {
+            $costo  = number_format((float) $rr['costo_envio'], 2, '.', '');
+            $activo = ((int) $rr['costo_envio_activo']) === 1;
+        }
+        echo json_encode(['ok' => true, 'costo' => $costo, 'activo' => $activo]);
+        break;
+
+    case 'saveCostoEnvio':
+        $costo = (float) str_replace(',', '.', (string) ($_POST['costo'] ?? '0'));
+        if ($costo < 0) $costo = 0;
+        $activo = (($_POST['activo'] ?? '') === '1' || ($_POST['activo'] ?? '') === 'true') ? 1 : 0;
+        $stmt = $conexion->prepare("UPDATE bot_config SET costo_envio = ?, costo_envio_activo = ? WHERE id = 1");
+        $stmt->bind_param('di', $costo, $activo);
+        $ok = $stmt->execute();
+        $stmt->close();
+        echo json_encode(['ok' => (bool) $ok]);
         break;
 
     default:

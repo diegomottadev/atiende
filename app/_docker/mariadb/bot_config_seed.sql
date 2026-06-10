@@ -5,10 +5,12 @@
 SET NAMES utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `bot_config` (
-  `id`         tinyint(1)   NOT NULL DEFAULT 1,
-  `menu_json`  longtext     CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `telefono`   varchar(20)  NULL DEFAULT NULL,
-  `updated_at` timestamp    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `id`                 tinyint(1)     NOT NULL DEFAULT 1,
+  `menu_json`          longtext       CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `telefono`           varchar(20)    NULL DEFAULT NULL,
+  `costo_envio`        decimal(10,2)  NOT NULL DEFAULT 0.00,
+  `costo_envio_activo` tinyint(1)     NOT NULL DEFAULT 0,
+  `updated_at`         timestamp      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   CONSTRAINT `chk_single_row` CHECK (`id` = 1)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
