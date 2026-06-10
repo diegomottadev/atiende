@@ -22,6 +22,20 @@ class Persona{
 		return ejecutarConsulta($sql);
 	}
 
+	// Alta de cliente con código (clave de negocio). Devuelve 'dup' si el código ya existe,
+	// el resultado de la consulta si insertó, o false si el código vino vacío.
+	public function insertar($codigo,$vendedor,$nombre,$direccion,$localidad,$ramo,$zona,$lista,$telefono,$deposito,$latitud,$longitud){
+		$codigo = trim($codigo);
+		if ($codigo === '') return false;
+		if (ejecutarConsultaSimpleFila("SELECT codigo FROM clientes WHERE codigo='$codigo' LIMIT 1")) {
+			return 'dup';
+		}
+		// vendedor/deposito/latitud/longitud son NOT NULL sin default → se insertan siempre (vacío permitido).
+		$sql = "INSERT INTO clientes (codigo,vendedor,razonSocial,direccion,localidad,ramo,zona,lista,telefono,deposito,latitud,longitud)
+				VALUES ('$codigo','$vendedor','$nombre','$direccion','$localidad','$ramo','$zona','$lista','$telefono','$deposito','$latitud','$longitud')";
+		return ejecutarConsulta($sql);
+	}
+
 	public function eliminarCliente($idpersona){
 		$sql = null;
 		if($this->responseWebMaster['data']['mix'] || $this->responseWebMaster['data']['b2c'] ){

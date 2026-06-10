@@ -43,6 +43,9 @@ if (!isset($_SESSION['nombre'])) {
         <div class="row mb-2 mt-n4">
             <div class="col-sm-12">            
                 <div class="text-sm-end">
+                    <button class="btn btn-primary rounded-pill pull-right sombra-logo me-2" id="btnNuevo" onclick="nuevoCliente()" type="button">
+                        <i class="mdi mdi-plus me-1"></i> Nuevo
+                    </button>
                     <button class="btn btn-success rounded-pill pull-right sombra-logo"  id="btnExportar" onClick="exportarClientes()">
                         <i class="mdi mdi-file-excel-outline me-1"></i> Exportar
                     </button>
@@ -144,11 +147,20 @@ if (!isset($_SESSION['nombre'])) {
                     <div class="card-body px-3 pb-3" id="formularioregistros">
                         <h6 class="text-muted mb-2" style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;"><i class="mdi mdi-access-point me-1"></i> <span id="ribbon-text">Editar Cliente</span></h6>
                                 <form action="" name="formulario" id="formulario" method="POST">
+                                    <input type="hidden" name="modo" id="modo" value="editar">
+                                    <div class="row">
+                                        <div class="col-lg-6">
+                                            <div class="mb-3 position-relative">
+                                                <label for="" class="form-label">Código</label>
+                                                <input class="form-control" type="text" name="codigo" id="codigo" maxlength="255" placeholder="Ej: D0001" required>
+                                                <small class="text-muted" id="codigoHint" style="display:none;">El código es la clave del cliente; no se puede cambiar al editar.</small>
+                                            </div>
+                                        </div>
+                                    </div>
                                     <div class="row">
                                         <div class="col-lg-6">
                                             <div class="mb-3 position-relative">
                                                 <label for="" class="form-label">Nombre</label>
-                                                <input class="form-control" type="hidden" name="codigo" id="codigo">
                                                 <input class="form-control" type="text" name="nombre" id="nombre" maxlength="100" placeholder="Nombre del cliente" required>                                                
                                             </div>                                           
                                         </div>

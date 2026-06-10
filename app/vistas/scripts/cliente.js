@@ -41,6 +41,8 @@ function init(){
 //funcion limpiar
 function limpiar(){
 
+	$("#codigo").val("");
+	$("#vendedor").val("");
 	$("#nombre").val("");
 	$("#num_documento").val("");
 	$("#direccion").val("");
@@ -87,6 +89,16 @@ function mostrarform(flag){
 function cancelarform(){
 	limpiar();
 	mostrarform(false);
+}
+
+// alta de cliente nuevo: form en blanco, código editable
+function nuevoCliente(){
+	mostrarform(true);                 // limpia y muestra el formulario
+	$("#modo").val("nuevo");
+	$("#codigo").prop("readonly", false).val("");
+	$("#codigoHint").hide();
+	$("#ribbon-text").text("Nuevo Cliente");
+	$("#codigo").focus();
 }
 
 //funcion listar
@@ -176,6 +188,11 @@ function mostrar(idpersona){
 			$("#deposito").val(data.deposito);
 			$("#latitud").val(data.latitud);
 			$("#longitud").val(data.longitud);
+			// modo edición: el código es la clave del cliente → no se puede cambiar.
+			$("#modo").val("editar");
+			$("#codigo").prop("readonly", true);
+			$("#codigoHint").show();
+			$("#ribbon-text").text("Editar Cliente");
 
 		})
 }
