@@ -88,7 +88,7 @@ switch ($_GET["op"]) {
 		foreach ($resc['rows'] as $reg) {
 			$cod = $reg['codigo'];
 			$data[] = array(
-				'<button class="btn btn-warning btn-sm btn-icon-line" onclick="mostrar('.$cod.')"><i class="mdi mdi-lead-pencil m-n2"></i></button> <button class="btn btn-danger btn-sm btn-icon-line" onclick="eliminar('.$cod.')"><i class="mdi mdi-delete m-n2"></i></button>',
+				'<button class="btn btn-warning btn-sm btn-icon-line" onclick="mostrar(\''.$cod.'\')"><i class="mdi mdi-lead-pencil m-n2"></i></button> <button class="btn btn-danger btn-sm btn-icon-line" onclick="eliminar(\''.$cod.'\')"><i class="mdi mdi-delete m-n2"></i></button>',
 				$reg['codigo'], $reg['vendedor'], $reg['razonSocial'], $reg['direccion'], $reg['localidad'],
 				$reg['telefono'], $reg['ramo'], $reg['zona'], $reg['lista'], $reg['latitud'], $reg['longitud'], $reg['deposito']
 			);

@@ -158,6 +158,11 @@ function mostrar(idpersona){
 		{
 			//alert (data);
 			data=JSON.parse(data);
+			// Si el backend no encontró el cliente, avisar en vez de fallar en silencio (form vacío).
+			if (!data || !data.codigo) {
+				Swal.fire({ icon: 'error', title: 'No se pudo cargar el cliente', text: 'No se encontró el cliente (código: ' + idpersona + ').' });
+				return;
+			}
 			mostrarform(true);
 			$("#nombre").val(data.razonSocial);
 			$("#direccion").val(data.direccion);
