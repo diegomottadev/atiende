@@ -98,7 +98,7 @@ if (!isset($_SESSION['nombre'])) {
                             <div class="card border mt-3">
                                 <div class="card-header bg-light py-2"><strong>Copia a administrador</strong></div>
                                 <div class="card-body p-3">
-                                    <p class="text-muted mb-3" style="font-size:.85rem;">Si lo activás, cada pedido confirmado se reenvía como copia (mismo mensaje + ticket PDF) a este número de WhatsApp. Ingresá el número completo con código de país, ej: <code>5493764278402</code>.</p>
+                                    <p class="text-muted mb-3" style="font-size:.85rem;">Si lo activás, cada pedido confirmado se reenvía como copia (mismo mensaje + ticket PDF) a este número de WhatsApp. Podés ingresarlo con o sin código de país (ej: <code>3764278402</code> o <code>5493764278402</code>); se normaliza solo al guardar. No incluyas el <code>15</code>.</p>
                                     <div class="row g-2 align-items-end">
                                         <div class="col-sm-4">
                                             <label class="form-label mb-1" for="adminTelefono">Número de WhatsApp</label>
@@ -383,6 +383,7 @@ if (!isset($_SESSION['nombre'])) {
         var activo   = document.getElementById('adminEnvioActivo').checked ? '1' : '0';
         $.post('../ajax/configuracion.php?op=saveAdminCopia', { telefono: telefono, activo: activo }, function (r) {
             if (r && r.ok) {
+                if (r.telefono) document.getElementById('adminTelefono').value = r.telefono; // mostrar el nº normalizado
                 Swal.fire({ icon: 'success', text: 'Copia a administrador actualizada', timer: 1200, showConfirmButton: false });
             } else {
                 Swal.fire({ icon: 'error', text: (r && r.error) ? r.error : 'Error al guardar' });

@@ -387,7 +387,14 @@ switch ($op) {
         break;
 
     case 'saveAdminCopia':
-        $tel    = preg_replace('/\D/', '', (string) ($_POST['telefono'] ?? '')); // solo dígitos
+        $tel = preg_replace('/\D/', '', (string) ($_POST['telefono'] ?? ''));
+        // Normalizar al formato que espera la API de WhatsApp (internacional AR). Si ya trae
+        // código de país (54…) se respeta; si es local se antepone 549. En el envío,
+        // WhatsAppClient::normalizePhone saca el 9 móvil (549… → 54…) para el endpoint de Meta.
+        if ($tel !== '') {
+            $tel = ltrim($tel, '0');                              // 0376… → 376…
+            if (strncmp($tel, '54', 2) !== 0) { $tel = '549' . $tel; }
+        }
         $activo = (($_POST['activo'] ?? '') === '1' || ($_POST['activo'] ?? '') === 'true') ? 1 : 0;
         // Guardrail: no se puede activar el envío sin un número cargado.
         if ($activo === 1 && $tel === '') { echo json_encode(['ok' => false, 'error' => 'Cargá un número para activar la copia']); break; }
@@ -395,7 +402,7 @@ switch ($op) {
         $stmt->bind_param('si', $tel, $activo);
         $ok = $stmt->execute();
         $stmt->close();
-        echo json_encode(['ok' => (bool) $ok]);
+        echo json_encode(['ok' => (bool) $ok, 'telefono' => $tel]);
         break;
 
     default:
