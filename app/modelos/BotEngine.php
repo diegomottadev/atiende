@@ -158,8 +158,11 @@ class BotEngine
     {
         $visibles = []; $salir = null;
         foreach ($menuItem as $opt) {
-            if (empty($opt['opcionId']) && ($opt['menuId'] ?? '') !== '2.2') {
-                $visibles[] = $opt; continue;            // captura de texto libre: se conserva, no se renumera
+            // Captura de texto libre: opcionId vacío (cadena ''), NO el '0' del botón Salir.
+            // Se detecta por strlen (igual que el bucle de match) para que una captura cuyo
+            // destino es '2.2' (detalle de consulta / consultar-reclamo) NO se confunda con Salir.
+            if (strlen((string) ($opt['opcionId'] ?? '')) === 0) {
+                $visibles[] = $opt; continue;            // se conserva tal cual, no se renumera, sea cual sea su menuId destino
             }
             if (($opt['menuId'] ?? '') === '2.2') { $salir = $opt; continue; } // Salir → al final
             $activo = array_key_exists('activo', $opt) ? $opt['activo'] : 'true'; // legacy = visible

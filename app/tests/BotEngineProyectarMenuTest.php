@@ -14,8 +14,11 @@ function proyectarMenu(array $menuItem): array
 {
     $visibles = []; $salir = null;
     foreach ($menuItem as $opt) {
-        if (empty($opt['opcionId']) && ($opt['menuId'] ?? '') !== '2.2') {
-            $visibles[] = $opt; continue;            // captura de texto libre: se conserva, no se renumera
+        // Captura de texto libre: opcionId vacío (cadena ''), NO el '0' del botón Salir.
+        // Se detecta por strlen (igual que el bucle de match) para que una captura cuyo
+        // destino es '2.2' (detalle de consulta / consultar-reclamo) NO se confunda con Salir.
+        if (strlen((string) ($opt['opcionId'] ?? '')) === 0) {
+            $visibles[] = $opt; continue;            // se conserva tal cual, no se renumera, sea cual sea su menuId destino
         }
         if (($opt['menuId'] ?? '') === '2.2') { $salir = $opt; continue; } // Salir → al final
         $activo = array_key_exists('activo', $opt) ? $opt['activo'] : 'true'; // legacy = visible
@@ -81,6 +84,28 @@ check(count($projS) === 2, '(d) Salir no se oculta pese a activo=false');
 $last = end($projS);
 check($last['menuId'] === '2.2' && $last['activo'] === 'true', '(d) Salir forzado visible y último');
 check($last['opcionId'] === '2', '(d) Salir renumerado al final');
+
+// ---- (e) captura de texto libre cuyo destino es 2.2 (consulta / consultar-reclamo) NO es "Salir" ----
+$menuCaptura22 = [
+    ['opcionId' => '', 'opcion' => '', 'menuId' => '2.2', 'accion' => 'registrarConsulta'], // detalle de consulta
+];
+$projE = proyectarMenu($menuCaptura22);
+check(count($projE) === 1, '(e) la captura libre a 2.2 se conserva');
+check($projE[0]['opcionId'] === '' && ($projE[0]['accion'] ?? '') === 'registrarConsulta',
+      '(e) captura a 2.2 mantiene opcionId vacío (no se convierte en Salir numerado)');
+
+// ---- (f) captura libre a 2.2 + Salir real coexistiendo: la captura sigue sin número, el Salir va último ----
+$menuMix = [
+    ['opcionId' => '1', 'opcion' => 'A',     'menuId' => '10',  'activo' => 'true'],
+    ['opcionId' => '',  'opcion' => '',      'menuId' => '2.2', 'accion' => 'consultarReclamo'], // captura libre
+    ['opcionId' => '0', 'opcion' => 'Salir', 'menuId' => '2.2'],                                  // Salir real
+];
+$projF = proyectarMenu($menuMix);
+check(count($projF) === 3, '(f) captura + opción + Salir → 3 items');
+check($projF[1]['opcionId'] === '' && ($projF[1]['accion'] ?? '') === 'consultarReclamo',
+      '(f) la captura conserva opcionId vacío');
+$lastF = end($projF);
+check($lastF['opcion'] === 'Salir' && $lastF['menuId'] === '2.2', '(f) Salir real va último');
 
 if ($fails === 0) {
     echo "OK\n";

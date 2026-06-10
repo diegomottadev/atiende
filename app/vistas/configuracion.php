@@ -68,7 +68,7 @@ if (!isset($_SESSION['nombre'])) {
 
                         <!-- ===== MENÚ PRINCIPAL ===== -->
                         <div class="tab-pane show active" id="tab-menu">
-                            <p class="text-muted mb-3">Editá el texto de cada opción del menú principal del bot. Los números de opción no cambian.</p>
+                            <p class="text-muted mb-3">Editá el texto y la visibilidad de cada opción. El número de la columna <strong>Opción</strong> es el que verá el cliente: al ocultar una opción, las demás se renumeran solas (1, 2, 3…) y <em>Salir</em> queda siempre al final.</p>
                             <div id="menuPrincipalList"></div>
                         </div>
 
@@ -313,11 +313,12 @@ if (!isset($_SESSION['nombre'])) {
                 html += '<table class="table table-sm table-bordered mb-2">';
                 html += '<thead class="table-light"><tr><th width="8%">Opción</th><th>Texto que ve el usuario</th><th width="18%" class="text-center">Visible</th></tr></thead><tbody>';
                 g.items.forEach(function (it) {
-                    var lbl = it.opcionId === '0' ? '0 (Salir)' : it.opcionId;
-                    html += '<tr><td class="text-center fw-bold">' + lbl + '</td>';
+                    var salir = it.esSalir === true;
+                    html += '<tr data-menuid="' + escHtml(g.menuId) + '" data-essalir="' + (salir ? '1' : '0') + '">';
+                    html += '<td class="text-center fw-bold num-cell"></td>'; // número correlativo que verá el cliente (se calcula en recalcNumeros)
                     html += '<td><input type="text" class="form-control form-control-sm" data-menuid="' + escHtml(g.menuId) + '" data-opcionid="' + escHtml(it.opcionId) + '" value="' + escHtml(it.opcion) + '"></td>';
                     html += '<td class="text-center align-middle">';
-                    if (it.esSalir === true) {
+                    if (salir) {
                         html += '<span data-bs-toggle="tooltip" data-bs-trigger="hover" title="La opción Salir siempre debe estar visible.">';
                         html += '<div class="form-check form-switch d-inline-block m-0"><input class="form-check-input menu-visible" type="checkbox" role="switch" data-menuid="' + escHtml(g.menuId) + '" data-opcionid="' + escHtml(it.opcionId) + '" checked disabled></div>';
                         html += '</span>';
@@ -332,21 +333,44 @@ if (!isset($_SESSION['nombre'])) {
                 html += '</div></div>';
             });
             document.getElementById('menuPrincipalList').innerHTML = html || '<p class="text-muted">Sin menús</p>';
+            groups.forEach(function (g) { recalcNumeros(g.menuId); }); // pintar números correlativos iniciales
             document.querySelectorAll('#menuPrincipalList [data-bs-toggle="tooltip"]').forEach(function (el) {
                 new bootstrap.Tooltip(el, { trigger: 'hover', animation: false });
             });
         });
     }
 
+    // Espeja BotEngine::proyectarMenu en el panel: renumera 1..N solo lo visible y deja Salir último,
+    // así el número de la columna "Opción" es exactamente el que escribirá el cliente en WhatsApp.
+    function recalcNumeros(menuId) {
+        var rows = document.querySelectorAll('#menuPrincipalList tr[data-menuid="' + menuId + '"]');
+        var n = 1, salirCell = null;
+        rows.forEach(function (tr) {
+            var cell = tr.querySelector('.num-cell');
+            if (!cell) return;
+            if (tr.dataset.essalir === '1') { salirCell = cell; return; } // Salir → al final
+            var sw = tr.querySelector('.menu-visible');
+            if (sw && sw.checked) {
+                cell.textContent = n++; cell.classList.remove('text-muted');
+            } else {
+                cell.textContent = '—'; cell.classList.add('text-muted'); // oculta: el cliente no la ve
+            }
+        });
+        if (salirCell) { salirCell.textContent = n; salirCell.classList.remove('text-muted'); }
+    }
+
     // Guardrail front: no permitir apagar el último switch visible de un grupo.
     $(document).on('change', '.menu-visible:not([disabled])', function () {
-        if (this.checked) return;
         var m = this.dataset.menuid;
-        var vis = document.querySelectorAll('.menu-visible[data-menuid="' + m + '"]:checked').length;
-        if (vis === 0) {
-            this.checked = true;
-            Swal.fire({ icon: 'warning', title: 'Al menos una opción visible', text: 'El menú debe mostrar como mínimo una opción al cliente.', timer: 2000, showConfirmButton: false });
+        if (!this.checked) {
+            // Contar visibles sin contar Salir (siempre checked+disabled): el menú necesita ≥1 opción real.
+            var vis = document.querySelectorAll('.menu-visible[data-menuid="' + m + '"]:not([disabled]):checked').length;
+            if (vis === 0) {
+                this.checked = true;
+                Swal.fire({ icon: 'warning', title: 'Al menos una opción visible', text: 'El menú debe mostrar como mínimo una opción al cliente.', timer: 2000, showConfirmButton: false });
+            }
         }
+        recalcNumeros(m); // mantener los números en sincronía con lo que verá el cliente
     });
 
     function guardarGrupoMenu(menuId) {
