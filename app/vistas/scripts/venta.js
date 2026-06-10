@@ -304,10 +304,11 @@ function enviarMsjACliente() {
     })
 }
 
-function anular(idventa) {    
+function anular(idventa, estado) {
+    var estaAnulado = (String(estado) === '3'); // 3 = Anulado → el botón lo reactiva
     Swal.fire({
 		title:'',
-		text: '¿Esta seguro de anular este pedido',
+		text: estaAnulado ? '¿Reactivar este pedido? Volverá a Pendiente.' : '¿Está seguro de anular este pedido?',
 		icon: 'warning',
 		showCancelButton: true,
 		confirmButtonColor: '#727cf5',

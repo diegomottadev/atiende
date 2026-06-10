@@ -9,8 +9,11 @@ class Venta{
 	}
 
 	public function anular($idventa){
-		$sql="UPDATE `pedidos` SET `flag`=3 WHERE `pedidoid` ='$idventa'";
-		return ejecutarConsulta($sql);
+		$id = intval($idventa);
+		// Toggle: si está Anulado(3) vuelve a Pendiente(0); si no, lo Anula(3).
+		ejecutarConsulta("UPDATE pedidos SET flag = IF(flag=3, 0, 3) WHERE pedidoid='$id'");
+		$row = ejecutarConsultaSimpleFila("SELECT flag FROM pedidos WHERE pedidoid='$id' LIMIT 1");
+		return $row ? $row['flag'] : null;
 	}
 
 	public function editarEstado($idventa){

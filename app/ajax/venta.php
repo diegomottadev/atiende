@@ -26,8 +26,10 @@ switch ($_GET["op"]) {
 		}
 		break;
 	case 'anular':
-			$rspta=$venta->anular($idventa);
-			echo $rspta ? "Ingreso anulado correctamente" : "No se pudo anular el ingreso";
+			$nuevo = $venta->anular($idventa);
+			if ((string)$nuevo === '3')   echo "Pedido anulado";
+			elseif ($nuevo !== null)      echo "Pedido reactivado (Pendiente)";
+			else                          echo "No se pudo cambiar el estado del pedido";
 	break;
 
 	case 'editarEstado':
@@ -198,7 +200,7 @@ switch ($_GET["op"]) {
                 $currentDay = $fecha->format('Y-m-d' ) === $reg->fecha ? ' <span class="fa fa-asterisk"><span>' : "";
 
                 $data[]=array(
-                "0"=>'<button class="btn btn-warning btn-sm btn-icon-line" data-bs-toggle="tooltip" title="Ver pedido" onclick="mostrar('.$reg->pedidoid.')"><i class="mdi mdi-eye m-n2"></i></button>'.'<a target="_blank" href="'.$url.$reg->pedidoid.'"> <button class="btn btn-info btn-sm btn-icon-line" data-bs-toggle="tooltip" title="Imprimir ticket"><i class="mdi mdi-printer m-n2"></i></button></a> '.'<button class="btn btn-success btn-sm btn-icon-line" data-bs-toggle="tooltip" title="Enviar mensaje al cliente" onclick="sendMessageCustomizer('."'".$reg->telefono."'".','."'".$reg->razonSocial."'".')"><i class="uil uil-envelope m-n2"></i></button> '.'<button class="btn btn-secondary  btn-sm btn-icon-line" data-bs-toggle="tooltip" title="Cambiar estado" onclick="enProceso('.$reg->pedidoid.','.intval($reg->estado).')" ><i class="mdi mdi-cog m-n2"></i></button></button></a> <button class="btn btn-danger btn-sm btn-icon-line" data-bs-toggle="tooltip" title="Anular pedido" onclick="anular('.$reg->pedidoid.')" ><i class="mdi mdi-minus-circle m-n2"></i></button>',
+                "0"=>'<button class="btn btn-warning btn-sm btn-icon-line" data-bs-toggle="tooltip" title="Ver pedido" onclick="mostrar('.$reg->pedidoid.')"><i class="mdi mdi-eye m-n2"></i></button>'.'<a target="_blank" href="'.$url.$reg->pedidoid.'"> <button class="btn btn-info btn-sm btn-icon-line" data-bs-toggle="tooltip" title="Imprimir ticket"><i class="mdi mdi-printer m-n2"></i></button></a> '.'<button class="btn btn-success btn-sm btn-icon-line" data-bs-toggle="tooltip" title="Enviar mensaje al cliente" onclick="sendMessageCustomizer('."'".$reg->telefono."'".','."'".$reg->razonSocial."'".')"><i class="uil uil-envelope m-n2"></i></button> '.'<button class="btn btn-secondary  btn-sm btn-icon-line" data-bs-toggle="tooltip" title="Cambiar estado" onclick="enProceso('.$reg->pedidoid.','.intval($reg->estado).')" ><i class="mdi mdi-cog m-n2"></i></button></button></a> <button class="btn btn-danger btn-sm btn-icon-line" data-bs-toggle="tooltip" title="Anular / reactivar pedido" onclick="anular('.$reg->pedidoid.','.intval($reg->estado).')" ><i class="mdi mdi-minus-circle m-n2"></i></button>',
                 "1"=>$reg->pedidoid. $currentDay,
                 "2"=>$reg->fecha,
                 "3"=>$reg->clienteId,
