@@ -10,6 +10,8 @@ CREATE TABLE IF NOT EXISTS `bot_config` (
   `telefono`           varchar(20)    NULL DEFAULT NULL,
   `costo_envio`        decimal(10,2)  NOT NULL DEFAULT 0.00,
   `costo_envio_activo` tinyint(1)     NOT NULL DEFAULT 0,
+  `admin_telefono`     varchar(20)    NULL DEFAULT NULL,
+  `admin_envio_activo` tinyint(1)     NOT NULL DEFAULT 0,
   `updated_at`         timestamp      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   CONSTRAINT `chk_single_row` CHECK (`id` = 1)

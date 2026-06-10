@@ -479,7 +479,7 @@ try {
 <?php endif; ?>
                         mensaje += "*Ticket:* 👇\n\n";
                         mensaje += url+"/reportes/exTicket.php?id="+ped+"\n\n";
-                        $.ajax({ type:'POST', url:'send_wa.php', data:{ to:telefono, text:mensaje, ped:ped, t:tenantSlug },
+                        $.ajax({ type:'POST', url:'send_wa.php', data:{ to:telefono, text:mensaje, ped:ped, t:tenantSlug, copiaAdmin:1 },
                             complete: function(){ pedido = []; location.href = 'finaliza.php?t=<?php echo $tenantSlug; ?>'; }
                         });
                     } else { alert("Ocurrio un error inesperado"); }

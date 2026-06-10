@@ -72,6 +72,21 @@ if ($idventa && $clienteid) {
     if ($pdf && file_exists($pdf['path'])) {
         // Un solo mensaje: PDF con el resumen como caption
         $client->sendDocument($to, $pdf['path'], $pdf['filename'], $text);
+
+        // Copia opcional al administrador (mismo PDF + mensaje). Solo si el llamador lo pide
+        // (copiaAdmin=1, exclusivo del flujo de confirmación de pedido) Y está activado en bot_config.
+        if (($_POST['copiaAdmin'] ?? '') === '1') {
+            try {
+                $rcfg = Connection::runQuery("SELECT admin_telefono, admin_envio_activo FROM bot_config LIMIT 1");
+                if ($rcfg && ($rc = mysqli_fetch_assoc($rcfg))) {
+                    $adminTel = preg_replace('/\D/', '', (string) ($rc['admin_telefono'] ?? ''));
+                    if ((int) $rc['admin_envio_activo'] === 1 && $adminTel !== '' && $adminTel !== preg_replace('/\D/', '', $to)) {
+                        $client->sendDocument($adminTel, $pdf['path'], $pdf['filename'], $text);
+                    }
+                }
+            } catch (Throwable $eAdm) { error_log('[send_wa] copia admin falló: ' . $eAdm->getMessage()); }
+        }
+
         unlink($pdf['path']);
     } else {
         $client->sendText($to, $text);

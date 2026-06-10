@@ -15,7 +15,7 @@ if (empty($_SESSION['configuracion'])) {
     exit;
 }
 
-csrfGuard($op, ['listarAreas', 'listarReclamos', 'listarConsultas', 'getMenuPrincipal', 'listarAreasAdmin', 'getToken', 'getEmpresa', 'getCostoEnvio']);
+csrfGuard($op, ['listarAreas', 'listarReclamos', 'listarConsultas', 'getMenuPrincipal', 'listarAreasAdmin', 'getToken', 'getEmpresa', 'getCostoEnvio', 'getAdminCopia']);
 
 switch ($op) {
 
@@ -371,6 +371,28 @@ switch ($op) {
         $activo = (($_POST['activo'] ?? '') === '1' || ($_POST['activo'] ?? '') === 'true') ? 1 : 0;
         $stmt = $conexion->prepare("UPDATE bot_config SET costo_envio = ?, costo_envio_activo = ? WHERE id = 1");
         $stmt->bind_param('di', $costo, $activo);
+        $ok = $stmt->execute();
+        $stmt->close();
+        echo json_encode(['ok' => (bool) $ok]);
+        break;
+
+    case 'getAdminCopia':
+        $tel = ''; $activo = false;
+        $r = mysqli_query($conexion, "SELECT admin_telefono, admin_envio_activo FROM bot_config LIMIT 1");
+        if ($r && ($rr = mysqli_fetch_assoc($r))) {
+            $tel    = (string) ($rr['admin_telefono'] ?? '');
+            $activo = ((int) $rr['admin_envio_activo']) === 1;
+        }
+        echo json_encode(['ok' => true, 'telefono' => $tel, 'activo' => $activo]);
+        break;
+
+    case 'saveAdminCopia':
+        $tel    = preg_replace('/\D/', '', (string) ($_POST['telefono'] ?? '')); // solo dígitos
+        $activo = (($_POST['activo'] ?? '') === '1' || ($_POST['activo'] ?? '') === 'true') ? 1 : 0;
+        // Guardrail: no se puede activar el envío sin un número cargado.
+        if ($activo === 1 && $tel === '') { echo json_encode(['ok' => false, 'error' => 'Cargá un número para activar la copia']); break; }
+        $stmt = $conexion->prepare("UPDATE bot_config SET admin_telefono = ?, admin_envio_activo = ? WHERE id = 1");
+        $stmt->bind_param('si', $tel, $activo);
         $ok = $stmt->execute();
         $stmt->close();
         echo json_encode(['ok' => (bool) $ok]);
