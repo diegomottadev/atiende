@@ -445,7 +445,12 @@ class BotEngine
                                         if (strlen($cli) > 0) {
                                             Connection::runQuery("REPLACE INTO `telefonos`( `clienteId`, `telefono`, `activo`)  VALUES ('" . $codigoCliente . "','" . $user . "',1)");
                                         } else {
-                                            $this->client->sendText($user, 'El codigo de cliente no es valido.');
+                                            // Código inválido: cortar el flujo. Mandar el aviso, resetear el
+                                            // contacto a estado inicial y NO seguir al menú (return temprano,
+                                            // mismo patrón que chequearVendedorCliente/registraClientes).
+                                            $this->client->sendText($user, 'El código de cliente no es válido. Volvé a intentarlo escribiendo *Hola* nuevamente.');
+                                            Connection::runQuery("UPDATE `contactos` SET `mensaje`= '', `anterior`= '', `esperaRespuesta`=0,`menu` = '0'  where id like '" . $user . "'");
+                                            return;
                                         }
                                     }
 

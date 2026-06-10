@@ -30,6 +30,9 @@ $rawBody = file_get_contents('php://input');
 // Parsear el payload antes de incluir Conexion.php para poder elegir la DB correcta.
 $tempPayload  = json_decode($rawBody, true);
 $tempPhoneId  = $tempPayload['entry'][0]['changes'][0]['value']['metadata']['phone_number_id'] ?? null;
+// Número de WhatsApp del negocio (con el que chatea el cliente). Se persiste más abajo en
+// bot_config.telefono para que el botón "Volver a WhatsApp" de finaliza.php use el número real.
+$tempDisplayPhone = $tempPayload['entry'][0]['changes'][0]['value']['metadata']['display_phone_number'] ?? null;
 
 // Valores por defecto (tenant por defecto / hardcodeado en global.php)
 $tenantAppSecret = defined('WA_APP_SECRET')      ? WA_APP_SECRET      : '';
@@ -295,6 +298,15 @@ if (!$responseWebMaster || !isset($responseWebMaster['data']['empresa']['json'])
             $ppRow2   = $ppStmt2->fetch();
             if ($ppRow2) { $ppNombre = $ppRow2['nombre']; $tenantNombre = $ppNombre; }
         } catch (PDOException $e2) { /* silent */ }
+
+        // Auto-capturar el número de WhatsApp del negocio en bot_config.telefono (solo si cambió),
+        // así finaliza.php arma el wa.me con el número real sin configurarlo a mano.
+        if ($tempDisplayPhone) {
+            $dp = preg_replace('/\D/', '', (string) $tempDisplayPhone);
+            if ($dp !== '') {
+                @mysqli_query($conexion, "UPDATE bot_config SET telefono='" . $dp . "' WHERE telefono IS NULL OR telefono <> '" . $dp . "'");
+            }
+        }
 
         $menuRow = mysqli_query($conexion, "SELECT menu_json FROM bot_config LIMIT 1");
         if ($menuRow && ($cfgRow = mysqli_fetch_assoc($menuRow))) {
