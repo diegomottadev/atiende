@@ -462,6 +462,8 @@ try {
         }
         function enviarPedidoSeleccionado() {
             $('#btnEnviarPedidos').prop('disabled', true);
+            // Spinner durante todo el envío (guardado + WhatsApp/PDF), hasta navegar a finaliza.php.
+            Swal.fire({ title: 'Enviando pedido…', html: 'Aguardá un momento, no cierres esta ventana.', allowOutsideClick: false, allowEscapeKey: false, didOpen: function () { Swal.showLoading(); } });
             var empresa = "<?php echo DB_NAME; ?>";
             var tenantSlug = "<?php echo $tenantSlug ?? ''; ?>";
             var url = "<?php echo tenantUrl($tenantSlug); ?>";
@@ -482,7 +484,16 @@ try {
                         $.ajax({ type:'POST', url:'send_wa.php', data:{ to:telefono, text:mensaje, ped:ped, t:tenantSlug, copiaAdmin:1 },
                             complete: function(){ pedido = []; location.href = 'finaliza.php?t=<?php echo $tenantSlug; ?>'; }
                         });
-                    } else { alert("Ocurrio un error inesperado"); }
+                    } else {
+                        // Swal.fire reemplaza el spinner por el error y rehabilita el botón.
+                        Swal.fire({ icon: 'error', title: 'Ocurrió un error', text: 'No se pudo enviar el pedido. Probá de nuevo.' });
+                        $('#btnEnviarPedidos').prop('disabled', false);
+                    }
+                },
+                error: function () {
+                    document.getElementById('bloquea').style.display = 'none';
+                    Swal.fire({ icon: 'error', title: 'Sin conexión', text: 'No se pudo enviar el pedido. Revisá tu conexión y probá de nuevo.' });
+                    $('#btnEnviarPedidos').prop('disabled', false);
                 }
             });
         }
