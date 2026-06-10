@@ -468,7 +468,7 @@ require(__ROOT__ . '/config/global.php');
                         mensaje += "*Ticket:* 👇\n\n";
                         mensaje += url+"/reportes/exTicket.php?id="+ped+"\n\n";
                         $.ajax({ type:'POST', url:'send_wa.php', data:{ to:telefono, text:mensaje, ped:ped, t:tenantSlug },
-                            complete: function(){ pedido = []; location.href = 'finaliza.php'; }
+                            complete: function(){ pedido = []; location.href = 'finaliza.php?t=<?php echo $tenantSlug; ?>'; }
                         });
                     } else { alert("Ocurrio un error inesperado"); }
                 }
@@ -477,7 +477,7 @@ require(__ROOT__ . '/config/global.php');
         function openWSConnection(hostname, port, endpoint, mensaje) {
             try {
                 var ws = new WebSocket(hostname + endpoint);
-                ws.onopen = function() { ws.send(mensaje); pedido = []; ws.close(); location.href = "finaliza.php"; };
+                ws.onopen = function() { ws.send(mensaje); pedido = []; ws.close(); location.href = "finaliza.php?t=<?php echo $tenantSlug; ?>"; };
                 ws.onclose = function(e) { console.log("WS CLOSE", e); };
                 ws.onerror = function(e) { console.log("WS ERROR", e); };
             } catch(e) { console.error(e); }
