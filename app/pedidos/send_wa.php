@@ -81,7 +81,9 @@ if ($idventa && $clienteid) {
                 if ($rcfg && ($rc = mysqli_fetch_assoc($rcfg))) {
                     $adminTel = preg_replace('/\D/', '', (string) ($rc['admin_telefono'] ?? ''));
                     if ((int) $rc['admin_envio_activo'] === 1 && $adminTel !== '' && $adminTel !== preg_replace('/\D/', '', $to)) {
-                        $client->sendDocument($adminTel, $pdf['path'], $pdf['filename'], $text);
+                        // La copia del admin lleva un encabezado propio; el resto es el mismo mensaje del cliente.
+                        $adminCaption = "*Haz recibido un Pedido*\n\n" . $text;
+                        $client->sendDocument($adminTel, $pdf['path'], $pdf['filename'], $adminCaption);
                     }
                 }
             } catch (Throwable $eAdm) { error_log('[send_wa] copia admin falló: ' . $eAdm->getMessage()); }
