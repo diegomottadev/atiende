@@ -67,8 +67,7 @@ function mostrarform(flag){
 
 		$('#btnCancel').show();
 		$("#listadoregistros").hide();
-		$("#subirarchivo").hide();
-		$("#filtrosCliente").hide();
+		$("#panelLista").hide();
 		$("#formularioregistros").show();
 		
 		$("#btnGuardar").prop("disabled",false);
@@ -78,8 +77,7 @@ function mostrarform(flag){
 		$('#btnCancel').hide();
 
 		$("#listadoregistros").show();
-		$("#subirarchivo").show();
-		$("#filtrosCliente").show();
+		$("#panelLista").show();
 		$("#formularioregistros").hide();
 		$("#btnagregar").show();
 		$('#btnExportar').show();
