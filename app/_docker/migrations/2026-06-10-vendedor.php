@@ -31,17 +31,33 @@ if ($hasBotConfig) {
         if (is_array($menu)) {
             $ids = array_column($menu, 'menuId');
 
-            // Opción "Soy Vendedor" en menú 100 (idempotente)
+            // Opción "Soy Vendedor" en menú 100 (idempotente). Se inserta SIEMPRE *antes* de "Salir"
+            // (menuId 2.2): el panel de admin (configuracion.php) renderiza las filas en el orden del
+            // array pero numera espejando proyectarMenu (Salir al final), así que si "Soy Vendedor"
+            // quedara después de "Salir" en el array, el panel mostraría un orden desprolijo (1,2,3,5,4).
             foreach ($menu as &$entry) {
                 if (($entry['menuId'] ?? '') === '100') {
-                    $tiene = false;
-                    foreach (($entry['menuItem'] ?? []) as $it) {
-                        if (($it['menuId'] ?? '') === '105') { $tiene = true; break; }
+                    $items = $entry['menuItem'] ?? [];
+                    $svIdx = null; $salirIdx = null;
+                    foreach ($items as $k => $it) {
+                        if (($it['menuId'] ?? '') === '105') { $svIdx = $k; }
+                        if (($it['menuId'] ?? '') === '2.2') { $salirIdx = $k; }
                     }
-                    if (!$tiene) {
-                        $entry['menuItem'][] = ["opcionId"=>"5","opcion"=>"Soy Vendedor","menuId"=>"105","guardar"=>"false","area"=>""];
-                        echo "[$db] + opción 'Soy Vendedor' en menú 100\n";
+                    if ($svIdx === null) {
+                        // No existe → opcionId único (max+1) e insertar antes de Salir
+                        $maxOid = 0; foreach ($items as $it) { $maxOid = max($maxOid, (int)($it['opcionId'] ?? 0)); }
+                        $nuevo = ["opcionId"=>(string)($maxOid+1),"opcion"=>"Soy Vendedor","menuId"=>"105","guardar"=>"false","area"=>""];
+                        if ($salirIdx !== null) { array_splice($items, $salirIdx, 0, [$nuevo]); }
+                        else { $items[] = $nuevo; }
+                        echo "[$db] + opción 'Soy Vendedor' en menú 100 (antes de Salir)\n";
+                    } elseif ($salirIdx !== null && $svIdx > $salirIdx) {
+                        // Existe pero quedó DESPUÉS de Salir → reordenar (idempotente)
+                        $sv = $items[$svIdx];
+                        array_splice($items, $svIdx, 1);
+                        array_splice($items, $salirIdx, 0, [$sv]);
+                        echo "[$db] ~ reordenado 'Soy Vendedor' antes de Salir\n";
                     }
+                    $entry['menuItem'] = $items;
                 }
             }
             unset($entry);
