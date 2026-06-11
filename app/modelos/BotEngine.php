@@ -288,7 +288,7 @@ class BotEngine
                             if (mysqli_num_rows($requestVend) > 0) {
                                 $rowVendedor = mysqli_fetch_assoc($requestVend);
                                 if ($rowVendedor['atencion'] !== null) {
-                                    Connection::runQuery("UPDATE `link_pedidos` SET `clienteId`= '" . $rowVendedor['atencion'] . "'  where id = '" . $notiPedido . "'");
+                                    Connection::runQuery("UPDATE `link_pedidos` SET `clienteId`= '" . Connection::escape($rowVendedor['atencion']) . "'  where id = '" . $notiPedido . "'");
                                     $requestVendedor = Connection::runQuery("SELECT codigo  FROM vendedores where atencion= '" . $rowVendedor['atencion'] . "'");
                                     if (mysqli_num_rows($requestVendedor) > 0) {
                                         $rowVendedor = mysqli_fetch_assoc($requestVendedor);
@@ -417,11 +417,7 @@ class BotEngine
 
                                     if ($menuItem[$j]['accion'] === 'chequearVendedorCliente') {
                                         // Vendedor de sesión (guardado por registraVendedor en contactos.vendedor_codigo)
-                                        $codVend = '';
-                                        $reqV = Connection::runQuery("SELECT vendedor_codigo FROM contactos WHERE id = '" . $user . "'");
-                                        if ($reqV && mysqli_num_rows($reqV) > 0) {
-                                            $codVend = mysqli_fetch_assoc($reqV)['vendedor_codigo'] ?? '';
-                                        }
+                                        $codVend = $codigoVendedor;
 
                                         // "Salir": cierra la sesión de vendedor.
                                         if (strcasecmp(trim($mensaje), 'salir') === 0) {
