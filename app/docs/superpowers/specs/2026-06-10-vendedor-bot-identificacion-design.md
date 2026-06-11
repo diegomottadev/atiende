@@ -57,8 +57,8 @@ ALTER TABLE `contactos` ADD COLUMN `vendedor_codigo` VARCHAR(50) NULL DEFAULT NU
 
 - **Menú `100`** (bienvenida): agregar un `menuItem` `"Soy Vendedor"` con `menuId:"105"`. `proyectarMenu` renumera 1..N al vuelo y mantiene "Salir" (destino `2.2`) último, así que el `opcionId` literal es indiferente.
 - **Menú `105`** (nuevo): `consigna` = `"Ingresá tu *código de vendedor*:"`, un `menuItem` de captura `{opcionId:"", opcion:"", menuId:"106", accion:"registraVendedor"}`.
-- **Menú `106`** (nuevo): `consigna` = `"Ingresá el *código del cliente* al que vas a cargar el pedido.\n\n(Escribí *SALIR* para cerrar tu sesión de vendedor.)"`, un `menuItem` de captura `{opcionId:"", opcion:"", menuId:"350", accion:"chequearVendedorCliente"}`.
-- El menú `350` (link de pedido) ya existe y se reutiliza sin cambios de JSON.
+- **Menú `106`** (nuevo): `consigna` = `"Ingresá el *código del cliente* al que vas a cargar el pedido.\n\n(Escribí *SALIR* para cerrar tu sesión de vendedor.)"`, un `menuItem` de captura `{opcionId:"", opcion:"", menuId:"<link>", accion:"chequearVendedorCliente"}`.
+- El **menú del link de pedido varía por tenant**: es `350` en demo/corp pero `300` en el seed default. La migración lo **detecta por el placeholder `<linkPedidos>`** y cablea el `menuId` de la captura del 106 a ese menú (no se hardcodea). El menú del link ya existe en cada tenant y se reutiliza sin cambios.
 
 > Nota: `105`/`106` NO pasan por la inyección de motivos (que es para menuIds `1` y `300`), ni se ven afectados por `proyectarMenu` salvo si se listaran como editables — son menús de captura, intactos.
 

@@ -99,17 +99,27 @@ if ($hasBotConfig) {
             }
             unset($entry);
 
+            // Detectar el menú destino del link de pedido — varía por tenant:
+            // 350 en demo/corp, 300 en el seed default. Se busca por el placeholder <linkPedidos>.
+            $linkMenuId = '';
+            foreach ($menu as $e) {
+                if (strpos($e['consigna'] ?? '', '<linkPedidos>') !== false) { $linkMenuId = (string)$e['menuId']; break; }
+            }
+            if ($linkMenuId === '') {
+                fwrite(STDERR, "[$db] ADVERTENCIA: no se encontró el menú con <linkPedidos>; no se crea el menú 106\n");
+            }
+
             // Menú 105 (idempotente)
             if (!in_array('105', $ids, true)) {
                 $menu[] = ["menuId"=>"105","consigna"=>"Ingresá tu *código de vendedor*:","finaliza"=>"false",
                     "menuItem"=>[["opcionId"=>"","opcion"=>"","menuId"=>"106","guardar"=>"false","area"=>"","accion"=>"registraVendedor"]]];
                 echo "[$db] + menú 105\n";
             }
-            // Menú 106 (idempotente)
-            if (!in_array('106', $ids, true)) {
+            // Menú 106 (idempotente) — su captura apunta al menú del link detectado
+            if (!in_array('106', $ids, true) && $linkMenuId !== '') {
                 $menu[] = ["menuId"=>"106","consigna"=>"Ingresá el *código del cliente* al que vas a cargar el pedido.\n\n(Escribí *SALIR* para cerrar tu sesión de vendedor.)","finaliza"=>"false",
-                    "menuItem"=>[["opcionId"=>"","opcion"=>"","menuId"=>"350","guardar"=>"false","area"=>"","accion"=>"chequearVendedorCliente"]]];
-                echo "[$db] + menú 106\n";
+                    "menuItem"=>[["opcionId"=>"","opcion"=>"","menuId"=>$linkMenuId,"guardar"=>"false","area"=>"","accion"=>"chequearVendedorCliente"]]];
+                echo "[$db] + menú 106 (captura → $linkMenuId)\n";
             }
 
             $json = json_encode($menu, JSON_UNESCAPED_UNICODE);
@@ -147,11 +157,13 @@ Expected: una fila para la columna; `ok = 1`.
 - [ ] **Step 4: Verificar idempotencia (correr de nuevo no duplica)**
 
 Run el mismo comando del Step 2.
-Expected: líneas con `=` / `ya existe` y **sin** segundo "Soy Vendedor" (verificar contando opciones en menú 100):
+Expected: líneas con `=` / `ya existe` y **sin** un segundo "+ opción 'Soy Vendedor'".
+
+Verificar conteo (independiente de posición): `"menuId":"105"` debe aparecer exactamente **2 veces** (la opción del menú 100 que apunta a 105 + la entrada del menú 105):
 ```
-MSYS_NO_PATHCONV=1 docker exec mysql8 mysql -uroot -proot -N -e "SELECT JSON_LENGTH(menu_json->'\$[1].menuItem') FROM atiende_demo.bot_config WHERE id=1;"
+MSYS_NO_PATHCONV=1 docker exec mysql8 mysql -uroot -proot -N -e "SELECT (LENGTH(menu_json)-LENGTH(REPLACE(menu_json,'\"menuId\":\"105\"','')))/LENGTH('\"menuId\":\"105\"') AS veces105 FROM atiende_demo.bot_config WHERE id=1;"
 ```
-Expected: `5` (4 originales + 1 "Soy Vendedor"), no 6.
+Expected: `2` (no 4 tras una segunda corrida).
 
 - [ ] **Step 5: Commit**
 
@@ -398,28 +410,38 @@ En el `CREATE TABLE \`contactos\``, después de `\`mensaje\` longtext … NULL,`
   `vendedor_codigo` varchar(50) CHARACTER SET utf8 COLLATE utf8_spanish_ci NULL DEFAULT NULL,
 ```
 
-- [ ] **Step 2: Regenerar el `menu_json` del seed desde el demo ya parcheado**
+- [ ] **Step 2: Regenerar el `menu_json` del seed sobre una DB descartable**
 
-Run (exporta el menú canónico ya parcheado en Task A1):
-```
-MSYS_NO_PATHCONV=1 docker exec mysql8 mysql -uroot -proot -N -e "SELECT menu_json FROM atiende_demo.bot_config WHERE id=1;"
-```
-Copiar la salida y reemplazar el literal del `menu_json` dentro del `INSERT … SELECT 1, '<menu_json>'` de `bot_config_seed.sql`. **Cuidado con el escape de comillas simples** dentro del SQL (duplicar `'` → `''` si las hubiera; el JSON default no tiene comillas simples). Verificar que el JSON contenga `"105"`, `"106"` y `registraVendedor`.
-
-> Alternativa si el seed default difiere del de demo: agregar a mano los objetos de menú 105/106 y la opción "Soy Vendedor" en el menú 100, respetando el escape del seed (newlines como `\n` dentro del string JSON).
-
-- [ ] **Step 3: Validar el seed contra una DB descartable**
+> **No** copiar el menú de `demo`: en demo el link de pedido es el menú `350`, pero el seed default usa `300`. La migración detecta el menú correcto por `<linkPedidos>`, así que se la corre sobre una DB sembrada con el **seed actual** (donde detectará `300` y cableará `106 → 300`).
 
 Run:
 ```
-MSYS_NO_PATHCONV=1 docker exec mysql8 mysql -uroot -proot -e "CREATE DATABASE IF NOT EXISTS _seedcheck; USE _seedcheck;"
+MSYS_NO_PATHCONV=1 docker exec mysql8 mysql -uroot -proot -e "DROP DATABASE IF EXISTS _seedcheck; CREATE DATABASE _seedcheck;"
 MSYS_NO_PATHCONV=1 docker exec -i mysql8 mysql -uroot -proot _seedcheck < app/_docker/mariadb/bot_config_seed.sql
-MSYS_NO_PATHCONV=1 docker exec mysql8 mysql -uroot -proot -N -e "SELECT JSON_VALID(menu_json), menu_json LIKE '%registraVendedor%' FROM _seedcheck.bot_config WHERE id=1;"
-MSYS_NO_PATHCONV=1 docker exec mysql8 mysql -uroot -proot -e "DROP DATABASE _seedcheck;"
+MSYS_NO_PATHCONV=1 docker exec -i atiende-app php /var/www/atiende/_docker/migrations/2026-06-10-vendedor.php _seedcheck
 ```
-Expected: `1   1` (JSON válido y contiene la acción nueva).
+Expected: `+ opción 'Soy Vendedor'`, `+ menú 105`, `+ menú 106 (captura → 300)`.
 
-- [ ] **Step 4: Commit**
+- [ ] **Step 3: Emitir el literal SQL escapado y reemplazarlo en el seed**
+
+Generar el literal del `menu_json` con escape MySQL correcto (`\` → `\\`, `'` → `\'`, así los `\n` de las consignas sobreviven):
+```
+MSYS_NO_PATHCONV=1 docker exec -i atiende-app php -r '$m=new mysqli("mysql8","root","root","_seedcheck"); $j=$m->query("SELECT menu_json FROM bot_config WHERE id=1")->fetch_assoc()["menu_json"]; echo addslashes($j);'
+```
+Reemplazar el contenido entre comillas del `INSERT … SELECT 1, '<aquí>'` en `bot_config_seed.sql` por esa salida. Verificar que el literal contenga `\"105\"`, `\"106\"`, `registraVendedor` y `chequearVendedorCliente`.
+
+- [ ] **Step 4: Validar el seed editado contra una DB limpia y limpiar**
+
+Run:
+```
+MSYS_NO_PATHCONV=1 docker exec mysql8 mysql -uroot -proot -e "DROP DATABASE IF EXISTS _seedcheck2; CREATE DATABASE _seedcheck2;"
+MSYS_NO_PATHCONV=1 docker exec -i mysql8 mysql -uroot -proot _seedcheck2 < app/_docker/mariadb/bot_config_seed.sql
+MSYS_NO_PATHCONV=1 docker exec mysql8 mysql -uroot -proot -N -e "SELECT JSON_VALID(menu_json), menu_json LIKE '%registraVendedor%', menu_json LIKE '%\"106\"%' FROM _seedcheck2.bot_config WHERE id=1;"
+MSYS_NO_PATHCONV=1 docker exec mysql8 mysql -uroot -proot -e "DROP DATABASE _seedcheck; DROP DATABASE _seedcheck2;"
+```
+Expected: `1   1   1` (JSON válido, contiene la acción nueva y el menú 106).
+
+- [ ] **Step 5: Commit**
 
 ```bash
 git add app/_docker/mariadb/atiende.sql app/_docker/mariadb/bot_config_seed.sql
