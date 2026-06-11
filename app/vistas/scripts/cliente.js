@@ -55,6 +55,8 @@ function limpiar(){
 	$("#deposito").val("");
 	$("#latitud").val("");
 	$("#longitud").val("");
+	$("#cuil").val("");
+	$("#dni").val("");
 	$("#idpersona").val("");
 }
 
@@ -204,6 +206,8 @@ function mostrar(idpersona){
 			$("#deposito").val(data.deposito);
 			$("#latitud").val(data.latitud);
 			$("#longitud").val(data.longitud);
+			$("#cuil").val(data.cuil);
+			$("#dni").val(data.dni);
 			// modo edición: el código es la clave del cliente → no se puede cambiar.
 			$("#modo").val("editar");
 			$("#codigo").prop("readonly", true);

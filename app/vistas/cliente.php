@@ -230,11 +230,25 @@ if (!isset($_SESSION['nombre'])) {
                                     <div class="row">
                                         <div class="col-lg-6">
                                             <div class="mb-3 position-relative">
-                                                <label for="" class="form-label">Longitud</label>                                                
+                                                <label for="" class="form-label">Longitud</label>
                                                 <input class="form-control" type="text" name="longitud" id="longitud" maxlength="50" placeholder="Longitud">
-                                            </div>                                           
-                                        </div>                                        
-                                    </div> 
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-lg-6">
+                                            <div class="mb-3 position-relative">
+                                                <label for="" class="form-label">CUIL</label>
+                                                <input class="form-control" type="text" name="cuil" id="cuil" maxlength="20" placeholder="CUIL (opcional)">
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-6">
+                                            <div class="mb-3 position-relative">
+                                                <label for="" class="form-label">DNI</label>
+                                                <input class="form-control" type="text" name="dni" id="dni" maxlength="20" placeholder="DNI (opcional)">
+                                            </div>
+                                        </div>
+                                    </div>
                                     <div class="row">
                                         <div class="col-md-12 text-sm-end">
                                             <button class="btn btn-success rounded-pill sombra-logo" type="submit" id="btnGuardar">
