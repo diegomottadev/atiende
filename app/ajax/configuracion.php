@@ -287,10 +287,10 @@ switch ($op) {
         // El logo es un archivo local del tenant → vive en bot_config.
         $slug = (strncmp($_SESSION['tenant_db'] ?? '', 'atiende_', 8) === 0)
             ? substr($_SESSION['tenant_db'], 8) : ($_SESSION['tenant_db'] ?? '');
-        $emp = ['nombre' => '', 'razon_social' => '', 'cuit' => '', 'telefono' => ''];
+        $emp = ['nombre' => '', 'razon_social' => '', 'cuit' => '', 'telefono' => '', 'pais' => 'AR'];
         try {
             $pp = new PDO('mysql:host=' . DB_HOST . ';dbname=pedidos_platform;charset=utf8mb4', DB_USERNAME, DB_PASSWORD, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC]);
-            $st = $pp->prepare('SELECT nombre, razon_social, cuit, telefono FROM tenants WHERE slug = ? AND deleted_at IS NULL LIMIT 1');
+            $st = $pp->prepare('SELECT nombre, razon_social, cuit, telefono, pais FROM tenants WHERE slug = ? AND deleted_at IS NULL LIMIT 1');
             $st->execute([$slug]);
             $t = $st->fetch();
             if ($t) { $emp = $t; }
@@ -304,6 +304,7 @@ switch ($op) {
             'razonSocial' => $emp['razon_social'] ?? '',
             'cuit'        => $emp['cuit'] ?? '',
             'telefono'    => $emp['telefono'] ?? '',
+            'pais'        => $emp['pais'] ?? 'AR',
             'logo'        => $logo,
         ]);
         break;
@@ -313,6 +314,8 @@ switch ($op) {
         $razonSocial = trim($_POST['razonSocial'] ?? '');
         $cuit        = trim($_POST['cuit'] ?? '');
         $telefono    = trim($_POST['telefono'] ?? '');
+        $pais = strtoupper(trim($_POST['pais'] ?? 'AR'));
+        if (!isset(Telefono::PAISES[$pais])) { $pais = 'AR'; }
 
         // Logo (opcional): validación server-side de tamaño (2 MB) + contenido real (no el Content-Type del cliente)
         $logoName = null;
@@ -338,17 +341,17 @@ switch ($op) {
             $slug = (strncmp($_SESSION['tenant_db'] ?? '', 'atiende_', 8) === 0)
                 ? substr($_SESSION['tenant_db'], 8) : ($_SESSION['tenant_db'] ?? '');
             $pp = new PDO('mysql:host=' . DB_HOST . ';dbname=pedidos_platform;charset=utf8mb4', DB_USERNAME, DB_PASSWORD, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
-            $okT = $pp->prepare('UPDATE tenants SET nombre = ?, razon_social = ?, cuit = ?, telefono = ? WHERE slug = ? AND deleted_at IS NULL')
-                      ->execute([$nombre, $razonSocial, $cuit, $telefono, $slug]);
+            $okT = $pp->prepare('UPDATE tenants SET nombre = ?, razon_social = ?, cuit = ?, telefono = ?, pais = ? WHERE slug = ? AND deleted_at IS NULL')
+                      ->execute([$nombre, $razonSocial, $cuit, $telefono, $pais, $slug]);
         } catch (Exception $e) { error_log('[configuracion] guardarEmpresa: ' . $e->getMessage()); }
 
         // 2) Logo (+ teléfono como cache para el bot) → bot_config local del tenant
         if ($logoName !== null) {
-            $stmt = $conexion->prepare("UPDATE bot_config SET logo = ?, telefono = ? WHERE id = 1");
-            $stmt->bind_param('ss', $logoName, $telefono);
+            $stmt = $conexion->prepare("UPDATE bot_config SET logo = ?, telefono = ?, pais = ? WHERE id = 1");
+            $stmt->bind_param('sss', $logoName, $telefono, $pais);
         } else {
-            $stmt = $conexion->prepare("UPDATE bot_config SET telefono = ? WHERE id = 1");
-            $stmt->bind_param('s', $telefono);
+            $stmt = $conexion->prepare("UPDATE bot_config SET telefono = ?, pais = ? WHERE id = 1");
+            $stmt->bind_param('ss', $telefono, $pais);
         }
         $stmt->execute();
         $stmt->close();

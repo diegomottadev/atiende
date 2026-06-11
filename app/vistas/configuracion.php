@@ -219,6 +219,20 @@ if (!isset($_SESSION['nombre'])) {
                                         <label class="form-label fw-bold">Teléfono</label>
                                         <input type="text" class="form-control" id="empTelefono" placeholder="3764000000">
                                     </div>
+                                    <div class="col-md-5">
+                                        <label class="form-label fw-bold">País</label>
+                                        <select class="form-select" id="empPais">
+                                            <option value="AR">Argentina</option>
+                                            <option value="BR">Brasil</option>
+                                            <option value="MX">México</option>
+                                            <option value="UY">Uruguay</option>
+                                            <option value="CL">Chile</option>
+                                            <option value="PY">Paraguay</option>
+                                            <option value="CO">Colombia</option>
+                                            <option value="PE">Perú</option>
+                                        </select>
+                                        <small class="text-muted d-block mt-1">Define cómo se normalizan los números de WhatsApp del negocio.</small>
+                                    </div>
                                     <div class="col-12">
                                         <label for="empLogo" class="form-label fw-bold">Logo</label>
                                         <input class="form-control" type="file" id="empLogo" accept="image/jpeg,image/png">
@@ -485,6 +499,7 @@ if (!isset($_SESSION['nombre'])) {
             document.getElementById('empCuit').value        = r.cuit        || '';
             document.getElementById('empRazonSocial').value = r.razonSocial || '';
             document.getElementById('empTelefono').value    = r.telefono    || '';
+            document.getElementById('empPais').value        = r.pais        || 'AR';
             var prev = document.getElementById('empLogoPreview');
             var btn  = document.getElementById('empLogoQuitar');
             if (r.logo) {
@@ -526,6 +541,7 @@ if (!isset($_SESSION['nombre'])) {
         fd.append('cuit',        document.getElementById('empCuit').value.trim());
         fd.append('razonSocial', document.getElementById('empRazonSocial').value.trim());
         fd.append('telefono',    document.getElementById('empTelefono').value.trim());
+        fd.append('pais', document.getElementById('empPais').value);
         var lf = document.getElementById('empLogo').files[0];
         if (lf) fd.append('logo', lf);
         $.ajax({
