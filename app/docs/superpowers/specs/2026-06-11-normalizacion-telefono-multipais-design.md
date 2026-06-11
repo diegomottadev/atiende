@@ -62,11 +62,11 @@ class Telefono {
     /** Normaliza un número tipeado a formato wa_id según el país del tenant. */
     public static function normalizar($numero, $pais = 'AR'): string {
         $d = preg_replace('/\D/', '', (string) $numero);
+        $d = ltrim($d, '0');                                 // troncal local (0…) primero → evita prefijo duplicado
         if ($d === '') return '';
-        $p  = self::PAISES[$pais] ?? self::PAISES['AR'];   // país desconocido → AR (retrocompat)
+        $p  = self::PAISES[$pais] ?? self::PAISES['AR'];      // país desconocido → AR (retrocompat)
         $cc = $p['cc'];
         if (strncmp($d, $cc, strlen($cc)) === 0) return $d;  // ya trae código de país → tal cual
-        $d = ltrim($d, '0');
         return !empty($p['movil9']) ? $cc . '9' . $d : $cc . $d;
     }
 }
@@ -88,8 +88,8 @@ Cada punto lee el `pais` del tenant desde `bot_config` (DB local ya conectada) y
 ## UI
 
 - Dropdown **País** en la pestaña **Empresa** de `configuracion.php`, con las opciones del mapa (AR por default).
-- `getEmpresa`: agregar `pais` al `SELECT … FROM tenants`; devolverlo en el JSON.
-- `guardarEmpresa`: agregar `pais` al `UPDATE tenants` (fuente de verdad) **y** al `UPDATE bot_config` (cache local) — mismo patrón "ambos (sync)" que ya usa `telefono`.
+- `getEmpresa`: agregar `pais` al `SELECT … FROM tenants`; devolverlo en el JSON. **Agregar `'pais' => 'AR'` al struct de fallback `$emp`** (el que se usa si la consulta PDO falla), para que la respuesta JSON siempre traiga `pais`.
+- `guardarEmpresa`: agregar `pais` al `UPDATE tenants` (fuente de verdad) **y** al `UPDATE bot_config` (cache local) — mismo patrón "ambos (sync)" que ya usa `telefono`. **Ojo: el `UPDATE bot_config` tiene DOS ramas** (con logo / sin logo); `pais` debe agregarse en **ambas** (hoy las dos solo bindean `telefono`/`logo`).
 
 ## Componentes y límites
 
@@ -115,7 +115,7 @@ La verificación de vendedor (`vendedores.telefono = $user`, agregada en la feat
 
 ## Testing
 
-- **Unit test** `tests/TelefonoNormalizarTest.php`: requiere `config/Telefono.php` directamente (pura, sin DB) y cubre: AR local→`549…`, AR ya internacional→tal cual, BR/MX/UY local→`cc+local`, número con `+`/espacios, vacío→vacío, país desconocido→AR.
+- **Unit test** `tests/TelefonoNormalizarTest.php`: requiere `config/Telefono.php` directamente (pura, sin DB) y cubre: AR local→`549…`, AR ya internacional→tal cual, AR con `0` troncal (`0376…`)→`549376…`, **AR zero-padded internacional (`0549…`)→`549…` (no duplica prefijo)**, BR/MX/UY local→`cc+local`, UY con `0` troncal (`099…`)→`598 99…`, número con `+`/espacios, vacío→vacío, país desconocido→AR.
 - `php -l` sobre los archivos PHP tocados (dentro de `atiende-app`).
 - Prueba manual: setear país en la pestaña Empresa; guardar un vendedor con número local y verificar que queda en el formato del país; E2E del vendedor sigue andando en AR.
 
