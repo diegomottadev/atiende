@@ -206,7 +206,11 @@ function guardarClientes($archivo)
             $datos .= " '" . $sheet->getCell("L" . $row)->getValue() . "',";
             $datos .= " '" . $sheet->getCell("M" . $row)->getValue() . "',";
             $datos .= " '" . $sheet->getCell("N" . $row)->getValue() . "',";
-            $datos .= " '" . $sheet->getCell("O" . $row)->getValue() . "',";
+            // Depósito (col. O): si viene vacío, default '1' (misma convención que el alta por bot).
+            // Un cliente sin depósito no muestra productos en la página de pedido.
+            $_dep = trim((string) $sheet->getCell("O" . $row)->getValue());
+            if ($_dep === '') { $_dep = '1'; }
+            $datos .= " '" . $_dep . "',";
             $datos .= " '" . $sheet->getCell("P" . $row)->getValue() . "',";
             $datos .= " '" . $sheet->getCell("Q" . $row)->getValue() . "'),";
         }
