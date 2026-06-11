@@ -1,5 +1,6 @@
 <?php
 include_once("../config/Connection.php");
+include_once("../config/Telefono.php");
 
 // Resolver el tenant igual que index.php: subdominio (HTTP_X_TENANT de Nginx) o ?t=.
 // Sin esto, Connection cae a la DB base 'atiende' (sin bot_config) y no hay teléfono.
@@ -20,7 +21,8 @@ $digits = preg_replace('/\D/', '', (string) ($cfg['data']['telefono'] ?? ''));
 if ($digits !== '') {
     // wa.me exige formato internacional. Si ya trae código de país argentino (54…)
     // se usa tal cual; si es un número local (sin país), se antepone 549 (móvil AR).
-    $telefono = (strncmp($digits, '54', 2) === 0) ? $digits : ('549' . ltrim($digits, '0'));
+    $paisT    = $cfg['data']['pais'] ?? 'AR';
+    $telefono = Telefono::normalizar($digits, $paisT);
 }
 ?>
 <!DOCTYPE html>

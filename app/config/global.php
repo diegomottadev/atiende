@@ -86,11 +86,14 @@ if (!function_exists('getWebMasterConfig')) {
             try {
                 $link = @mysqli_connect(DB_HOST, DB_USERNAME, DB_PASSWORD, $dbForPhone);
                 if ($link) {
-                    $r = mysqli_query($link, 'SELECT telefono FROM bot_config LIMIT 1');
-                    if ($r && ($row = mysqli_fetch_assoc($r)) && !empty($row['telefono'])) {
-                        $config['data']['empresa']  = ['telefono' => $row['telefono']];
-                        $config['data']['telefono'] = $row['telefono'];
-                        $config['empresa']          = ['telefono' => $row['telefono']];
+                    $r = mysqli_query($link, 'SELECT telefono, pais FROM bot_config LIMIT 1');
+                    if ($r && ($row = mysqli_fetch_assoc($r))) {
+                        $config['data']['pais'] = !empty($row['pais']) ? $row['pais'] : 'AR';
+                        if (!empty($row['telefono'])) {
+                            $config['data']['empresa']  = ['telefono' => $row['telefono']];
+                            $config['data']['telefono'] = $row['telefono'];
+                            $config['empresa']          = ['telefono' => $row['telefono']];
+                        }
                     }
                     mysqli_close($link);
                 }

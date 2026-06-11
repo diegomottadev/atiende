@@ -2,6 +2,7 @@
 define('__ROOT__', dirname(dirname(__FILE__)));
 require_once __ROOT__ . '/config/auth.php';
 require (__ROOT__.'/config/Conexion.php');
+require_once __DIR__ . '/../config/Telefono.php';
 
 header('Content-Type: application/json');
 
@@ -391,10 +392,10 @@ switch ($op) {
         // Normalizar al formato que espera la API de WhatsApp (internacional AR). Si ya trae
         // código de país (54…) se respeta; si es local se antepone 549. En el envío,
         // WhatsAppClient::normalizePhone saca el 9 móvil (549… → 54…) para el endpoint de Meta.
-        if ($tel !== '') {
-            $tel = ltrim($tel, '0');                              // 0376… → 376…
-            if (strncmp($tel, '54', 2) !== 0) { $tel = '549' . $tel; }
-        }
+        $pais = 'AR';
+        $rpais = mysqli_query($conexion, "SELECT pais FROM bot_config LIMIT 1");
+        if ($rpais && ($rr = mysqli_fetch_assoc($rpais)) && !empty($rr['pais'])) { $pais = $rr['pais']; }
+        $tel = Telefono::normalizar($tel, $pais);
         $activo = (($_POST['activo'] ?? '') === '1' || ($_POST['activo'] ?? '') === 'true') ? 1 : 0;
         // Guardrail: no se puede activar el envío sin un número cargado.
         if ($activo === 1 && $tel === '') { echo json_encode(['ok' => false, 'error' => 'Cargá un número para activar la copia']); break; }
