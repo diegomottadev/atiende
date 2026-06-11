@@ -256,6 +256,7 @@ CREATE TABLE `contactos`  (
   `esperaRespuesta` int(1) NOT NULL DEFAULT 0,
   `anterior` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
   `mensaje` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
+  `vendedor_codigo` varchar(50) CHARACTER SET utf8 COLLATE utf8_spanish_ci NULL DEFAULT NULL,
   `fechaHora` datetime(0) NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_spanish_ci ROW_FORMAT = Dynamic;
