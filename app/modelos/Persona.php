@@ -10,13 +10,13 @@ class Persona{
 		$this->responseWebMaster = getWebMasterConfig();
 	}
 
-	public function editar($idpersona,$vendedor,$nombre,$direccion,$localidad,$ramo,$zona,$lista,$telefono){
+	public function editar($idpersona,$vendedor,$nombre,$direccion,$localidad,$ramo,$zona,$lista,$telefono,$cuil,$dni){
 		$sql = null;
 		if($this->responseWebMaster['data']['mix'] || $this->responseWebMaster['data']['b2c'] ){
-			$sql="UPDATE clientes SET vendedor='$vendedor', razonSocial='$nombre',direccion='$direccion',localidad='$localidad',ramo='$ramo',zona='$zona',lista='$lista',telefono= '$telefono' 
+			$sql="UPDATE clientes SET vendedor='$vendedor', razonSocial='$nombre',direccion='$direccion',localidad='$localidad',ramo='$ramo',zona='$zona',lista='$lista',telefono= '$telefono',cuil='$cuil',dni='$dni'
 			WHERE id='$idpersona'";
 		}else if($this->responseWebMaster['data']['b2b'] ){
-			$sql="UPDATE clientes SET vendedor='$vendedor', razonSocial='$nombre',direccion='$direccion',localidad='$localidad',ramo='$ramo',zona='$zona',lista='$lista',telefono= '$telefono' 
+			$sql="UPDATE clientes SET vendedor='$vendedor', razonSocial='$nombre',direccion='$direccion',localidad='$localidad',ramo='$ramo',zona='$zona',lista='$lista',telefono= '$telefono',cuil='$cuil',dni='$dni'
 			WHERE codigo='$idpersona'";
 		}
 		return ejecutarConsulta($sql);
@@ -24,15 +24,15 @@ class Persona{
 
 	// Alta de cliente con código (clave de negocio). Devuelve 'dup' si el código ya existe,
 	// el resultado de la consulta si insertó, o false si el código vino vacío.
-	public function insertar($codigo,$vendedor,$nombre,$direccion,$localidad,$ramo,$zona,$lista,$telefono,$deposito,$latitud,$longitud){
+	public function insertar($codigo,$vendedor,$nombre,$direccion,$localidad,$ramo,$zona,$lista,$telefono,$deposito,$latitud,$longitud,$cuil,$dni){
 		$codigo = trim($codigo);
 		if ($codigo === '') return false;
 		if (ejecutarConsultaSimpleFila("SELECT codigo FROM clientes WHERE codigo='$codigo' LIMIT 1")) {
 			return 'dup';
 		}
 		// vendedor/deposito/latitud/longitud son NOT NULL sin default → se insertan siempre (vacío permitido).
-		$sql = "INSERT INTO clientes (codigo,vendedor,razonSocial,direccion,localidad,ramo,zona,lista,telefono,deposito,latitud,longitud)
-				VALUES ('$codigo','$vendedor','$nombre','$direccion','$localidad','$ramo','$zona','$lista','$telefono','$deposito','$latitud','$longitud')";
+		$sql = "INSERT INTO clientes (codigo,vendedor,razonSocial,direccion,localidad,ramo,zona,lista,telefono,deposito,latitud,longitud,cuil,dni)
+				VALUES ('$codigo','$vendedor','$nombre','$direccion','$localidad','$ramo','$zona','$lista','$telefono','$deposito','$latitud','$longitud','$cuil','$dni')";
 		return ejecutarConsulta($sql);
 	}
 
