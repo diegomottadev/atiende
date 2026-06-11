@@ -33,7 +33,8 @@
 | `app/_docker/mariadb/bot_config_seed.sql` | Modificar | Columna `pais` en el `CREATE TABLE bot_config` |
 | `app/ajax/vendedor.php` | Modificar | Usar el helper con el país del tenant |
 | `app/ajax/configuracion.php` | Modificar | `saveAdminCopia` usa helper; `getEmpresa`/`guardarEmpresa` leen/escriben `pais` |
-| `app/pedidos/finaliza.php` | Modificar | Usar el helper con el país del tenant |
+| `app/pedidos/finaliza.php` | Modificar | Usar el helper con el país del tenant (lee `pais` de `getWebMasterConfig`) |
+| `app/config/global.php` | Modificar | `getWebMasterConfig` trae también `bot_config.pais` |
 | `app/vistas/configuracion.php` | Modificar | Dropdown País en la pestaña Empresa + JS |
 
 ---
@@ -234,7 +235,7 @@ Reemplazar el bloque de normalización actual (el que hace `preg_replace` + `ltr
 	if (is_array($rp) && !empty($rp['pais'])) { $pais = $rp['pais']; }
 	$telefono = Telefono::normalizar($telefono, $pais);
 ```
-(Si `ejecutarConsultaSimpleFila` no existe con ese nombre exacto, usar el helper de lectura simple que ya usa el modelo `Vendedor`; el objetivo es leer `bot_config.pais` con fallback `'AR'`.)
+> `ejecutarConsultaSimpleFila` **está disponible** en `vendedor.php`: el modelo `Vendedor.php` (que `vendedor.php` requiere) a su vez hace `require '/config/Conexion.php'`, donde se define esa función. Devuelve un array assoc (o `false`), por eso el `is_array($rp)`.
 
 - [ ] **Step 2: `ajax/configuracion.php` → `saveAdminCopia`**
 
@@ -242,16 +243,51 @@ Agregar require arriba del archivo si no está:
 ```php
 require_once __DIR__ . '/../config/Telefono.php';
 ```
-Reemplazar la normalización inline de `$tel` (el `ltrim` + `if (!startsWith '54') '549'…`) por:
+**Mantener** la línea que lee y limpia el POST (`$tel = preg_replace('/\D/', '', (string) ($_POST['telefono'] ?? ''));`) — la usa el guardrail `if ($activo === 1 && $tel === '')`. **Reemplazar solo** el bloque siguiente:
+```php
+        if ($tel !== '') {
+            $tel = ltrim($tel, '0');
+            if (strncmp($tel, '54', 2) !== 0) { $tel = '549' . $tel; }
+        }
+```
+por:
 ```php
         $pais = 'AR';
         $rpais = mysqli_query($conexion, "SELECT pais FROM bot_config LIMIT 1");
         if ($rpais && ($rr = mysqli_fetch_assoc($rpais)) && !empty($rr['pais'])) { $pais = $rr['pais']; }
         $tel = Telefono::normalizar($tel, $pais);
 ```
-(Mantener el `$tel = preg_replace('/\D/', '', …)` previo si está, o dejar que el helper lo haga; no duplicar.)
+(`$conexion` es la conexión mysqli del tenant, ya en scope en `saveAdminCopia`. El helper re-limpia dígitos internamente, así que no se duplica el `preg_replace`.)
 
-- [ ] **Step 3: `pedidos/finaliza.php`**
+- [ ] **Step 3a: `config/global.php` — `getWebMasterConfig` también trae `pais`**
+
+`finaliza.php` ya llama `getWebMasterConfig()` (que lee `bot_config` con el patrón correcto: `fetch` ANTES de `mysqli_close`). Extender esa lectura para traer `pais` y evitar una query nueva en `finaliza.php`.
+
+En `config/global.php`, en `getWebMasterConfig`, cambiar:
+```php
+                    $r = mysqli_query($link, 'SELECT telefono FROM bot_config LIMIT 1');
+                    if ($r && ($row = mysqli_fetch_assoc($r)) && !empty($row['telefono'])) {
+                        $config['data']['empresa']  = ['telefono' => $row['telefono']];
+                        $config['data']['telefono'] = $row['telefono'];
+                        $config['empresa']          = ['telefono' => $row['telefono']];
+                    }
+```
+por:
+```php
+                    $r = mysqli_query($link, 'SELECT telefono, pais FROM bot_config LIMIT 1');
+                    if ($r && ($row = mysqli_fetch_assoc($r))) {
+                        $config['data']['pais'] = !empty($row['pais']) ? $row['pais'] : 'AR';
+                        if (!empty($row['telefono'])) {
+                            $config['data']['empresa']  = ['telefono' => $row['telefono']];
+                            $config['data']['telefono'] = $row['telefono'];
+                            $config['empresa']          = ['telefono' => $row['telefono']];
+                        }
+                    }
+```
+
+> ⚠️ NO usar `Connection::runQuery` para leer `pais` y luego `mysqli_fetch_assoc`: `runQuery` hace `mysqli_close($link)` ANTES de devolver el `$result`. En la práctica funciona por los resultados bufferados de mysqlnd (todo BotEngine usa ese patrón), pero la vía limpia y sin dudas es leer `pais` de `getWebMasterConfig` (que hace el fetch antes de cerrar).
+
+- [ ] **Step 3b: `pedidos/finaliza.php`**
 
 Agregar arriba (junto al `include_once` de Connection):
 ```php
@@ -263,11 +299,10 @@ Reemplazar:
 ```
 por:
 ```php
-    $paisT = 'AR';
-    $rpais = Connection::runQuery("SELECT pais FROM bot_config LIMIT 1");
-    if ($rpais && ($rr = mysqli_fetch_assoc($rpais)) && !empty($rr['pais'])) { $paisT = $rr['pais']; }
+    $paisT    = $cfg['data']['pais'] ?? 'AR';
     $telefono = Telefono::normalizar($digits, $paisT);
 ```
+(`$cfg = getWebMasterConfig()` ya está resuelto arriba en `finaliza.php`, sobre la misma línea donde se obtiene `$cfg['data']['telefono']`.)
 
 - [ ] **Step 4: Lint los 3 archivos**
 
@@ -276,8 +311,9 @@ Run:
 MSYS_NO_PATHCONV=1 docker exec atiende-app php -l /var/www/atiende/ajax/vendedor.php
 MSYS_NO_PATHCONV=1 docker exec atiende-app php -l /var/www/atiende/ajax/configuracion.php
 MSYS_NO_PATHCONV=1 docker exec atiende-app php -l /var/www/atiende/pedidos/finaliza.php
+MSYS_NO_PATHCONV=1 docker exec atiende-app php -l /var/www/atiende/config/global.php
 ```
-Expected: `No syntax errors detected` en los 3.
+Expected: `No syntax errors detected` en los 4.
 
 - [ ] **Step 5: Verificar que AR no regresiona**
 
@@ -291,7 +327,7 @@ Luego, prueba manual: en `vendedor.php` editar un vendedor con teléfono `376411
 
 ```bash
 cd /c/Users/ACER/Downloads/atiende 2>/dev/null
-git add app/ajax/vendedor.php app/ajax/configuracion.php app/pedidos/finaliza.php
+git add app/ajax/vendedor.php app/ajax/configuracion.php app/pedidos/finaliza.php app/config/global.php
 git commit -m "refactor(telefono): los 3 puntos de normalización usan Telefono::normalizar + país del tenant"
 ```
 
