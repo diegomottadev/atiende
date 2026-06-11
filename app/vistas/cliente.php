@@ -155,9 +155,24 @@ if (!isset($_SESSION['nombre'])) {
                         </div>
                     </div>
                     <div class="card-body px-3 pb-3" id="formularioregistros">
-                        <h6 class="text-muted mb-2" style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;"><i class="mdi mdi-access-point me-1"></i> <span id="ribbon-text">Editar Cliente</span></h6>
-                                <form action="" name="formulario" id="formulario" method="POST">
-                                    <input type="hidden" name="modo" id="modo" value="editar">
+                        <ul class="nav nav-tabs mb-3" id="clienteTabs" role="tablist">
+                            <li class="nav-item">
+                                <a class="nav-link active" data-bs-toggle="tab" href="#tabDatosCliente" role="tab" aria-selected="true">
+                                    <i class="mdi mdi-account-edit-outline me-1"></i> <span id="ribbon-text">Editar Cliente</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" data-bs-toggle="tab" href="#tabVendedorAsignado" role="tab" aria-selected="false">
+                                    <i class="mdi mdi-account-tie-outline me-1"></i> Vendedor asignado
+                                </a>
+                            </li>
+                        </ul>
+                        <form action="" name="formulario" id="formulario" method="POST">
+                            <input type="hidden" name="modo" id="modo" value="editar">
+                            <div class="tab-content">
+
+                                <!-- TAB 1: Datos del cliente -->
+                                <div class="tab-pane show active" id="tabDatosCliente" role="tabpanel">
 
                                     <!-- Identificación -->
                                     <div class="form-section">
@@ -207,24 +222,21 @@ if (!isset($_SESSION['nombre'])) {
                                         <div class="form-section__title"><i class="mdi mdi-storefront-outline"></i> Datos comerciales</div>
                                         <div class="row g-3">
                                             <div class="col-lg-3 col-md-6">
-                                                <label class="form-label">Vendedor</label>
-                                                <input class="form-control" type="text" name="vendedor" id="vendedor" maxlength="50" placeholder="Vendedor">
-                                            </div>
-                                            <div class="col-lg-3 col-md-6">
                                                 <label class="form-label">Ramo</label>
                                                 <input class="form-control" type="text" name="ramo" id="ramo" maxlength="70" placeholder="Ramo">
                                             </div>
-                                            <div class="col-lg-2 col-md-4">
+                                            <div class="col-lg-3 col-md-6">
                                                 <label class="form-label">Zona</label>
                                                 <input class="form-control" type="text" name="zona" id="zona" placeholder="Zona">
                                             </div>
-                                            <div class="col-lg-2 col-md-4">
+                                            <div class="col-lg-3 col-md-6">
                                                 <label class="form-label">Lista</label>
                                                 <input class="form-control" type="text" name="lista" id="lista" maxlength="20" placeholder="Lista de precio">
                                             </div>
-                                            <div class="col-lg-2 col-md-4">
-                                                <label class="form-label">Depósito</label>
-                                                <input class="form-control" type="text" name="deposito" id="deposito" maxlength="20" placeholder="Depósito">
+                                            <div class="col-lg-3 col-md-6">
+                                                <label class="form-label">Depósito <span class="text-danger">*</span></label>
+                                                <input class="form-control" type="text" name="deposito" id="deposito" maxlength="20" placeholder="Depósito" required>
+                                                <small class="text-muted">Obligatorio: sin depósito el cliente no ve productos al hacer el pedido.</small>
                                             </div>
                                         </div>
                                     </div>
@@ -243,16 +255,40 @@ if (!isset($_SESSION['nombre'])) {
                                             </div>
                                         </div>
                                     </div>
+                                </div>
 
-                                    <div class="form-footer">
-                                        <button class="btn btn-light rounded-pill" type="button" onclick="cancelarform()">
-                                            <i class="mdi mdi-close me-1"></i> Cancelar
-                                        </button>
-                                        <button class="btn btn-success rounded-pill sombra-logo" type="submit" id="btnGuardar">
-                                            <i class="mdi mdi-content-save-all me-1"></i> Guardar
-                                        </button>
+                                <!-- TAB 2: Vendedor asignado -->
+                                <div class="tab-pane" id="tabVendedorAsignado" role="tabpanel">
+                                    <div class="form-section">
+                                        <div class="d-flex align-items-center gap-2 mb-3 p-2 px-3 rounded sombra-panel" style="background:#eef0ff;border-left:4px solid #727cf5;">
+                                            <i class="mdi mdi-account-tie text-primary" style="font-size:1.6rem;"></i>
+                                            <div>
+                                                <div style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#6c757d;">Vendedor</div>
+                                                <div class="fw-bold" id="vendedorAsignadoTexto" style="color:#4a4f9e;">— Sin asignar —</div>
+                                            </div>
+                                        </div>
+                                        <div class="row g-3">
+                                            <div class="col-lg-6">
+                                                <label for="vendedor" class="form-label">Seleccionar vendedor</label>
+                                                <select class="form-select" name="vendedor" id="vendedor">
+                                                    <option value="">— Sin asignar —</option>
+                                                </select>
+                                            </div>
+                                        </div>
                                     </div>
-                                </form>
+                                </div>
+
+                            </div>
+
+                            <div class="form-footer">
+                                <button class="btn btn-light rounded-pill" type="button" onclick="cancelarform()">
+                                    <i class="mdi mdi-close me-1"></i> Cancelar
+                                </button>
+                                <button class="btn btn-success rounded-pill sombra-logo" type="submit" id="btnGuardar">
+                                    <i class="mdi mdi-content-save-all me-1"></i> Guardar
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>

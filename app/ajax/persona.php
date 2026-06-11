@@ -36,13 +36,16 @@ csrfGuard($op, ['mostrar', 'listarp', 'listarc', 'filtros']);
 
 switch ($_GET["op"]) {
 	case 'guardaryeditar':
+		// El depósito es obligatorio: un cliente sin depósito no muestra productos en la página de pedido
+		// (el filtro de productos compara clientes.deposito contra el depósito de cada artículo).
+		if ($deposito === '') { echo "El depósito es obligatorio (sin depósito el cliente no ve productos al hacer el pedido)."; break; }
 		if ($modo === 'nuevo') {
 			if ($idpersona === '') { echo "Ingresá un código de cliente"; break; }
 			$rspta=$persona->insertar($idpersona,$vendedor,$nombre,$direccion,$localidad,$ramo,$zona,$lista,$telefono,$deposito,$latitud,$longitud,$cuil,$dni);
 			if ($rspta === 'dup') echo "Ya existe un cliente con el código ".$idpersona;
 			else                  echo $rspta ? "Cliente registrado correctamente" : "No se pudo registrar el cliente";
 		}else{
-			$rspta=$persona->editar($idpersona,$vendedor,$nombre,$direccion,$localidad,$ramo,$zona,$lista,$telefono,$cuil,$dni);
+			$rspta=$persona->editar($idpersona,$vendedor,$nombre,$direccion,$localidad,$ramo,$zona,$lista,$telefono,$cuil,$dni,$deposito);
 			echo $rspta ? "Datos actualizados correctamente" : "No se pudo actualizar los datos";
 		}
 	break;

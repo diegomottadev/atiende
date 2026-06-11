@@ -10,13 +10,13 @@ class Persona{
 		$this->responseWebMaster = getWebMasterConfig();
 	}
 
-	public function editar($idpersona,$vendedor,$nombre,$direccion,$localidad,$ramo,$zona,$lista,$telefono,$cuil,$dni){
+	public function editar($idpersona,$vendedor,$nombre,$direccion,$localidad,$ramo,$zona,$lista,$telefono,$cuil,$dni,$deposito){
 		$sql = null;
 		if($this->responseWebMaster['data']['mix'] || $this->responseWebMaster['data']['b2c'] ){
-			$sql="UPDATE clientes SET vendedor='$vendedor', razonSocial='$nombre',direccion='$direccion',localidad='$localidad',ramo='$ramo',zona='$zona',lista='$lista',telefono= '$telefono',cuil='$cuil',dni='$dni'
+			$sql="UPDATE clientes SET vendedor='$vendedor', razonSocial='$nombre',direccion='$direccion',localidad='$localidad',ramo='$ramo',zona='$zona',lista='$lista',telefono= '$telefono',deposito='$deposito',cuil='$cuil',dni='$dni'
 			WHERE id='$idpersona'";
 		}else if($this->responseWebMaster['data']['b2b'] ){
-			$sql="UPDATE clientes SET vendedor='$vendedor', razonSocial='$nombre',direccion='$direccion',localidad='$localidad',ramo='$ramo',zona='$zona',lista='$lista',telefono= '$telefono',cuil='$cuil',dni='$dni'
+			$sql="UPDATE clientes SET vendedor='$vendedor', razonSocial='$nombre',direccion='$direccion',localidad='$localidad',ramo='$ramo',zona='$zona',lista='$lista',telefono= '$telefono',deposito='$deposito',cuil='$cuil',dni='$dni'
 			WHERE codigo='$idpersona'";
 		}
 		return ejecutarConsulta($sql);
