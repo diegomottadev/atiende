@@ -39,6 +39,11 @@ try {
 <html lang="es">
 <head>
     <meta charset="utf-8">
+    <!-- Base fija: la URL "linda" /pedidos/{id}/{ved} agrega un segmento extra y rompe las
+         rutas relativas (../public, ../files, ../ajax) → el navegador pedía /pedidos/public/...
+         (404) y no cargaba Bootstrap. Con <base> todo resuelve como si el documento estuviera
+         en /pedidos/, igual que la URL de un solo segmento /pedidos/{id}. -->
+    <base href="/pedidos/">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
@@ -411,7 +416,7 @@ try {
                         var c1 = row.insertCell(0), c2 = row.insertCell(1), c3 = row.insertCell(2), c4 = row.insertCell(3), c5 = row.insertCell(4);
                         c3.className = 'text-center'; c4.className = 'text-end'; c5.className = 'text-end';
                         c1.innerHTML = "<span class='cart-linenum'>" + lineNum + "</span>";
-                        c2.innerHTML = comentario + "<a class='cart-prod-name' href='#' onclick='irProducto(\"" + pedido[x][0] + "\")'>" + pedido[x][1] + "</a>";
+                        c2.innerHTML = comentario + "<a class='cart-prod-name' href='javascript:void(0)' onclick='irProducto(\"" + pedido[x][0] + "\")'>" + pedido[x][1] + "</a>";
                         c3.innerHTML = "<span class='cart-qty'>" + pedido[x][2] + "</span>";
                         c4.innerHTML = "<span class='cart-subtotal'>$" + pedido[x][3] + "</span>";
                         c5.innerHTML = "<button type='button' class='cart-del' title='Quitar' onclick='eliminarPedido(\"" + pedido[x][0] + "\",\"" + pedido[x][1] + "\")'><i class='uil uil-trash-alt'></i></button>";
@@ -449,7 +454,11 @@ try {
             tabProd.addEventListener('shown.bs.tab', function() {
                 document.getElementById('idBuscar').style.display = 'block';
                 document.getElementById('idHistocico').style.display = 'none';
-                document.location.href = '#' + anclaje;
+                // OJO: con <base href="/pedidos/">, hacer `location.href = '#'+anclaje` resuelve
+                // el fragmento contra la base (/pedidos/) y NAVEGA a /pedidos/ perdiendo ?ped=
+                // → "La aplicación no está disponible sin credencial". location.hash solo cambia
+                // el fragmento de la URL actual (no toca el path ni usa <base>), así que es seguro.
+                if (anclaje) { location.hash = anclaje; }
                 document.documentElement.scrollTop = $(window).scrollTop() - 180;
             });
         });
@@ -481,7 +490,7 @@ try {
 <?php endif; ?>
                         mensaje += "*Ticket:* 👇\n\n";
                         mensaje += url+"/reportes/exTicket.php?id="+ped+"\n\n";
-                        $.ajax({ type:'POST', url:'send_wa.php', data:{ to:telefono, text:mensaje, ped:ped, t:tenantSlug, copiaAdmin:1 },
+                        $.ajax({ type:'POST', url:'send_wa.php', data:{ to:telefono, text:mensaje, ped:ped, t:tenantSlug, copiaAdmin:1, ved:vedid },
                             complete: function(){ pedido = []; location.href = 'finaliza.php?t=<?php echo $tenantSlug; ?>'; }
                         });
                     } else {

@@ -73,20 +73,52 @@ if ($idventa && $clienteid) {
         // Un solo mensaje: PDF con el resumen como caption
         $client->sendDocument($to, $pdf['path'], $pdf['filename'], $text);
 
-        // Copia opcional al administrador (mismo PDF + mensaje). Solo si el llamador lo pide
-        // (copiaAdmin=1, exclusivo del flujo de confirmación de pedido) Y está activado en bot_config.
+        // Datos del cliente del pedido (para los encabezados de las copias admin / vendedor).
+        // $ped es el id de link_pedidos; se resuelve el cliente con el mismo JOIN que index.php.
+        $cliLabel = '';
+        try {
+            $cfgWM   = getWebMasterConfig();
+            $joinKey = !empty($cfgWM['data']['b2b']) ? 'codigo' : 'id';   // b2b→codigo, b2c→id (igual que index.php)
+            $rcli = Connection::runQuery("SELECT clientes.razonSocial AS rs, clientes.codigo AS cc FROM link_pedidos JOIN clientes ON link_pedidos.clienteId = clientes.`$joinKey` WHERE link_pedidos.id = '" . intval($ped) . "' LIMIT 1");
+            if ($rcli && ($rcr = mysqli_fetch_assoc($rcli))) {
+                $cliLabel = trim((string) $rcr['rs'] . (trim((string) $rcr['cc']) !== '' ? ' - ' . $rcr['cc'] : ''));
+            }
+        } catch (Throwable $eCli) { error_log('[send_wa] resolver cliente falló: ' . $eCli->getMessage()); }
+
+        // Reemplaza la primera línea (el saludo) del mensaje del cliente, conservando Pedido N°/Monto/Ticket.
+        $reemplazarSaludo = function ($txt, $saludo) {
+            $nl = strpos($txt, "\n");
+            return $saludo . ($nl === false ? '' : substr($txt, $nl));
+        };
+
+        // Copia opcional al administrador (mismo PDF). Solo si copiaAdmin=1 Y está activado en bot_config.
         if (($_POST['copiaAdmin'] ?? '') === '1') {
             try {
                 $rcfg = Connection::runQuery("SELECT admin_telefono, admin_envio_activo FROM bot_config LIMIT 1");
                 if ($rcfg && ($rc = mysqli_fetch_assoc($rcfg))) {
                     $adminTel = preg_replace('/\D/', '', (string) ($rc['admin_telefono'] ?? ''));
                     if ((int) $rc['admin_envio_activo'] === 1 && $adminTel !== '' && $adminTel !== preg_replace('/\D/', '', $to)) {
-                        // La copia del admin lleva un encabezado propio; el resto es el mismo mensaje del cliente.
-                        $adminCaption = "*Haz recibido un Pedido*\n\n" . $text;
-                        $client->sendDocument($adminTel, $pdf['path'], $pdf['filename'], $adminCaption);
+                        $adminGreeting = $cliLabel !== '' ? 'Haz recibido un pedido del cliente ' . $cliLabel : '*Haz recibido un Pedido*';
+                        $client->sendDocument($adminTel, $pdf['path'], $pdf['filename'], $reemplazarSaludo($text, $adminGreeting));
                     }
                 }
             } catch (Throwable $eAdm) { error_log('[send_wa] copia admin falló: ' . $eAdm->getMessage()); }
+        }
+
+        // Copia al vendedor (mismo PDF). Solo si el pedido se cargó por el flujo de vendedor (llega 'ved').
+        $ved = preg_replace('/[^A-Za-z0-9_\-]/', '', (string) ($_POST['ved'] ?? ''));
+        if ($ved !== '') {
+            try {
+                $rv = Connection::runQuery("SELECT nombre, telefono FROM vendedores WHERE codigo = '" . Connection::escape($ved) . "' LIMIT 1");
+                if ($rv && ($rvr = mysqli_fetch_assoc($rv))) {
+                    $vendTel = preg_replace('/\D/', '', (string) ($rvr['telefono'] ?? ''));
+                    if ($vendTel !== '' && $vendTel !== preg_replace('/\D/', '', $to)) {
+                        $vendNombre   = trim((string) ($rvr['nombre'] ?? ''));
+                        $vendGreeting = ($vendNombre !== '' ? $vendNombre . ', ' : '') . 'el pedido de cliente ' . $cliLabel . ' ha sido confirmado.';
+                        $client->sendDocument($vendTel, $pdf['path'], $pdf['filename'], $reemplazarSaludo($text, $vendGreeting));
+                    }
+                }
+            } catch (Throwable $eV) { error_log('[send_wa] copia vendedor falló: ' . $eV->getMessage()); }
         }
 
         unlink($pdf['path']);
