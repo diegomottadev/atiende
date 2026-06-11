@@ -26,6 +26,8 @@ $telefono=isset($_POST["telefono"])? limpiarCadena($_POST["telefono"]):"";
 $deposito=isset($_POST["deposito"])? limpiarCadena($_POST["deposito"]):"";
 $latitud=isset($_POST["latitud"])? limpiarCadena($_POST["latitud"]):"";
 $longitud=isset($_POST["longitud"])? limpiarCadena($_POST["longitud"]):"";
+$cuil=isset($_POST["cuil"])? limpiarCadena($_POST["cuil"]):"";
+$dni=isset($_POST["dni"])? limpiarCadena($_POST["dni"]):"";
 $modo=isset($_POST["modo"])? limpiarCadena($_POST["modo"]):"";
 
 
@@ -36,11 +38,11 @@ switch ($_GET["op"]) {
 	case 'guardaryeditar':
 		if ($modo === 'nuevo') {
 			if ($idpersona === '') { echo "Ingresá un código de cliente"; break; }
-			$rspta=$persona->insertar($idpersona,$vendedor,$nombre,$direccion,$localidad,$ramo,$zona,$lista,$telefono,$deposito,$latitud,$longitud);
+			$rspta=$persona->insertar($idpersona,$vendedor,$nombre,$direccion,$localidad,$ramo,$zona,$lista,$telefono,$deposito,$latitud,$longitud,$cuil,$dni);
 			if ($rspta === 'dup') echo "Ya existe un cliente con el código ".$idpersona;
 			else                  echo $rspta ? "Cliente registrado correctamente" : "No se pudo registrar el cliente";
 		}else{
-			$rspta=$persona->editar($idpersona,$vendedor,$nombre,$direccion,$localidad,$ramo,$zona,$lista,$telefono);
+			$rspta=$persona->editar($idpersona,$vendedor,$nombre,$direccion,$localidad,$ramo,$zona,$lista,$telefono,$cuil,$dni);
 			echo $rspta ? "Datos actualizados correctamente" : "No se pudo actualizar los datos";
 		}
 	break;
