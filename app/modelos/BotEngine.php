@@ -441,12 +441,18 @@ class BotEngine
                                     }
 
                                     if ($menuItem[$j]['accion'] === 'registraVendedor') {
-                                        $req = Connection::runQuery("SELECT codigo FROM vendedores WHERE codigo = '" . Connection::escape($mensaje) . "'");
+                                        // Doble verificación: el código debe existir en ESTE tenant Y el número que
+                                        // escribe ($user, ya normalizado a dígitos por el webhook) debe coincidir con
+                                        // el vendedores.telefono registrado (formato WhatsApp 549…). Un número no
+                                        // registrado no accede aunque conozca un código válido.
+                                        $req = Connection::runQuery("SELECT codigo FROM vendedores WHERE codigo = '" . Connection::escape($mensaje) . "' AND telefono = '" . $user . "'");
                                         if ($req && mysqli_num_rows($req) > 0) {
                                             $rowV = mysqli_fetch_assoc($req);
                                             Connection::runQuery("UPDATE `contactos` SET `vendedor_codigo`= '" . Connection::escape($rowV['codigo']) . "', `mensaje`='' where id like '" . $user . "'");
                                         } else {
-                                            $this->client->sendText($user, 'El código de vendedor no es válido. Volvé a intentarlo escribiendo *Hola* nuevamente.');
+                                            // Mensaje genérico a propósito: no confirma si el código existe (evita filtrar
+                                            // códigos válidos a un número no autorizado).
+                                            $this->client->sendText($user, 'No pudimos identificarte como vendedor. Verificá tu código y escribí desde tu número registrado en el sistema.');
                                             Connection::runQuery("UPDATE `contactos` SET `mensaje`= '', `anterior`= '', `esperaRespuesta`=0,`menu` = '0', `vendedor_codigo`=NULL where id like '" . $user . "'");
                                             return;
                                         }
