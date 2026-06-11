@@ -184,10 +184,12 @@ class BotEngine
         $numeroReclamo    = '';
         $numeroConsulta   = '';
 
-        $request = Connection::runQuery("SELECT menu,esperaRespuesta,anterior FROM contactos where telefono LIKE '" . $user . "'");
+        $codigoVendedor = '';
+        $request = Connection::runQuery("SELECT menu,esperaRespuesta,anterior,vendedor_codigo FROM contactos where telefono LIKE '" . $user . "'");
         if (mysqli_num_rows($request) > 0) {
-            $row      = mysqli_fetch_assoc($request);
-            $anterior = json_decode($row['anterior'], TRUE)['opcion'];
+            $row            = mysqli_fetch_assoc($request);
+            $anterior       = json_decode($row['anterior'], TRUE)['opcion'];
+            $codigoVendedor = $row['vendedor_codigo'] ?? '';
         }
 
         if ($menu == '0') {
@@ -197,7 +199,9 @@ class BotEngine
                 error_log('[BotEngine] menu=0 sin saludo, no se responde. msg=' . substr($mensaje, 0, 30));
                 return;
             }
-            if (strlen($codigoCliente) == 0) {
+            if (strlen($codigoVendedor) > 0) {
+                $menu = '106'; // vendedor reconocido → pedir código de cliente
+            } elseif (strlen($codigoCliente) == 0) {
                 $menu = $this->menuJson[0]['menuIdB'];
             } else {
                 $menu = '200'; // cliente identificado → ir directo al menú principal
@@ -268,16 +272,29 @@ class BotEngine
                     // Construir el link del pedido y dejarlo DENTRO del mismo mensaje (un solo bubble)
                     if (!$esPromo && strlen($notiPedido) > 0) {
                         $vendedorR   = '';
-                        $requestVend = Connection::runQuery("SELECT atencion  FROM vendedores where telefono= '" . $user . "'");
-                        if (mysqli_num_rows($requestVend) > 0) {
-                            $rowVendedor = mysqli_fetch_assoc($requestVend);
-                            if ($rowVendedor['atencion'] !== null) {
-                                Connection::runQuery("UPDATE `link_pedidos` SET `clienteId`= '" . $rowVendedor['atencion'] . "'  where id = '" . $notiPedido . "'");
-                                $requestVendedor = Connection::runQuery("SELECT codigo  FROM vendedores where atencion= '" . $rowVendedor['atencion'] . "'");
-                                if (mysqli_num_rows($requestVendedor) > 0) {
-                                    $rowVendedor = mysqli_fetch_assoc($requestVendedor);
-                                    $vendedorR   = $rowVendedor['codigo'];
-                                    Connection::runQuery("UPDATE `vendedores` SET `atencion`= ''  where telefono= '" . $user . "'");
+                        if (strlen($codigoVendedor) > 0) {
+                            // Vendedor identificado por código (sesión en contactos.vendedor_codigo)
+                            $reqAt = Connection::runQuery("SELECT atencion FROM vendedores WHERE codigo = '" . Connection::escape($codigoVendedor) . "'");
+                            if ($reqAt && mysqli_num_rows($reqAt) > 0) {
+                                $at = mysqli_fetch_assoc($reqAt)['atencion'];
+                                if ($at !== null && $at !== '') {
+                                    Connection::runQuery("UPDATE `link_pedidos` SET `clienteId`= '" . Connection::escape($at) . "' where id = '" . $notiPedido . "'");
+                                    $vendedorR = $codigoVendedor;
+                                    Connection::runQuery("UPDATE `vendedores` SET `atencion`= '' where codigo = '" . Connection::escape($codigoVendedor) . "'");
+                                }
+                            }
+                        } else {
+                            $requestVend = Connection::runQuery("SELECT atencion  FROM vendedores where telefono= '" . $user . "'");
+                            if (mysqli_num_rows($requestVend) > 0) {
+                                $rowVendedor = mysqli_fetch_assoc($requestVend);
+                                if ($rowVendedor['atencion'] !== null) {
+                                    Connection::runQuery("UPDATE `link_pedidos` SET `clienteId`= '" . $rowVendedor['atencion'] . "'  where id = '" . $notiPedido . "'");
+                                    $requestVendedor = Connection::runQuery("SELECT codigo  FROM vendedores where atencion= '" . $rowVendedor['atencion'] . "'");
+                                    if (mysqli_num_rows($requestVendedor) > 0) {
+                                        $rowVendedor = mysqli_fetch_assoc($requestVendedor);
+                                        $vendedorR   = $rowVendedor['codigo'];
+                                        Connection::runQuery("UPDATE `vendedores` SET `atencion`= ''  where telefono= '" . $user . "'");
+                                    }
                                 }
                             }
                         }
@@ -399,25 +416,43 @@ class BotEngine
                                 if (isset($menuItem[$j]['accion'])) {
 
                                     if ($menuItem[$j]['accion'] === 'chequearVendedorCliente') {
-                                        $request = Connection::runQuery("SELECT count(*) as existe, codigo  FROM vendedores where telefono = '" . $user . "'");
-                                        if (mysqli_num_rows($request) > 0) {
-                                            $rowVendedor = mysqli_fetch_assoc($request);
-                                            if ($rowVendedor['existe'] > 0) {
-                                                $requesteCiente = Connection::runQuery("SELECT razonSocial, codigo  FROM clientes where codigo =  '" . $mensaje . "' and vendedor= '" . $rowVendedor['codigo'] . "'");
-                                                if (mysqli_num_rows($requesteCiente) > 0) {
-                                                    $rowCliente = mysqli_fetch_assoc($requesteCiente);
-                                                    Connection::runQuery("UPDATE `vendedores` SET `atencion`= '" . $rowCliente['codigo'] . "'  where codigo like '" . $rowVendedor['codigo'] . "'");
-                                                    $this->client->sendText($user, 'Cliente: ' . $rowCliente['razonSocial']);
-                                                } else {
-                                                    $this->client->sendText($user, 'No se encuentra registrado como vendedor. ');
-                                                    Connection::runQuery("UPDATE `contactos` SET `mensaje`= '', `anterior`= '', `esperaRespuesta`=0,`menu` = '0'  where id like '" . $user . "'");
-                                                    return;
-                                                }
-                                            } else {
-                                                $this->client->sendText($user, 'No se encuentra registrado como vendedor. ');
-                                                Connection::runQuery("UPDATE `contactos` SET `mensaje`= '', `anterior`= '', `esperaRespuesta`=0,`menu` = '0'  where id like '" . $user . "'");
-                                                return;
-                                            }
+                                        // Vendedor de sesión (guardado por registraVendedor en contactos.vendedor_codigo)
+                                        $codVend = '';
+                                        $reqV = Connection::runQuery("SELECT vendedor_codigo FROM contactos WHERE id = '" . $user . "'");
+                                        if ($reqV && mysqli_num_rows($reqV) > 0) {
+                                            $codVend = mysqli_fetch_assoc($reqV)['vendedor_codigo'] ?? '';
+                                        }
+
+                                        // "Salir": cierra la sesión de vendedor.
+                                        if (strcasecmp(trim($mensaje), 'salir') === 0) {
+                                            Connection::runQuery("UPDATE `contactos` SET `vendedor_codigo`=NULL, `mensaje`='', `anterior`='', `esperaRespuesta`=0, `menu`='0' where id like '" . $user . "'");
+                                            $this->client->sendText($user, 'Cerraste tu sesión de vendedor. ¡Hasta pronto!');
+                                            return;
+                                        }
+
+                                        // Validar que el código de cliente exista y sea de este vendedor.
+                                        $reqC = Connection::runQuery("SELECT razonSocial, codigo FROM clientes WHERE codigo = '" . Connection::escape($mensaje) . "' AND vendedor = '" . Connection::escape($codVend) . "'");
+                                        if ($reqC && mysqli_num_rows($reqC) > 0) {
+                                            $rowCliente = mysqli_fetch_assoc($reqC);
+                                            Connection::runQuery("UPDATE `vendedores` SET `atencion`= '" . Connection::escape($rowCliente['codigo']) . "' where codigo like '" . Connection::escape($codVend) . "'");
+                                            Connection::runQuery("UPDATE `contactos` SET `mensaje`='' where id like '" . $user . "'");
+                                            $this->client->sendText($user, 'Cliente: ' . $rowCliente['razonSocial']);
+                                        } else {
+                                            // Reintento: NO se resetea el estado → el próximo mensaje es otro intento.
+                                            $this->client->sendText($user, 'Codigo de cliente ingresado incorrecto intente nuevamente');
+                                            return;
+                                        }
+                                    }
+
+                                    if ($menuItem[$j]['accion'] === 'registraVendedor') {
+                                        $req = Connection::runQuery("SELECT codigo FROM vendedores WHERE codigo = '" . Connection::escape($mensaje) . "'");
+                                        if ($req && mysqli_num_rows($req) > 0) {
+                                            $rowV = mysqli_fetch_assoc($req);
+                                            Connection::runQuery("UPDATE `contactos` SET `vendedor_codigo`= '" . Connection::escape($rowV['codigo']) . "', `mensaje`='' where id like '" . $user . "'");
+                                        } else {
+                                            $this->client->sendText($user, 'El código de vendedor no es válido. Volvé a intentarlo escribiendo *Hola* nuevamente.');
+                                            Connection::runQuery("UPDATE `contactos` SET `mensaje`= '', `anterior`= '', `esperaRespuesta`=0,`menu` = '0', `vendedor_codigo`=NULL where id like '" . $user . "'");
+                                            return;
                                         }
                                     }
 
