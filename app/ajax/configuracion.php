@@ -389,9 +389,9 @@ switch ($op) {
 
     case 'saveAdminCopia':
         $tel = preg_replace('/\D/', '', (string) ($_POST['telefono'] ?? ''));
-        // Normalizar al formato que espera la API de WhatsApp (internacional AR). Si ya trae
-        // código de país (54…) se respeta; si es local se antepone 549. En el envío,
-        // WhatsAppClient::normalizePhone saca el 9 móvil (549… → 54…) para el endpoint de Meta.
+        // Normalizar al formato wa_id según el país del tenant (bot_config.pais, default AR)
+        // vía Telefono::normalizar. En el envío, WhatsAppClient::normalizePhone saca el 9 móvil
+        // (549… → 54…) solo para AR, para el endpoint de Meta.
         $pais = 'AR';
         $rpais = mysqli_query($conexion, "SELECT pais FROM bot_config LIMIT 1");
         if ($rpais && ($rr = mysqli_fetch_assoc($rpais)) && !empty($rr['pais'])) { $pais = $rr['pais']; }

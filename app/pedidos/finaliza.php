@@ -19,8 +19,8 @@ $telefono = '';
 $cfg    = function_exists('getWebMasterConfig') ? getWebMasterConfig() : [];
 $digits = preg_replace('/\D/', '', (string) ($cfg['data']['telefono'] ?? ''));
 if ($digits !== '') {
-    // wa.me exige formato internacional. Si ya trae código de país argentino (54…)
-    // se usa tal cual; si es un número local (sin país), se antepone 549 (móvil AR).
+    // wa.me exige formato internacional (wa_id). Se normaliza según el país del tenant
+    // (bot_config.pais, default AR) vía Telefono::normalizar.
     $paisT    = $cfg['data']['pais'] ?? 'AR';
     $telefono = Telefono::normalizar($digits, $paisT);
 }
