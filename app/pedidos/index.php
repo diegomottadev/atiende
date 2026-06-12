@@ -138,10 +138,6 @@ try {
         .btn-observacion { display: inline-flex; align-items: center; gap: 6px; background: #fff; color: var(--ap); border: 1.5px solid var(--ap); border-radius: 8px; padding: 6px 14px; font-size: .85rem; font-weight: 600; cursor: pointer; }
         .btn-observacion i { font-size: 1.05rem; line-height: 1; }
         .btn-observacion:hover { background: var(--ap); color: #fff; }
-        .cargando { width:100%; height:100%; position:fixed; top:0; left:0; z-index:10000; display:flex; align-items:center; justify-content:center; background:rgba(240,242,245,.88); backdrop-filter:blur(3px); }
-        .cargando-card { background:#fff; border-radius:16px; padding:32px 40px; box-shadow:0 8px 32px rgba(0,0,0,.12); display:flex; flex-direction:column; align-items:center; gap:14px; }
-        .cargando-card .spinner-border { width:3rem; height:3rem; border-width:.3rem; color:var(--ap); }
-        .cargando-card p { margin:0; font-weight:600; color:#555; font-size:.95rem; }
         #rubro { border-radius: 8px; border: 1px solid #ddd; }
         img { max-width: none !important; max-height: none !important; padding: 0 !important; }
     </style>
@@ -466,7 +462,7 @@ try {
             if (getTotales(pedido) > 1000) {
                 Swal.fire({ title:'', text:'¿Desea enviar el pedido ahora?', icon:'question', showCancelButton:true,
                     confirmButtonColor:'#727cf5', cancelButtonColor:'#fa5c7c', cancelButtonText:'Cancelar', confirmButtonText:'Aceptar'
-                }).then(function(result){ if (result.isConfirmed) { document.getElementById('bloquea').style.display='block'; $('#btnEnviarPedidos').prop('disabled',true); enviarPedidoSeleccionado(); } });
+                }).then(function(result){ if (result.isConfirmed) { $('#btnEnviarPedidos').prop('disabled',true); enviarPedidoSeleccionado(); } });
             } else { Swal.fire({ text: "El importe minimo del pedido es de $1.000!" }); }
         }
         function enviarPedidoSeleccionado() {
@@ -480,7 +476,6 @@ try {
             var json = { type:"_cliente_msg", token:token, telefono:telefono, nombre:nombre, ped:ped, total:getTotales(pedido), mensaje:pedido, ved:vedid };
             $.ajax({ type:"POST", url:'S_Pedidos_bis.php', data:"json="+JSON.stringify(json)+"&t="+encodeURIComponent(tenantSlug),
                 success: function(data) {
-                    document.getElementById('bloquea').style.display = 'none';
                     if (parseInt(data) > 0) {
                         var mensaje = "*"+nombre+"* Su pedido a sido confirmado. \n";
                         mensaje += "*Pedido N°:* "+ped+"\n";
@@ -500,7 +495,6 @@ try {
                     }
                 },
                 error: function () {
-                    document.getElementById('bloquea').style.display = 'none';
                     Swal.fire({ icon: 'error', title: 'Sin conexión', text: 'No se pudo enviar el pedido. Revisá tu conexión y probá de nuevo.' });
                     $('#btnEnviarPedidos').prop('disabled', false);
                 }
@@ -694,14 +688,6 @@ if (isset($_GET["ped"])) {
             <button type="button" class="btn btn-send" id="btnEnviarPedidos" onclick="enviarPedido();">
                 <i class="uil uil-message"></i> Enviar pedido
             </button>
-        </div>
-    </div>
-
-    <!-- Blocking overlay -->
-    <div id="bloquea" class="cargando" style="display:none;">
-        <div class="cargando-card">
-            <div class="spinner-border" role="status"><span class="visually-hidden">Enviando...</span></div>
-            <p>Enviando pedido...</p>
         </div>
     </div>
 
