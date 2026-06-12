@@ -67,11 +67,11 @@ if (!isset($_SESSION['nombre'])) {
                                     </div>
                                     <div class="form-group col-lg-7 col-md-7 col-xs-9">
                                         <input type="month" class="form-control" name="fecha" onchange="actualizar()"
-                                               id="fecha" value="<?php echo $_POST["fecha"]; ?>">
+                                               id="fecha" value="<?php echo htmlspecialchars($_POST["fecha"] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
                                     </div>
                                     <div class="form-group col-lg-2 col-md-2 col-xs-9">
                                         <input type="date" class="form-control " name="fechaCurrent" onchange="actualizar()"
-                                               id="fechaCurrent" value="<?php echo $_POST["fechaCurrent"]; ?>">
+                                               id="fechaCurrent" value="<?php echo htmlspecialchars($_POST["fechaCurrent"] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
                                     </div>
                                     <div class="form-group col-lg-1 col-md-1 col-xs-1">
 

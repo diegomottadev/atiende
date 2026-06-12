@@ -4,6 +4,7 @@ var tabla;
 function init() {
     mostrarform(false);
     listar();
+    wireFiltros();
     /*
        $("#formulario").on("submit",function(e){
            guardaryeditar(e);
@@ -71,6 +72,7 @@ function mostrarform(flag) {
 
         $("#btnCancelar").show();
         $("#listadoregistros").hide();
+        $("#filtrosVenta").hide();
         $("#formularioregistros").show();
         $("#formulariormsj").show();
 
@@ -90,6 +92,7 @@ function mostrarform(flag) {
     } else {
         $("#btnCancelar").hide();
         $("#listadoregistros").show();
+        $("#filtrosVenta").show();
         $("#formularioregistros").hide();
         $("#btnagregar").show();
         $("#btnExportar").show()
@@ -115,7 +118,7 @@ function listar() {
                 new bootstrap.Tooltip(el, {trigger: 'hover'});
             });
         },
-        //responsive: true,
+        responsive: window.matchMedia('(max-width: 991.98px)').matches,//solo en mobile (<992px, incluye tablets en vertical); en desktop, todas las columnas. Originalmente: colapsa columnas que no entran en una fila expandible (+)
         //scrollX: true,
         "language": lenguajeTable,
         "columnDefs": [
@@ -126,8 +129,8 @@ function listar() {
             }
         ],
         "aProcessing": true,//activamos el procedimiento del datatable
-        "aServerSide": true,//paginacion y filrado realizados por el server
-        dom: 'Bfrtip',//definimos los elementos del control de la tabla
+        "aServerSide": false,//client-side: el backend ya devuelve todos los pedidos, así los filtros corren en el navegador
+        dom: 'rtip',//sin 'f' (búsqueda propia en la barra de filtros) ni 'B'
         buttons: [],
         "ajax":
             {
@@ -142,15 +145,103 @@ function listar() {
         "iDisplayLength": 15,//paginacion
 
         "createdRow": function (row, data, dataIndex, cells) {
-            console.log( data[13]);
             if ( data[13]>0 )
             {
                 $(row).addClass('selected');
             }
+        },
+        "initComplete": function () {
+            poblarVendedores(this.api());
         }
         //ordenar (columna, orden)
 
     }).DataTable();
+}
+
+// Rellena el dropdown de Vendedor con los valores distintos de la col. 12 (texto plano).
+function poblarVendedores(api) {
+    var $sel = $('#fVendedor');
+    var seleccion = $sel.val();
+    var vistos = {};
+    var valores = [];
+    api.column(12).data().each(function (v) {
+        var nombre = $('<div>').html(v == null ? '' : v).text().trim();
+        if (nombre !== '' && !vistos[nombre]) {
+            vistos[nombre] = true;
+            valores.push(nombre);
+        }
+    });
+    valores.sort();
+    $sel.empty().append('<option value="">Todos</option>');
+    valores.forEach(function (nombre) {
+        $sel.append($('<option>').attr('value', nombre).text(nombre));
+    });
+    $sel.val(seleccion);
+}
+
+// Normaliza la fecha de la celda a YYYY-MM-DD para comparar contra los <input type="date">.
+// La col. 2 viene como "DD/MM/YYYY HH:MM hs" (o, por las dudas, ya en YYYY-MM-DD).
+function fechaCeldaISO(celda) {
+    var txt = $('<div>').html(celda == null ? '' : celda).text().trim();
+    var iso = txt.match(/(\d{4})-(\d{2})-(\d{2})/);      // ya viene YYYY-MM-DD
+    if (iso) return iso[1] + '-' + iso[2] + '-' + iso[3];
+    var dmy = txt.match(/(\d{2})\/(\d{2})\/(\d{4})/);     // DD/MM/YYYY
+    if (dmy) return dmy[3] + '-' + dmy[2] + '-' + dmy[1];
+    return '';
+}
+
+// Filtro de rango de fecha (col. 2), acotado a #tbllistado para no afectar las otras tablas.
+$.fn.dataTable.ext.search.push(function (settings, data) {
+    if (settings.nTable.id !== 'tbllistado') return true;
+    var desde = $('#fDesde').val();
+    var hasta = $('#fHasta').val();
+    if (!desde && !hasta) return true;
+    var fecha = fechaCeldaISO(data[2]);
+    if (!fecha) return false;
+    if (desde && fecha < desde) return false;
+    if (hasta && fecha > hasta) return false;
+    return true;
+});
+
+// Conecta los controles de la barra de filtros con la tabla.
+function wireFiltros() {
+    var buscarTimer;
+    $('#fBuscar').on('keyup input', function () {
+        var v = this.value;
+        clearTimeout(buscarTimer);
+        buscarTimer = setTimeout(function () { if (tabla) tabla.search(v).draw(); }, 300);
+    });
+    $('#fEstado').on('change', function () {
+        if (tabla) tabla.column(10).search(this.value).draw();
+    });
+    $('#fOrigen').on('change', function () {
+        if (tabla) tabla.column(11).search(this.value).draw();
+    });
+    $('#fVendedor').on('change', function () {
+        var v = this.value;
+        // match exacto del nombre (escapado) para no colisionar entre vendedores parecidos
+        var regex = v ? '^' + v.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$' : '';
+        if (tabla) tabla.column(12).search(regex, true, false).draw();
+    });
+    $('#fDesde').on('change', function () {
+        var $hasta = $('#fHasta');
+        // al elegir Desde, precargar la misma en Hasta (si está vacía o quedó antes); el usuario luego la modifica
+        if (this.value && (!$hasta.val() || $hasta.val() < this.value)) {
+            $hasta.val(this.value);
+        }
+        $hasta.attr('min', this.value || '');
+        if (tabla) tabla.draw();
+    });
+    $('#fHasta').on('change', function () {
+        if (tabla) tabla.draw();
+    });
+    $('#fLimpiar').on('click', function () {
+        $('#fBuscar').val('');
+        $('#fEstado,#fOrigen,#fVendedor').val('');
+        $('#fDesde,#fHasta').val('');
+        $('#fHasta').removeAttr('min');
+        if (tabla) tabla.search('').columns([10, 11, 12]).search('').draw();
+    });
 }
 
 function listarArticulos() {

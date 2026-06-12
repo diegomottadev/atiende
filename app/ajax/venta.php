@@ -95,14 +95,16 @@ switch ($_GET["op"]) {
             }
 
 
+			$descripcionEsc = htmlspecialchars($reg->descripcion, ENT_QUOTES, 'UTF-8');
+			$commentEsc = htmlspecialchars($reg->comment, ENT_QUOTES, 'UTF-8');
 			echo '<tr class="filas">
 			<td>'.$reg->producto.'</td>
-			<td>'.$reg->descripcion.'</td>
+			<td>'.$descripcionEsc.'</td>
 			<td>'.$reg->cantidad.'</td>
 			<td>$'.$reg->precio.'</td>
 			<td>'.$reg->descuento.'</td>
 			<td>$'.$reg->subtotal.'</td>
-			<td>'.$reg->comment.'</td>
+			<td>'.$commentEsc.'</td>
 			<td><img src="'. $imagen.'" height="50px" width="50px"></td></tr>';
 			$total=$total+($reg->precio*$reg->cantidad-$reg->descuento);
 		}
@@ -130,7 +132,8 @@ switch ($_GET["op"]) {
           
 
 		while ($reg=$rspta->fetch_object()) {
-            $mensajesSinLeer=$venta->listarMensajesNoLeidos($reg->pedidoid);
+            // No-leídos, datos del vendedor y teléfono del cliente ya vienen en la query
+            // (listarPedidos hace los JOINs) → se eliminó el N+1 de 1..3 queries por fila.
             $modal="";
             $key = array_search($reg->pedidoid, $array);
 
@@ -173,21 +176,14 @@ switch ($_GET["op"]) {
                 $pagoElectronico = '<span class="badge bg-success">Confirmado</span>';
             }
             if($reg->vendedor!= null){
-                $ved = new Vendedor();
+                $nombreVendedor = $reg->vendedorNombre;
+                $telVendedor    = $reg->vendedorTelefono;
 
-                $vendedorExist = $ved->mostrar($reg->vendedor);
-
-                $nombreVendedor = $vendedorExist["nombre"];
-                $telVendedor = $vendedorExist["telefono"];
-
-                $cliente = new Persona();
-                $clienteExist = $cliente->mostrar($reg->clienteId);
                 $telefonoPedido = $reg->telefono;
-//                die(json_encode($reg->telefono,$telVendedor));
                 if ($reg->telefono == $telVendedor ){
                     $telefonoPedido = $reg->telefono . ' <strong> (V) </strong>';
                 }
-                $clienteTelExit = $clienteExist["telefono"] !=null ? $clienteExist["telefono"]: $telefonoPedido  ;
+                $clienteTelExit = $reg->clienteTelefono != null ? $reg->clienteTelefono : $telefonoPedido  ;
 
             }else{
                 $clienteTelExit =  $reg->telefono  ;
@@ -199,12 +195,13 @@ switch ($_GET["op"]) {
             //$fecha->sub(new DateInterval('P1D'));
                 $currentDay = $fecha->format('Y-m-d' ) === $reg->fecha ? ' <span class="fa fa-asterisk"><span>' : "";
 
+                $rs = htmlspecialchars($reg->razonSocial, ENT_QUOTES, 'UTF-8');
                 $data[]=array(
-                "0"=>'<button class="btn btn-warning btn-sm btn-icon-line" data-bs-toggle="tooltip" title="Ver pedido" onclick="mostrar('.$reg->pedidoid.')"><i class="mdi mdi-eye m-n2"></i></button>'.'<a target="_blank" href="'.$url.$reg->pedidoid.'"> <button class="btn btn-info btn-sm btn-icon-line" data-bs-toggle="tooltip" title="Imprimir ticket"><i class="mdi mdi-printer m-n2"></i></button></a> '.'<button class="btn btn-success btn-sm btn-icon-line" data-bs-toggle="tooltip" title="Enviar mensaje al cliente" onclick="sendMessageCustomizer('."'".$reg->telefono."'".','."'".$reg->razonSocial."'".')"><i class="uil uil-envelope m-n2"></i></button> '.'<button class="btn btn-secondary  btn-sm btn-icon-line" data-bs-toggle="tooltip" title="Cambiar estado" onclick="enProceso('.$reg->pedidoid.','.intval($reg->estado).')" ><i class="mdi mdi-cog m-n2"></i></button></button></a> <button class="btn btn-danger btn-sm btn-icon-line" data-bs-toggle="tooltip" title="Anular / reactivar pedido" onclick="anular('.$reg->pedidoid.','.intval($reg->estado).')" ><i class="mdi mdi-minus-circle m-n2"></i></button>',
+                "0"=>'<button class="btn btn-warning btn-sm btn-icon-line" data-bs-toggle="tooltip" title="Ver pedido" onclick="mostrar('.$reg->pedidoid.')"><i class="mdi mdi-eye m-n2"></i></button>'.'<a target="_blank" href="'.$url.$reg->pedidoid.'"> <button class="btn btn-info btn-sm btn-icon-line" data-bs-toggle="tooltip" title="Imprimir ticket"><i class="mdi mdi-printer m-n2"></i></button></a> '.'<button class="btn btn-success btn-sm btn-icon-line" data-bs-toggle="tooltip" title="Enviar mensaje al cliente" onclick="sendMessageCustomizer('."'".$reg->telefono."'".','."'".$rs."'".')"><i class="uil uil-envelope m-n2"></i></button> '.'<button class="btn btn-secondary  btn-sm btn-icon-line" data-bs-toggle="tooltip" title="Cambiar estado" onclick="enProceso('.$reg->pedidoid.','.intval($reg->estado).')" ><i class="mdi mdi-cog m-n2"></i></button></button></a> <button class="btn btn-danger btn-sm btn-icon-line" data-bs-toggle="tooltip" title="Anular / reactivar pedido" onclick="anular('.$reg->pedidoid.','.intval($reg->estado).')" ><i class="mdi mdi-minus-circle m-n2"></i></button>',
                 "1"=>$reg->pedidoid. $currentDay,
                 "2"=>$reg->fecha,
                 "3"=>$reg->clienteId,
-                "4"=>$reg->razonSocial,
+                "4"=>$rs,
                 "5"=>$clienteTelExit,
                 "6"=>"$".$reg->total,
                 "7"=>$pagoElectronico,
@@ -213,7 +210,7 @@ switch ($_GET["op"]) {
                 "10"=>$estado,
                 "11"=>  $reg->vendedor== null ? '<span class="badge bg-dark text-light">Cliente<span>' : '<span class="badge bg-warning">Vendedor<span>' ,
                 "12"=>  $nombreVendedor,
-                "13"=>$mensajesSinLeer['noleidos'] > 0,
+                "13"=>$reg->noleidos > 0,
 
                 );
     }

@@ -7,9 +7,13 @@ require_once("../../config/WhatsAppClient.php");
 $json=$_POST["json"];
 $dataJson= json_decode($json,true);
 
-$cant=Connection::runQuery("UPDATE `reclamos` SET  `fecha_resolucion`=now(),`resolucion`='".$dataJson["resolucion"]."',`estado`='".$dataJson["estado"]."',`notificado`=1,`anulado`=0 WHERE `reclamoId` = '". $dataJson["reclamoId"]."'");
-Connection::runQuery("INSERT INTO `msj_reclamos`(`id_reclamo`, tipo,`fecha`, `mensaje`,respondido, `estado`,`canal`) VALUES (". $dataJson["reclamoId"].",0,NOW(),'".$dataJson["resolucion"]."',1,'".$dataJson["estado"]."',1)");
-Connection::runQuery("UPDATE `msj_reclamos` SET `respondido`=1  WHERE `id_reclamo` = ".$dataJson["reclamoId"]);
+$reclamoId = intval($dataJson["reclamoId"] ?? 0);
+$resolucion = Connection::escape($dataJson["resolucion"] ?? '');
+$estado = Connection::escape($dataJson["estado"] ?? '');
+
+$cant=Connection::runQuery("UPDATE `reclamos` SET  `fecha_resolucion`=now(),`resolucion`='".$resolucion."',`estado`='".$estado."',`notificado`=1,`anulado`=0 WHERE `reclamoId` = '". $reclamoId."'");
+Connection::runQuery("INSERT INTO `msj_reclamos`(`id_reclamo`, tipo,`fecha`, `mensaje`,respondido, `estado`,`canal`) VALUES (". $reclamoId.",0,NOW(),'".$resolucion."',1,'".$estado."',1)");
+Connection::runQuery("UPDATE `msj_reclamos` SET `respondido`=1  WHERE `id_reclamo` = ".$reclamoId);
 
 if ($dataJson["estado"] === "En analisis") {
     $idReclamo = intval($dataJson["reclamoId"]);

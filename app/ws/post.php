@@ -1,6 +1,11 @@
 <?php
 // DEPRECATED: reemplazado por ws/webhook.php + modelos/BotEngine.php (WhatsApp Cloud API).
 // Mantener como referencia histórica. No usar en producción.
+// SEGURIDAD: endpoint legacy SIN verificación de firma HMAC y con SQLi no autenticada →
+// neutralizado. El webhook real (firmado) es ws/webhook.php. Para reactivarlo habría que
+// portarlo a prepared statements + validación X-Hub-Signature-256.
+http_response_code(410);
+exit('Gone');
 include_once("../config/Connection.php");
 define('__ROOT__', dirname(dirname(__FILE__)));
 require (__ROOT__.'/config/global.php');

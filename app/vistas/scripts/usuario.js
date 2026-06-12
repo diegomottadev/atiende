@@ -56,7 +56,8 @@ function mostrarform(flag){
 		$("#listadoregistros").hide();
 		$("#filtrosUsuario").hide();
 		$("#formularioregistros").show();
-		$("#btnGuardar").prop("disabled",false);
+		$("#btnGuardar").prop("disabled",true);
+		$('#formulario').off('input.gd change.gd').on('input.gd change.gd', 'input, select, textarea', function(){ $('#btnGuardar').prop('disabled', false); });
 		$("#btnagregar").hide();
 		$('#ribbon-text').text('Nuevo Usuario');
 	}else{
@@ -91,6 +92,7 @@ function listar(){
 		"aProcessing": true,
 		"aServerSide": false,// client-side: filtra sobre todo el dataset
 		dom: 'Brtip',// sin 'f': buscador nativo reemplazado por #fBuscar
+		responsive: window.matchMedia('(max-width: 991.98px)').matches,// solo en mobile (<992px, incluye tablets en vertical); en desktop, todas las columnas. Originalmente: colapsa columnas que no entran en una fila expandible (+)
 		buttons: [],
 		"ajax":
 		{
@@ -128,7 +130,25 @@ function listar(){
 }
 //funcion para guardaryeditar
 function guardaryeditar(e){
-     e.preventDefault();//no se activara la accion predeterminada 
+     e.preventDefault();//no se activara la accion predeterminada
+     // En alta (sin idusuario), confirmar que los datos son correctos antes de guardar.
+     if ($("#idusuario").val() === '') {
+         Swal.fire({
+             title: 'Confirmar alta',
+             text: '¿Estás seguro de que los datos ingresados del usuario son correctos?',
+             icon: 'question',
+             showCancelButton: true,
+             confirmButtonColor: '#727cf5',
+             cancelButtonColor: '#fa5c7c',
+             cancelButtonText: 'Revisar',
+             confirmButtonText: 'Guardar'
+         }).then(function (r) { if (r.isConfirmed) { _guardarUsuario(); } });
+     } else {
+         _guardarUsuario();
+     }
+}
+
+function _guardarUsuario(){
      $("#btnGuardar").prop("disabled",true);
      var editId = $("#idusuario").val();
      var nuevoAvatar = $("#imagenmuestra").attr("src");
@@ -153,8 +173,6 @@ function guardaryeditar(e){
      		tabla.ajax.reload();
      	}
      });
-
-     limpiar();
 }
 
 function mostrar(idusuario){
@@ -162,8 +180,12 @@ function mostrar(idusuario){
 		function(data,status)
 		{
 			data=JSON.parse(data);
+			// Si el backend no encontró el usuario, avisar en vez de fallar en silencio (form vacío).
+			if (!data || !data.idusuario) {
+				Swal.fire({ icon: 'error', title: 'No se pudo cargar el usuario', text: 'No se encontró el usuario (id: ' + idusuario + ').' });
+				return;
+			}
 			mostrarform(true);
-			console.log(data);
 			$("#nombre").val(data.nombre);
             $("#tipo_documento").val(data.tipo_documento);
             //$("#tipo_documento").selectpicker('refresh');

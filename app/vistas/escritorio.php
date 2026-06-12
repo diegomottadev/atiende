@@ -63,7 +63,7 @@ if (!isset($_SESSION['nombre'])) {
                             <div class="d-flex flex-column ms-2">
                                 <label for="filtroYear" class="text-uppercase text-muted fw-bold mb-1" style="font-size:.66rem; letter-spacing:.5px;">Año</label>
                                 <div class="input-group sombra-panel" id="year">
-                                    <input type="text" id="filtroYear" name="year" class="form-control" data-provide="datepicker" data-date-min-view-mode="2" data-date-format="yyyy" data-date-container="#year" data-date-autoclose="true" data-date-end-date="yyyy" value="<?php echo $_POST["year"]?>">
+                                    <input type="text" id="filtroYear" name="year" class="form-control" data-provide="datepicker" data-date-min-view-mode="2" data-date-format="yyyy" data-date-container="#year" data-date-autoclose="true" data-date-end-date="yyyy" value="<?php echo intval($_POST["year"] ?? 0); ?>">
                                         <span class="input-group-text bg-info border-info text-white">
                                             <i class="mdi mdi-calendar-range font-13"></i>
                                         </span>
@@ -72,7 +72,7 @@ if (!isset($_SESSION['nombre'])) {
                             <div class="d-flex flex-column ms-2">
                                 <label for="filtroMes" class="text-uppercase text-muted fw-bold mb-1" style="font-size:.66rem; letter-spacing:.5px;">Mes</label>
                                 <div class="input-group datepicker-translated sombra-panel" id="fecha">
-                                    <input type="text" id="filtroMes" name="fecha" class="form-control fecha" data-provide="datepicker" data-date-format="MM yyyy" data-date-min-view-mode="1" data-date-container="#fecha" data-date-autoclose="true"  data-date-language="es"  data-date-end-date="0d" data-date-start-date="Enero 2020" value="<?php echo $mesAnio;?>">
+                                    <input type="text" id="filtroMes" name="fecha" class="form-control fecha" data-provide="datepicker" data-date-format="MM yyyy" data-date-min-view-mode="1" data-date-container="#fecha" data-date-autoclose="true"  data-date-language="es"  data-date-end-date="0d" data-date-start-date="Enero 2020" value="<?php echo htmlspecialchars($mesAnio, ENT_QUOTES, 'UTF-8'); ?>">
                                         <span class="input-group-text bg-info border-info text-white">
                                             <i class="mdi mdi-calendar-range font-13"></i>
                                         </span>
@@ -81,7 +81,7 @@ if (!isset($_SESSION['nombre'])) {
                             <div class="d-flex flex-column ms-2">
                                 <label for="filtroDia" class="text-uppercase text-muted fw-bold mb-1" style="font-size:.66rem; letter-spacing:.5px;">Día</label>
                                 <div class="input-group sombra-panel" id="fechaCurrent">
-                                    <input type="text" id="filtroDia" name="fechaCurrent" class="form-control fechaCurrent" data-provide="datepicker" data-date-format="dd-mm-yyyy" data-date-container="#fechaCurrent" data-date-autoclose="true"  data-date-start-date="01-01-2020" data-date-language="es" data-date-end-date="0d" value="<?php echo $fechaActual;?>">
+                                    <input type="text" id="filtroDia" name="fechaCurrent" class="form-control fechaCurrent" data-provide="datepicker" data-date-format="dd-mm-yyyy" data-date-container="#fechaCurrent" data-date-autoclose="true"  data-date-start-date="01-01-2020" data-date-language="es" data-date-end-date="0d" value="<?php echo htmlspecialchars($fechaActual, ENT_QUOTES, 'UTF-8'); ?>">
                                     <span class="input-group-text bg-info border-info text-white">
                                         <i class="mdi mdi-calendar-range font-13"></i>
                                     </span>
@@ -147,7 +147,7 @@ if (!isset($_SESSION['nombre'])) {
                         <i class='mdi mdi-cart-variant float-end text-muted fs-4'></i>
                         <p class="text-uppercase mb-1 text-muted fw-bold" style="font-size:.68rem">Ventas del mes</p>
                         <h3 class="my-1">$<?php echo number_format(round($totalv), 0, "", "."); ?></h3>
-                        <p class="mb-0 text-muted" style="font-size:.74rem"><?php echo $mesAnio; ?></p>
+                        <p class="mb-0 text-muted" style="font-size:.74rem"><?php echo htmlspecialchars($mesAnio, ENT_QUOTES, 'UTF-8'); ?></p>
                     </div>
                 </div>
             </div>
@@ -203,7 +203,7 @@ if (!isset($_SESSION['nombre'])) {
                         <i class='mdi mdi-cart-plus float-end text-muted fs-4'></i>
                         <p class="text-uppercase mb-1 text-muted fw-bold" style="font-size:.68rem">Ventas del día</p>
                         <h3 class="my-1">$<?php echo number_format(round($totald), 0, "", "."); ?></h3>
-                        <p class="mb-0 text-muted" style="font-size:.74rem"><?php echo $fechaActual; ?></p>
+                        <p class="mb-0 text-muted" style="font-size:.74rem"><?php echo htmlspecialchars($fechaActual, ENT_QUOTES, 'UTF-8'); ?></p>
                     </div>
                 </div>
             </div>
@@ -320,7 +320,7 @@ if (!isset($_SESSION['nombre'])) {
             <div class="col-xl-4 col-lg-6">
                 <div class="card sombra-panel">
                     <div class="card-body mt-n1 m-n1 pb-0"> 
-                        <h5 class="card-title">Evolución de ventas por mes  (<?php echo $_POST['year'];?>)</h5>
+                        <h5 class="card-title">Evolución de ventas por mes  (<?php echo intval($_POST['year'] ?? 0); ?>)</h5>
                         <div id="bar-ventasMensuales"  ></div>
                     </div>
                     <!-- end card body-->
@@ -340,7 +340,7 @@ if (!isset($_SESSION['nombre'])) {
             <div class="col-xl-4 col-lg-6">
                 <div class="card sombra-panel">
                     <div class="card-body mt-n1 mb-n3"> 
-                        <h5 class="card-title">Evolución de pedidos por mes  (<?php echo $_POST['year'];?>)</h5>
+                        <h5 class="card-title">Evolución de pedidos por mes  (<?php echo intval($_POST['year'] ?? 0); ?>)</h5>
                         <div id="bar-pedidosMensuales"  ></div>
                     </div>
                     <!-- end card body-->
@@ -361,7 +361,7 @@ if (!isset($_SESSION['nombre'])) {
             <div class="col-xl-4 col-lg-6">
                 <div class="card sombra-panel">
                     <div class="card-body mt-n1 mb-n3">
-                        <h5 class="card-title">Evolución de tickets por mes  (<?php echo $_POST['year'];?>)</h5> 
+                        <h5 class="card-title">Evolución de tickets por mes  (<?php echo intval($_POST['year'] ?? 0); ?>)</h5> 
                         <div id="bar-ticketsMensuales"  ></div>
                     </div>
                 </div>
@@ -380,7 +380,7 @@ if (!isset($_SESSION['nombre'])) {
             <div class="col-xl-4 col-lg-6">
                 <div class="card sombra-panel">
                     <div class="card-body mt-n1 mb-n3"> 
-                        <h5 class="card-title">Evolución de Reclamos por mes  (<?php echo $_POST['year'];?>)</h5> 
+                        <h5 class="card-title">Evolución de Reclamos por mes  (<?php echo intval($_POST['year'] ?? 0); ?>)</h5> 
                         <div id="bar-reclamosMensuales"  ></div>
                     </div>
                 </div>
@@ -397,7 +397,7 @@ if (!isset($_SESSION['nombre'])) {
             <div class="col-xl-4 col-lg-6">
                 <div class="card sombra-panel">
                     <div class="card-body mt-n1 mb-n3" style="padding-left: 4rem"> 
-                        <h5 class="card-title mb-3">Cantidad de Reclamos por motivo (<?php echo $_POST['year'];?>)</h5> 
+                        <h5 class="card-title mb-3">Cantidad de Reclamos por motivo (<?php echo intval($_POST['year'] ?? 0); ?>)</h5> 
                         <div id="bar-reclamosxMotivos"  style="margin-left: -3.25rem !important; min-height: 365px;" class="mt-n2"></div>
                     </div>
                 </div>
@@ -414,7 +414,7 @@ if (!isset($_SESSION['nombre'])) {
             <div class="col-xl-4 col-lg-6">
                 <div class="card sombra-panel">
                     <div class="card-body mt-n1 mb-n3 "> 
-                    <h5 class="card-title">Cantidad de Reclamos por Sector (<?php echo $_POST['year'];?>)</h5> 
+                    <h5 class="card-title">Cantidad de Reclamos por Sector (<?php echo intval($_POST['year'] ?? 0); ?>)</h5> 
                         <div id="bar-reclamosxSector"  ></div>
                     </div>
                 </div>
@@ -434,7 +434,7 @@ if (!isset($_SESSION['nombre'])) {
             <div class="col-xl-4 col-lg-6">
                 <div class="card sombra-panel">
                     <div class="card-body mt-n1 mb-n3"> 
-                        <h5 class="card-title">Evolución solicitudes diarios por mes (<?php echo $_POST['year'];?>)</h5> 
+                        <h5 class="card-title">Evolución solicitudes diarios por mes (<?php echo intval($_POST['year'] ?? 0); ?>)</h5> 
                         <div id="bar-solicitudesMensuales"  ></div>
                     </div>
                 </div>
@@ -451,7 +451,7 @@ if (!isset($_SESSION['nombre'])) {
             <div class="col-xl-4 col-lg-6">
                 <div class="card sombra-panel">
                     <div class="card-body mt-n1 mb-n3"> 
-                        <h5 class="card-title">Evolución de consultas por mes (<?php echo $_POST['year'];?>)</h5> 
+                        <h5 class="card-title">Evolución de consultas por mes (<?php echo intval($_POST['year'] ?? 0); ?>)</h5> 
                         <div id="bar-consultasMensuales"  ></div>
                     </div>
                 </div>
@@ -468,7 +468,7 @@ if (!isset($_SESSION['nombre'])) {
             <div class="col-xl-4 col-lg-6">
                 <div class="card sombra-panel">
                     <div class="card-body mt-n1 mb-n3"> 
-                    <h5 class="card-title">Cantidad de consultas por sector (<?php echo $_POST['year'];?>)</h5> 
+                    <h5 class="card-title">Cantidad de consultas por sector (<?php echo intval($_POST['year'] ?? 0); ?>)</h5> 
                         <div id="bar-consultasxSector"  ></div>
                     </div>
                 </div>
@@ -490,7 +490,7 @@ if (!isset($_SESSION['nombre'])) {
         var ctx = document.querySelector("#area-ventasDiarias");
         var ventasDiarias = new ApexCharts(ctx, {
             title: { 
-                text: 'Evolución ventas diarias (<?php echo $mesAnio;?>)', align: 'left'
+                text: 'Evolución ventas diarias (<?php echo htmlspecialchars($mesAnio, ENT_QUOTES, 'UTF-8'); ?>)', align: 'left'
             },
             chart: {
                 type: 'area',
@@ -515,7 +515,7 @@ if (!isset($_SESSION['nombre'])) {
                 curve: 'smooth'
             },
             xaxis: {
-                title: { text: 'Dias del mes de <?php  echo $mesAnio;?>'},
+                title: { text: 'Dias del mes de <?php  echo htmlspecialchars($mesAnio, ENT_QUOTES, 'UTF-8'); ?>'},
                 labels: {
                     formatter: function (value) {
                         return value ;
@@ -551,7 +551,7 @@ if (!isset($_SESSION['nombre'])) {
         var ctx1 = document.querySelector("#area-reclamosDiarios");
         var reclamosDiarios = new ApexCharts(ctx1, {
             title: { 
-                text: 'Evolución de reclamos diarios (<?php echo $mesAnio;?>)', align: 'left'
+                text: 'Evolución de reclamos diarios (<?php echo htmlspecialchars($mesAnio, ENT_QUOTES, 'UTF-8'); ?>)', align: 'left'
             },
             chart: {
                 type: 'area',
@@ -571,7 +571,7 @@ if (!isset($_SESSION['nombre'])) {
                 data: [<?php echo $totalesv;?>]
             }],
             xaxis: {
-                title: { text: 'Dias del mes de <?php  echo $mesAnio;?>'},
+                title: { text: 'Dias del mes de <?php  echo htmlspecialchars($mesAnio, ENT_QUOTES, 'UTF-8'); ?>'},
                 labels: {
                     formatter: function (value) {
                         return value ;

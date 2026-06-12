@@ -79,7 +79,8 @@ function mostrarform(flag){
 		$("#listadoregistros").hide();
 		$("#filtrosReclamo").hide();
 		$("#formularioregistros").show();
-		$("#btnGuardar").prop("disabled",false);
+		$("#btnGuardar").prop("disabled",true);
+		$('#formulario').off('input.gd change.gd').on('input.gd change.gd', 'input, select, textarea', function(){ $('#btnGuardar').prop('disabled', false); });
 		$("#btnagregar").hide();
 		$("#btnExportar").hide();
 
@@ -112,6 +113,7 @@ function listar(){
 		"aServerSide": true,// server-side: la DB hace búsqueda/orden/paginado → escala a millones de filas
 		buttons: [],//paginacion y filrado realizados por el server
 		dom: 'Brtip',//sin 'f' (usamos buscador propio)
+		responsive: window.matchMedia('(max-width: 991.98px)').matches,//solo en mobile (<992px, incluye tablets en vertical); en desktop, todas las columnas. Originalmente: colapsa columnas que no entran en una fila expandible (+)
 		"columnDefs": [
             { "orderable": false, "targets": 0 }, // botón editar, no ordenable
             {
@@ -148,7 +150,21 @@ function listar(){
 }
 //funcion para guardaryeditar
 function guardaryeditar(e){
-     e.preventDefault();//no se activara la accion predeterminada 
+     e.preventDefault();//no se activara la accion predeterminada
+     // Guardar dispara un WhatsApp al cliente con la resolución → confirmar antes de enviar.
+     Swal.fire({
+         title: 'Confirmar respuesta',
+         text: 'Se guardará la resolución y se enviará al cliente por WhatsApp. ¿Confirmás?',
+         icon: 'question',
+         showCancelButton: true,
+         confirmButtonColor: '#727cf5',
+         cancelButtonColor: '#fa5c7c',
+         cancelButtonText: 'Revisar',
+         confirmButtonText: 'Guardar y enviar'
+     }).then(function (r) { if (r.isConfirmed) { _guardarReclamo(); } });
+}
+
+function _guardarReclamo(){
      $("#btnGuardar").prop("disabled",true);
      var formData=new FormData($("#formulario")[0]);
 
@@ -218,8 +234,13 @@ function mostrar(idreclamo){
 		function(data,status)
 		{
 			data=JSON.parse(data);
+			// Si el backend no encontró el reclamo, avisar en vez de abrir el formulario vacío.
+			if (!data || !data.reclamoId) {
+				Swal.fire({ icon: 'error', title: 'No se pudo cargar el reclamo', text: 'No se encontró el reclamo (N°: ' + idreclamo + ').' });
+				return;
+			}
 			mostrarform(true);
-			
+
            	$("#idreclamo").val(data.reclamoId);
 			$("#fechaHora").text(data.fecha_ingreso);
 			$("#cliente").text(data.clienteId);

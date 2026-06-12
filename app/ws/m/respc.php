@@ -16,6 +16,7 @@
     
 </head>
 
+<?php $idc = intval($_GET["idconsulta"] ?? 0); ?>
 <script>
 
     function NoBack(){
@@ -83,7 +84,7 @@
         $.ajax({
             type: "POST",
             url: '../../ajax/consulta.php?op=guardarMensaje',
-            data: "idconsulta=<?php echo $_GET["idconsulta"]; ?>&resolucion="+document.getElementById('resolucion').value+"&tipo=1&canal=-1" ,
+            data: "idconsulta=<?php echo $idc; ?>&resolucion="+document.getElementById('resolucion').value+"&tipo=1&canal=-1" ,
             success: function(data){
                 console.log(data);
                 document.getElementById('bloquea').style. display='none';
@@ -119,11 +120,11 @@
     <div class="container">
     <?php
     include_once("../../config/Connection.php");
-    $row = mysqli_fetch_array(Connection::runQuery("SELECT estado FROM `consultas` WHERE `consultaId` = ".$_GET["idconsulta"]));
+    $row = mysqli_fetch_array(Connection::runQuery("SELECT estado FROM `consultas` WHERE `consultaId` = ".$idc));
      if(count($row) > 0 && $row["estado"]!="Finalizado"){
             require "../../modelos/Consulta.php";
             $consulta = new Consulta();
-            $request = $consulta->listarChats($_GET["idconsulta"]);
+            $request = $consulta->listarChats($idc);
         ?>
         <h4 class="ps-2 pt-2">Responder Consulta</h4>
         <div class="card border sombra" style="border-width: 0.25rem !important;border-radius: 15px;">
@@ -147,8 +148,8 @@
                                 </div>
                                 <div class="conversation-text">
                                     <div class="ctext-wrap">
-                                        <i><?php echo $reg->usuario?></i>
-                                        <p> <?php echo $reg->mensaje?></p>
+                                        <i><?php echo htmlspecialchars($reg->usuario, ENT_QUOTES, 'UTF-8')?></i>
+                                        <p> <?php echo htmlspecialchars($reg->mensaje, ENT_QUOTES, 'UTF-8')?></p>
                                     </div>
                                 </div>   
                             </li>

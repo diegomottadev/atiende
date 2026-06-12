@@ -31,7 +31,7 @@ switch ($_GET["op"]) {
         $select = " count(*) as cant ";
         $where = " opcionId ='$codigo' ";
         if (!empty($id)){
-            $where .= " and id!=$id ";
+            $where .= " and id!=".intval($id)." ";
         }
         $resultado = $motivoReclamo->filterMotivos($select, $where);
         $registro = $resultado->fetch_object();
@@ -44,7 +44,7 @@ switch ($_GET["op"]) {
 //        $select = " count(*) as cant ";
 //        $where = " area ='$idarea' ";
 //        if (!empty($id)){
-//            $where .= " and id!=$id ";
+//            $where .= " and id!=".intval($id)." ";
 //        }
 //        $resultado = $motivoReclamo->filterMotivos($select, $where);
 //        $registro = $resultado->fetch_object();

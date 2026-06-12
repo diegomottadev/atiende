@@ -28,6 +28,9 @@ class Datatable {
      *                              'defaultOrder' => p.ej. '`codigo` DESC' (si no viene order del front)
      *                              'maxLength'    => tope de filas por página (default 500)
      *                              'request'      => array de params (default $_REQUEST)
+     *                              'extraWhere'   => filtro fijo del backend (NO del usuario):
+     *                                                array('sql'=>'`vendedor` <> ?', 'params'=>array($v), 'types'=>'s')
+     *                                                Se aplica al COUNT filtrado y al SELECT, con prepared statement.
      * @return array ['recordsTotal'=>int, 'recordsFiltered'=>int, 'rows'=>array]
      */
     public static function serverSide($conexion, $tabla, $colMap, $searchCols, $opts = array()) {
@@ -36,6 +39,7 @@ class Datatable {
         $defaultOrder = isset($opts['defaultOrder']) ? $opts['defaultOrder'] : null;
         $maxLength    = isset($opts['maxLength'])    ? (int)$opts['maxLength'] : 500;
         $req          = isset($opts['request'])      ? $opts['request']      : $_REQUEST;
+        $extraWhere   = isset($opts['extraWhere'])   ? $opts['extraWhere']   : null;
 
         $start   = isset($req['start'])  ? (int)$req['start']  : 0;
         $length  = isset($req['length']) ? (int)$req['length'] : 10;
@@ -43,13 +47,31 @@ class Datatable {
         $order   = (isset($req['order'])   && is_array($req['order']))   ? $req['order']   : array();
         $columns = (isset($req['columns']) && is_array($req['columns'])) ? $req['columns'] : array();
 
-        // total sin filtrar
-        $recordsTotal = 0;
-        if ($r = $conexion->query("SELECT COUNT(*) c FROM `$tabla`")) {
-            $row = $r->fetch_assoc(); $recordsTotal = (int)$row['c'];
+        // Filtro fijo del backend (extraWhere): valida forma y separa sql/params/types.
+        $ewSql = ''; $ewParams = array(); $ewTypes = '';
+        if (is_array($extraWhere) && !empty($extraWhere['sql'])) {
+            $ewSql    = (string)$extraWhere['sql'];
+            $ewParams = isset($extraWhere['params']) ? (array)$extraWhere['params'] : array();
+            $ewTypes  = isset($extraWhere['types'])  ? (string)$extraWhere['types'] : '';
         }
 
+        // total "sin filtrar" — dentro del contexto fijo del extraWhere (p.ej. los de ESTE vendedor)
+        $recordsTotal = 0;
+        $totalSql = "SELECT COUNT(*) c FROM `$tabla`" . ($ewSql !== '' ? " WHERE $ewSql" : '');
+        if ($stmt = $conexion->prepare($totalSql)) {
+            if ($ewParams) { $stmt->bind_param($ewTypes, ...$ewParams); }
+            $stmt->execute();
+            $row = $stmt->get_result()->fetch_assoc(); $recordsTotal = (int)$row['c'];
+            $stmt->close();
+        }
+
+        // El extraWhere participa también del filtrado y del SELECT (se antepone al WHERE del usuario).
         $where = array(); $params = array(); $types = '';
+        if ($ewSql !== '') {
+            $where[] = '('.$ewSql.')';
+            foreach ($ewParams as $p) { $params[] = $p; }
+            $types .= $ewTypes;
+        }
 
         // Búsqueda global → substring (LIKE) en las columnas configuradas
         if ($buscar !== '' && $searchCols) {

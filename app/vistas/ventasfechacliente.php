@@ -92,24 +92,29 @@ if (!isset($_SESSION['nombre'])) {
                     <!-- filtros -->
                     <div class="card-body pb-2">
                         <div class="row g-2 align-items-end">
-                            <div class="col-lg-3">
+                            <div class="col-lg-4">
+                                <label for="fBuscar" class="form-label">Buscar</label>
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text bg-white text-muted"><i class="mdi mdi-magnify"></i></span>
+                                    <input type="text" id="fBuscar" class="form-control" placeholder="Cliente, producto, pedido… (mín. 3 caracteres)">
+                                </div>
+                            </div>
+                            <div class="col-lg-2">
                                 <label for="fecha_inicio" class="form-label">Fecha Inicio</label>
                                 <input type="date" class="form-control form-control-sm" name="fecha_inicio" id="fecha_inicio" value="<?php echo date("Y-m-d"); ?>">
                             </div>
-                            <div class="col-lg-3">
+                            <div class="col-lg-2">
                                 <label for="fecha_fin" class="form-label">Fecha Fin</label>
                                 <input type="date" class="form-control form-control-sm" name="fecha_fin" id="fecha_fin" value="<?php echo date("Y-m-d"); ?>">
                             </div>
-                            <div class="col-lg-4">
+                            <div class="col-lg-3">
                                 <label for="idcliente" class="form-label">Cliente</label>
                                 <select class="form-control form-control-sm select2" data-toggle="select2" name="idcliente" id="idcliente">
                                     <option value="">— Todos los clientes —</option>
                                 </select>
                             </div>
-                            <div class="col-lg-2 d-flex justify-content-end">
-                                <button class="btn btn-primary btn-sm rounded-pill sombra-logo" onclick="listar()">
-                                    <i class="mdi mdi-magnify"></i> Buscar
-                                </button>
+                            <div class="col-6 col-lg-1">
+                                <button type="button" id="fLimpiar" class="btn btn-sm btn-soft-secondary w-100" data-bs-toggle="tooltip" data-bs-trigger="hover" title="Borrar filtros"><i class="mdi mdi-filter-remove-outline"></i></button>
                             </div>
                         </div>
                     </div>

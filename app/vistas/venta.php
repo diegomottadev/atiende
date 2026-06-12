@@ -52,6 +52,56 @@ if (!isset($_SESSION['nombre'])) {
         <div class="row">
             <div class="col-12">
                 <div class="card sombra-panel" style="border-top:3px solid #727cf5;">
+
+                    <!-- filtros -->
+                    <div class="card-body pb-2">
+                        <div id="filtrosVenta" class="d-flex flex-wrap flex-md-nowrap align-items-end gap-2">
+                            <div style="flex:1 1 220px;min-width:170px;">
+                                <label class="form-label mb-1" style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#6c757d;">Buscar</label>
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text bg-white text-muted"><i class="mdi mdi-magnify"></i></span>
+                                    <input type="text" id="fBuscar" class="form-control" placeholder="N° pedido, cliente, teléfono...">
+                                </div>
+                            </div>
+                            <div style="flex:1 1 130px;min-width:115px;">
+                                <label class="form-label mb-1" style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#6c757d;">Estado</label>
+                                <select id="fEstado" class="form-select form-select-sm">
+                                    <option value="">Todos</option>
+                                    <option value="Pendiente">Pendiente</option>
+                                    <option value="Entregado">Entregado</option>
+                                    <option value="Anulado">Anulado</option>
+                                    <option value="Asignado">Asignado</option>
+                                    <option value="Enviado">Enviado</option>
+                                </select>
+                            </div>
+                            <div style="flex:1 1 130px;min-width:115px;">
+                                <label class="form-label mb-1" style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#6c757d;">Origen</label>
+                                <select id="fOrigen" class="form-select form-select-sm">
+                                    <option value="">Todos</option>
+                                    <option value="Cliente">Cliente</option>
+                                    <option value="Vendedor">Vendedor</option>
+                                </select>
+                            </div>
+                            <div style="flex:1 1 130px;min-width:115px;">
+                                <label class="form-label mb-1" style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#6c757d;">Vendedor</label>
+                                <select id="fVendedor" class="form-select form-select-sm"><option value="">Todos</option></select>
+                            </div>
+                            <div style="flex:1 1 130px;min-width:115px;">
+                                <label class="form-label mb-1" style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#6c757d;">Desde</label>
+                                <input type="date" id="fDesde" class="form-control form-control-sm">
+                            </div>
+                            <div style="flex:1 1 130px;min-width:115px;">
+                                <label class="form-label mb-1" style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#6c757d;">Hasta</label>
+                                <input type="date" id="fHasta" class="form-control form-control-sm">
+                            </div>
+                            <div style="flex:0 0 auto;">
+                                <button type="button" id="fLimpiar" class="btn btn-sm btn-soft-secondary" data-bs-toggle="tooltip" data-bs-trigger="hover" title="Borrar filtros"><i class="mdi mdi-filter-remove-outline"></i></button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-0">
+
                     <div class="card-body p-0">
                             <div class="table-responsive" id="listadoregistros">
 
@@ -275,7 +325,7 @@ if (!isset($_SESSION['nombre'])) {
     if (isset($_GET["pedidoid"])) {
         ?>
         <script> mostrarform(true);
-            mostrar('<?php echo $_GET["pedidoid"]; ?>');
+            mostrar('<?php echo intval($_GET["pedidoid"] ?? 0); ?>');
         </script>
         <?php
     }

@@ -80,7 +80,7 @@ if ($hasBotConfig) {
             }
             // Menú 106 (idempotente) — su captura apunta al menú del link detectado
             if (!in_array('106', $ids, true) && $linkMenuId !== '') {
-                $menu[] = ["menuId"=>"106","consigna"=>"Ingresá el *código del cliente* al que vas a cargar el pedido.\n\n(Escribí *SALIR* para cerrar tu sesión de vendedor.)","finaliza"=>"false",
+                $menu[] = ["menuId"=>"106","consigna"=>"Ingresá el *código del cliente* al que vas a cargar el pedido.","finaliza"=>"false",
                     "menuItem"=>[["opcionId"=>"","opcion"=>"","menuId"=>$linkMenuId,"guardar"=>"false","area"=>"","accion"=>"chequearVendedorCliente"]]];
                 echo "[$db] + menú 106 (captura → $linkMenuId)\n";
             }

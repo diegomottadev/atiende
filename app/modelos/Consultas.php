@@ -63,16 +63,23 @@ class Consultas{
 	}
 
 	public function comprasfecha($fecha_inicio,$fecha_fin){
+		if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', (string)$fecha_inicio)) { $fecha_inicio=''; }
+		if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', (string)$fecha_fin)) { $fecha_fin=''; }
 		$sql="SELECT DATE(i.fecha_hora) as fecha, u.nombre as usuario, p.nombre as proveedor, i.tipo_comprobante, i.serie_comprobante, i.num_comprobante, i.total_compra,i.impuesto,i.estado, empresa as ". DB_NAME ." FROM ingreso i INNER JOIN persona p ON i.idproveedor=p.idpersona INNER JOIN usuario u ON i.idusuario=u.idusuario WHERE DATE(i.fecha_hora)>='$fecha_inicio' AND DATE(i.fecha_hora)<='$fecha_fin'";
 		return ejecutarConsulta($sql);
 	}
 
 
 	public function ventasfechacliente($fecha_inicio,$fecha_fin,$idcliente){
+		if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', (string)$fecha_inicio)) { $fecha_inicio=''; }
+		if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', (string)$fecha_fin)) { $fecha_fin=''; }
+		$idcliente = limpiarCadena((string)$idcliente);
 		$empresa = DB_NAME;
 		$and = "";
 		if (!empty($idcliente)) {
-			$and = "AND v.clienteId='$idcliente' ";
+			// El <select> Cliente envía clientes.id (PK). Filtramos por p.id en ambos modos:
+			// b2c une por p.id y b2b por p.codigo, pero p siempre es clientes → p.id es el valor del select.
+			$and = "AND p.id='$idcliente' ";
 		}
 		if($this->responseWebMaster['data']['mix'] || $this->responseWebMaster['data']['b2c'] ){
 			$sql="SELECT
@@ -122,11 +129,19 @@ class Consultas{
 	}
 
 	public function pedidosfechacliente($fecha_inicio,$fecha_fin,$idcliente){
+		if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', (string)$fecha_inicio)) { $fecha_inicio=''; }
+		if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', (string)$fecha_fin)) { $fecha_fin=''; }
+		$idcliente = limpiarCadena((string)$idcliente);
 		$and = "";
 		if (!empty($idcliente)) {
-			$and = "AND clienteId='$idcliente' ";
+			// idem ventasfechacliente: el select envía clientes.id (PK) → filtrar por p.id
+			$and = "AND p.id='$idcliente' ";
 		}
-		$sql="SELECT COUNT(pedidoid) as cantidad FROM `pedidos` WHERE DATE(fecha)>='$fecha_inicio' AND DATE(fecha)<='$fecha_fin' ".$and." GROUP BY `pedidoid`";
+		// Mismo JOIN que ventasfechacliente para que el conteo coincida con la tabla
+		$join = ($this->responseWebMaster['data']['mix'] || $this->responseWebMaster['data']['b2c'])
+			? "v.clienteId=p.id"
+			: "v.clienteId=p.codigo";
+		$sql="SELECT COUNT(v.pedidoid) as cantidad FROM pedidos v INNER JOIN clientes p ON $join WHERE DATE(v.fecha)>='$fecha_inicio' AND DATE(v.fecha)<='$fecha_fin' ".$and." GROUP BY v.pedidoid";
 		return ejecutarConsulta($sql);
 
 	}
@@ -152,12 +167,14 @@ class Consultas{
 
 
 	public function solicitudesPorMesBar($year){
+		$year = (int)$year;
 
 		$sql="SELECT DATE_FORMAT(fecha, '%M') AS fecha, count(`id`) AS total FROM solicitudes WHERE DATE_FORMAT(fecha, '%Y')=$year GROUP BY DATE_FORMAT(`fecha`, '%M') ORDER BY DATE_FORMAT(fecha, '%m') ";
 		return ejecutarConsulta($sql);
 	}
 
 	public function ventas_x_Mes($year){
+		$year = (int)$year;
 		//$sql="SELECT DATE_FORMAT(fecha, '%M') AS fecha, SUM(`subtotal`) AS total FROM pedidos WHERE DATE_FORMAT(fecha,'%Y')=$year GROUP BY DATE_FORMAT(fecha, '%M') ORDER BY DATE_FORMAT(fecha, '%m') ASC";
 		$sql = "SELECT DATE_FORMAT(fecha, '%M') AS fecha, REPLACE(FORMAT(SUM(`subtotal`),2,'de_DE'),',00','') AS total FROM pedidos WHERE DATE_FORMAT(fecha,'%Y')=$year GROUP BY DATE_FORMAT(fecha, '%M') ORDER BY DATE_FORMAT(fecha, '%m') ASC";
 		return ejecutarConsulta($sql);
@@ -171,17 +188,20 @@ class Consultas{
 
 
 	public function pedidos_x_Mes($year){
+		$year = (int)$year;
 		$sql="SELECT DATE_FORMAT(fecha, '%M') AS fecha, count( distinct `pedidoid`) AS total FROM pedidos WHERE DATE_FORMAT(fecha,'%Y')=$year GROUP BY DATE_FORMAT(fecha, '%M') ORDER BY DATE_FORMAT(fecha, '%m') ASC";		
 		return ejecutarConsulta($sql);
 	}
 
-	public function ticket_promedio_Mes($year){		
+	public function ticket_promedio_Mes($year){
+		$year = (int)$year;
 		// $sql="SELECT DATE_FORMAT(fecha, '%M') AS fecha, ROUND(SUM(`subtotal`)/count( distinct `pedidoid`),2) AS total FROM pedidos WHERE DATE_FORMAT(fecha,'%Y')=$year GROUP BY DATE_FORMAT(fecha, '%M') ORDER BY DATE_FORMAT(fecha, '%m') ASC";		
 		$sql = " SELECT DATE_FORMAT(fecha, '%M') AS fecha, REPLACE(FORMAT((ROUND(SUM(`subtotal`)/count( distinct `pedidoid`),2)),2,'de_DE'),',00','') AS total FROM pedidos WHERE DATE_FORMAT(fecha,'%Y')=$year GROUP BY DATE_FORMAT(fecha, '%M') ORDER BY DATE_FORMAT(fecha, '%m') ASC";
 		return ejecutarConsulta($sql);
 	}
 
 	public function reclamosMes($year){
+		$year = (int)$year;
 		$sql="SELECT DATE_FORMAT(`fecha_ingreso`, '%M') AS fecha, COUNT(`clienteId`) AS total FROM reclamos WHERE DATE_FORMAT(fecha_ingreso,'%Y')=$year  GROUP BY DATE_FORMAT(`fecha_ingreso`, '%M') ORDER BY DATE_FORMAT(`fecha_ingreso`, '%m') ASC";
 		return ejecutarConsulta($sql);
 	}
@@ -193,6 +213,7 @@ class Consultas{
 	}
 
 	public function reclamos_x_Motivos($year){
+		$year = (int)$year;
 		$sql="SELECT motivo  ,count(*) as cantidad FROM `reclamos` WHERE DATE_FORMAT(fecha_ingreso,'%Y')=$year GROUP BY motivo order by cantidad DESC ";
 		return ejecutarConsulta($sql);
 	}
@@ -203,11 +224,13 @@ class Consultas{
 	}
 
 	public function reclamos_x_Sector($year){
+		$year = (int)$year;
 		$sql="SELECT areas.area as sector ,count(*) as cantidad FROM `reclamos` INNER JOIN areas ON reclamos.area=areas.id WHERE DATE_FORMAT(reclamos.fecha_ingreso,'%Y')=$year GROUP by areas.area ORDER BY cantidad DESC ";
 		return ejecutarConsulta($sql);
 	}
 
 	public function consultasPorSector($year){
+		$year = (int)$year;
 		$sql="SELECT areas_consultas.area as sector , count(*) as cantidad FROM `consultas` INNER JOIN areas_consultas ON consultas.area=areas_consultas.id WHERE DATE_FORMAT(fecha_ingreso, '%Y')=$year GROUP by areas_consultas.area ORDER BY cantidad DESC ";
 		return ejecutarConsulta($sql);
 	}
@@ -219,6 +242,7 @@ class Consultas{
 	}
 
 	public function consultasPorMesLine($year){
+		$year = (int)$year;
 		$sql=" SELECT DATE_FORMAT(fecha_ingreso, '%M') AS fecha, COUNT(`clienteId`) AS total FROM `consultas` WHERE DATE_FORMAT(fecha_ingreso, '%Y')=$year GROUP BY DATE_FORMAT(`fecha_ingreso`, '%M') ORDER BY DATE_FORMAT(`fecha_ingreso`, '%m') ASC";
 		return ejecutarConsulta($sql);
 	}

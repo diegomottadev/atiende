@@ -62,11 +62,17 @@ class Venta{
 	}
 
 	public function listarPedidos(){
+		// Evita N+1: el listado traía nombre/teléfono del vendedor (Vendedor::mostrar),
+		// teléfono del cliente (Persona::mostrar) y el conteo de mensajes no leídos
+		// (listarMensajesNoLeidos) con UNA consulta por pedido. Ahora se resuelve todo
+		// en esta query con LEFT JOIN vendedores + LEFT JOIN agregado de fidelizar.
+		$noleidos = "LEFT JOIN (SELECT pedidoid, COUNT(id) AS noleidos FROM fidelizar WHERE estado=0 AND tipo=0 GROUP BY pedidoid) f ON f.pedidoid=p.pedidoid";
+		$cols = "vendedorId as vendedor, p.pedidoid, CONCAT(DATE_FORMAT(p.fecha, '%d/%m/%Y %H:%i'),' hs') AS fecha,p.clienteId,c.razonSocial,c.telefono AS clienteTelefono,flag as estado, ROUND(sum(p.subtotal),2) AS total, p.telefono,p.pagado,p.fecha_asignacion as fechaAsignacion, p.fecha_notificacion as fechaNotificacion, v.nombre AS vendedorNombre, v.telefono AS vendedorTelefono, COALESCE(f.noleidos,0) AS noleidos";
 		$sql = null;
 		if($this->responseWebMaster['data']['mix'] || $this->responseWebMaster['data']['b2c'] ){
-			$sql="SELECT vendedorId as vendedor, p.pedidoid, CONCAT(DATE_FORMAT(p.fecha, '%d/%m/%Y %H:%i'),' hs') AS fecha,p.clienteId,c.razonSocial,flag as estado, ROUND(sum(p.subtotal),2) AS total, p.telefono,p.pagado,p.fecha_asignacion as fechaAsignacion, p.fecha_notificacion as fechaNotificacion FROM pedidos p INNER JOIN clientes c ON c.id=p.clienteId GROUP BY p.pedidoid ORDER BY p.fecha DESC ";
+			$sql="SELECT $cols FROM pedidos p INNER JOIN clientes c ON c.id=p.clienteId LEFT JOIN vendedores v ON v.codigo=p.vendedorId $noleidos GROUP BY p.pedidoid ORDER BY p.fecha DESC ";
 		}else if ($this->responseWebMaster['data']['b2b'] ){
-			$sql="SELECT vendedorId as vendedor, p.pedidoid, CONCAT(DATE_FORMAT(p.fecha, '%d/%m/%Y %H:%i'),' hs') AS fecha,p.clienteId,c.razonSocial,flag as estado, ROUND(sum(p.subtotal),2) AS total, p.telefono,p.pagado,p.fecha_asignacion as fechaAsignacion, p.fecha_notificacion as fechaNotificacion FROM pedidos p INNER JOIN clientes c ON c.codigo=p.clienteId GROUP BY p.pedidoid ORDER BY p.fecha DESC ";
+			$sql="SELECT $cols FROM pedidos p INNER JOIN clientes c ON c.codigo=p.clienteId LEFT JOIN vendedores v ON v.codigo=p.vendedorId $noleidos GROUP BY p.pedidoid ORDER BY p.fecha DESC ";
 		}
 		return ejecutarConsulta($sql);
 	}

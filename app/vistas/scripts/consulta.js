@@ -40,7 +40,8 @@ function mostrarConsultaFormulario(flag){
         $("#filtrosConsulta").hide();
         $("#btnCancel").show();
         $("#formRespuestasConsultas").show();
-        $("#btnGuardar").prop("disabled",false);
+        $("#btnGuardar").prop("disabled",true);
+        $('#resolucion').off('input.gd change.gd').on('input.gd change.gd', function(){ $('#btnGuardar').prop('disabled', false); });
         $("#btnagregar").hide();
         $("#btnExportar").hide()
     }else{
@@ -70,6 +71,7 @@ function listar(){
         "aServerSide": true,// server-side: la DB hace búsqueda/orden/paginado → escala a millones de filas
         buttons: [],//paginacion y filrado realizados por el server
         dom: 'Brtip',//sin 'f' (usamos buscador propio)
+        responsive: window.matchMedia('(max-width: 991.98px)').matches,//solo en mobile (<992px, incluye tablets en vertical); en desktop, todas las columnas. Originalmente: colapsa columnas que no entran en una fila expandible (+)
         "columnDefs": [
             { "orderable": false, "targets": 0 },// col 0 = acciones, no ordenable
             {

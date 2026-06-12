@@ -3,6 +3,8 @@ require_once '../config/auth.php';
 include_once("../config/Connection.php");
 //header('Content-Type: application/json');
 
+Connection::setDatabase(!empty($_SESSION['tenant_db']) ? $_SESSION['tenant_db'] : DB_NAME);
+
 switch ($_GET["op"]) {
 
 
@@ -10,15 +12,15 @@ switch ($_GET["op"]) {
         $and = ""; 
         $data = array();
         if ($_POST["vendedor"]) //like
-            $and .= "AND p.vendedor in (" . implode(",", $_POST['vendedor']) . ") ";
+            $and .= "AND p.vendedor in (" . implode(',', array_map('intval', (array)$_POST['vendedor'])) . ") ";
         if ($_POST["ramo"])
-            $and .= "AND p.ramo in ('" . implode("','", $_POST["ramo"]) . "') ";
+            $and .= "AND p.ramo in ('" . implode("','", array_map(function($v) { return Connection::escape($v); }, (array)$_POST["ramo"])) . "') ";
         if ($_POST["zona"])
-            $and .= "AND p.zona in ('" . implode("','", $_POST["zona"]) . "') ";
+            $and .= "AND p.zona in ('" . implode("','", array_map(function($v) { return Connection::escape($v); }, (array)$_POST["zona"])) . "') ";
         if ($_POST["repartidor"])
-            $and .= "AND v.repartidor_id in (" . implode(",", $_POST["repartidor"]) . ") ";
-       
-        $sql = "SELECT  p.*, v.pedidoid,  ROUND(SUM(subtotal),0) as cantidad FROM pedidos v INNER JOIN clientes p ON v.clienteId=p.codigo WHERE   DATE(v.fecha)>='" . $_POST["fecha_inicio"] . "' AND DATE(v.fecha)<='" . $_POST["fecha_fin"] . "'  $and GROUP BY `clienteId` order by cantidad desc ";
+            $and .= "AND v.repartidor_id in (" . implode(',', array_map('intval', (array)$_POST["repartidor"])) . ") ";
+
+        $sql = "SELECT  p.*, v.pedidoid,  ROUND(SUM(subtotal),0) as cantidad FROM pedidos v INNER JOIN clientes p ON v.clienteId=p.codigo WHERE   DATE(v.fecha)>='" . Connection::escape($_POST["fecha_inicio"]) . "' AND DATE(v.fecha)<='" . Connection::escape($_POST["fecha_fin"]) . "'  $and GROUP BY `clienteId` order by cantidad desc ";
         $query = Connection::runQuery($sql); 
         while ($row = mysqli_fetch_assoc($query)) {
             $row["razonSocial"] = ucfirst(strtolower($row["razonSocial"]));
@@ -33,13 +35,13 @@ switch ($_GET["op"]) {
         $and = "";
         $data = array();
         if ($_POST["vendedor"])
-            $and .= "AND p.vendedor in (" . implode(",", $_POST['vendedor']) . ") ";
+            $and .= "AND p.vendedor in (" . implode(',', array_map('intval', (array)$_POST['vendedor'])) . ") ";
         if ($_POST["ramo"])
-            $and .= "AND p.ramo in ('" . implode("','", $_POST["ramo"]) . "') ";
+            $and .= "AND p.ramo in ('" . implode("','", array_map(function($v) { return Connection::escape($v); }, (array)$_POST["ramo"])) . "') ";
         if ($_POST["zona"])
-            $and .= "AND p.zona in ('" . implode("','", $_POST["zona"]) . "') ";
-        
-        $sql = "SELECT r.clienteId,p.*, COUNT(r.`reclamoId`) as cantidad  FROM reclamos r INNER JOIN clientes p ON r.clienteId= p.codigo WHERE  DATE(r.fecha_ingreso)>='" . $_POST["fecha_inicio"] . "' AND DATE(r.fecha_ingreso)<='" . $_POST["fecha_fin"] . "'  $and GROUP BY r.clienteId ORDER BY cantidad DESC";
+            $and .= "AND p.zona in ('" . implode("','", array_map(function($v) { return Connection::escape($v); }, (array)$_POST["zona"])) . "') ";
+
+        $sql = "SELECT r.clienteId,p.*, COUNT(r.`reclamoId`) as cantidad  FROM reclamos r INNER JOIN clientes p ON r.clienteId= p.codigo WHERE  DATE(r.fecha_ingreso)>='" . Connection::escape($_POST["fecha_inicio"]) . "' AND DATE(r.fecha_ingreso)<='" . Connection::escape($_POST["fecha_fin"]) . "'  $and GROUP BY r.clienteId ORDER BY cantidad DESC";
         $query = Connection::runQuery($sql);
 
         while ($row = mysqli_fetch_assoc($query)) {
@@ -55,13 +57,13 @@ switch ($_GET["op"]) {
         $and = "";
         $data = array();
         if ($_POST["vendedor"])
-            $and .= "AND p.vendedor like '" . $_POST["vendedor"] . "' ";
+            $and .= "AND p.vendedor like '" . Connection::escape($_POST["vendedor"]) . "' ";
         if ($_POST["ramo"])
-            $and .= "AND p.ramo like '" . $_POST["ramo"] . "' ";
+            $and .= "AND p.ramo like '" . Connection::escape($_POST["ramo"]) . "' ";
         if ($_POST["zona"])
-            $and .= "AND p.zona like '" . $_POST["zona"] . "' ";
+            $and .= "AND p.zona like '" . Connection::escape($_POST["zona"]) . "' ";
 
-        $query = Connection::runQuery("SELECT  DATE_FORMAT( v.fecha, '%M') AS fecha, ROUND(SUM(v.subtotal),2) as cantidad FROM pedidos v INNER JOIN clientes p ON v.clienteId=p.codigo WHERE DATE(v.fecha)>='" . $_POST["fecha_inicio"] . "' AND DATE(v.fecha)<='" . $_POST["fecha_fin"] . "'  $and GROUP BY DATE_FORMAT( v.fecha, '%M')   ");
+        $query = Connection::runQuery("SELECT  DATE_FORMAT( v.fecha, '%M') AS fecha, ROUND(SUM(v.subtotal),2) as cantidad FROM pedidos v INNER JOIN clientes p ON v.clienteId=p.codigo WHERE DATE(v.fecha)>='" . Connection::escape($_POST["fecha_inicio"]) . "' AND DATE(v.fecha)<='" . Connection::escape($_POST["fecha_fin"]) . "'  $and GROUP BY DATE_FORMAT( v.fecha, '%M')   ");
 
         while ($row = mysqli_fetch_assoc($query)) {
             $periodo[] = $row["fecha"];
@@ -78,13 +80,13 @@ switch ($_GET["op"]) {
         $and = "";
         $data = array();
         if ($_POST["vendedor"])
-            $and .= "AND p.vendedor like '" . $_POST["vendedor"] . "' ";
+            $and .= "AND p.vendedor like '" . Connection::escape($_POST["vendedor"]) . "' ";
         if ($_POST["ramo"])
-            $and .= "AND p.ramo like '" . $_POST["ramo"] . "' ";
+            $and .= "AND p.ramo like '" . Connection::escape($_POST["ramo"]) . "' ";
         if ($_POST["zona"])
-            $and .= "AND p.zona like '" . $_POST["zona"] . "' ";
+            $and .= "AND p.zona like '" . Connection::escape($_POST["zona"]) . "' ";
 
-        $query = Connection::runQuery("SELECT DATE_FORMAT( r.fecha_ingreso, '%M') AS fecha, COUNT(r.`reclamoId`) as cantidad  FROM reclamos r INNER JOIN clientes p ON r.clienteId= p.codigo WHERE DATE(r.fecha_ingreso)>='" . $_POST["fecha_inicio"] . "' AND DATE(r.fecha_ingreso)<='" . $_POST["fecha_fin"] . "'  $and GROUP BY DATE_FORMAT( r.fecha_ingreso, '%M') ");
+        $query = Connection::runQuery("SELECT DATE_FORMAT( r.fecha_ingreso, '%M') AS fecha, COUNT(r.`reclamoId`) as cantidad  FROM reclamos r INNER JOIN clientes p ON r.clienteId= p.codigo WHERE DATE(r.fecha_ingreso)>='" . Connection::escape($_POST["fecha_inicio"]) . "' AND DATE(r.fecha_ingreso)<='" . Connection::escape($_POST["fecha_fin"]) . "'  $and GROUP BY DATE_FORMAT( r.fecha_ingreso, '%M') ");
         while ($row = mysqli_fetch_assoc($query)) {
             $periodo[] = $row["fecha"];
             $cantidad[] = $row["cantidad"];

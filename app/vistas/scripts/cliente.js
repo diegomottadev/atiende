@@ -5,6 +5,20 @@ function init(){
    mostrarform(false);
    listar();
 
+   // Solapa "Vendedor asignado": poblar el <select> de vendedores (value = código del vendedor)
+   $.get('../ajax/vendedor.php?op=selectVendedores', function(r){
+      $('#vendedor').html(r);
+      sincronizarVendedorLabel();
+   });
+
+   // La caja-info "Vendedor" refleja siempre la opción elegida en el select
+   $('#vendedor').on('change', sincronizarVendedorLabel);
+
+   // Habilitar "Guardar" recién cuando el usuario modifica algún campo (incluido el selector de Vendedor)
+   $('#formulario').on('input change', 'input, select, textarea', function(){
+      $('#btnGuardar').prop('disabled', false);
+   });
+
    $("#formulario").on("submit",function(e){
    	guardaryeditar(e);
    });
@@ -58,9 +72,16 @@ function limpiar(){
 	$("#cuil").val("");
 	$("#dni").val("");
 	$("#idpersona").val("");
+	sincronizarVendedorLabel();
 }
 
-//funcion mostrar formulario 
+// Refleja en la caja-info "Vendedor" el texto de la opción seleccionada del select
+function sincronizarVendedorLabel(){
+	var txt = $("#vendedor option:selected").text();
+	$("#vendedorAsignadoTexto").text(txt && txt.trim() !== "" ? txt : "— Sin asignar —");
+}
+
+//funcion mostrar formulario
 function mostrarform(flag){
 	limpiar();
 	if(flag){
@@ -70,15 +91,25 @@ function mostrarform(flag){
 		$("#panelLista").hide();
 		$("#formularioregistros").show();
 		
-		$("#btnGuardar").prop("disabled",false);
+		// Guardar arranca deshabilitado: se habilita recién cuando el usuario modifica algún campo
+		// (incluido el selector de Vendedor). La carga programática en mostrar() no dispara estos eventos.
+		$("#btnGuardar").prop("disabled",true);
+		$("#btnNuevo").hide();
 		$("#btnagregar").hide();
 		$('#btnExportar').hide();
+
+		// Abrir siempre en la solapa "Editar Cliente"
+		$('#clienteTabs .nav-link').removeClass('active');
+		$('#clienteTabs .nav-link[href="#tabDatosCliente"]').addClass('active');
+		$('#tabVendedorAsignado').removeClass('show active');
+		$('#tabDatosCliente').addClass('show active');
 	}else{
 		$('#btnCancel').hide();
 
 		$("#listadoregistros").show();
 		$("#panelLista").show();
 		$("#formularioregistros").hide();
+		$("#btnNuevo").show();
 		$("#btnagregar").show();
 		$('#btnExportar').show();
 
@@ -111,6 +142,7 @@ function listar(){
 		"aProcessing": true,//activamos el procedimiento del datatable
 		"aServerSide": true,// server-side real: la DB hace búsqueda/orden/paginado → escala a millones
 		dom: 'rtip',//sin 'f' (usamos buscador propio)
+		responsive: window.matchMedia('(max-width: 991.98px)').matches,//solo en mobile (<992px, incluye tablets en vertical); en desktop, todas las columnas. Originalmente: colapsa columnas que no entran en una fila expandible (+)
 		"columnDefs":[{ "orderable": false, "targets": 0 }],//la columna de acciones no se ordena
 		"ajax":
 		{
@@ -200,6 +232,7 @@ function mostrar(idpersona){
 			$("#zona").val(data.zona);
 			$("#lista").val(data.lista);
 			$("#vendedor").val(data.vendedor);
+			sincronizarVendedorLabel();
 			$("#codigo").val(data.codigo);
 			$("#deposito").val(data.deposito);
 			$("#latitud").val(data.latitud);

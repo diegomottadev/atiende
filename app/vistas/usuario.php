@@ -49,9 +49,10 @@ if (!isset($_SESSION['nombre'])) {
         <div class="row">
             <div class="col-12">
                 <div class="card sombra-panel" style="border-top:3px solid #727cf5;">
+                    <div id="filtrosUsuario">
                     <div class="card-body pb-2">
                         <!-- Filtros (client-side: buscan en TODO el dataset, no solo la página) -->
-                        <div id="filtrosUsuario" class="row g-2 align-items-end">
+                        <div class="row g-2 align-items-end">
                             <div class="col-12 col-md-4">
                                 <label class="form-label mb-1" style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#6c757d;">Buscar</label>
                                 <div class="input-group input-group-sm">
@@ -73,6 +74,7 @@ if (!isset($_SESSION['nombre'])) {
                         </div>
                     </div>
                     <hr class="my-0">
+                    </div>
                     <div class="card-body p-0">
                         <div class="table-responsive" id="listadoregistros">
                             <table id="tbllistado" class="table table-sm table-striped table-centered mb-0 nowrap w-100">

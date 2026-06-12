@@ -1,5 +1,6 @@
 <?php 
 
+require_once dirname(__DIR__).'/config/auth.php';   // endpoint legacy: exige sesión (volcaba pedidos del día sin login)
 include_once("../Connection.php");
 
 

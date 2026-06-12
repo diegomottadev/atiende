@@ -11,6 +11,8 @@ services:
     tty: true
     volumes:
       - .:/var/www/atiende
+      # Hardening de seguridad (display_errors off, cookies de sesión httponly/samesite).
+      - ./_docker/php/php.ini:/usr/local/etc/php/conf.d/zz-atiende-hardening.ini
     working_dir: /var/www/atiende
     extra_hosts:
       - "api.atiende.test:${HOST_IP:-host-gateway}"

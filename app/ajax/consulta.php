@@ -139,11 +139,12 @@ switch ($_GET["op"]) {
             $tipo='<span class="mdi mdi-rotate-315 mdi-send-check"></span> Enviado';
             if($reg->tipo=="1")
                 $tipo='<span class="mdi mdi-reply"></span> Recibido';
+            $mensajeEsc = htmlspecialchars($reg->mensaje, ENT_QUOTES, 'UTF-8');
             echo '<tr class="filas">
 				<td>'.$reg->id.'</td>
 				<td>'.$tipo.'</td>
 				<td>'.$reg->fecha.'</td>
-				<td>'.$reg->mensaje.'</td>
+				<td>'.$mensajeEsc.'</td>
 				<td>'.$reg->estado.'</td>
 				</tr>';
 

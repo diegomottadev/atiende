@@ -70,6 +70,7 @@ if (!isset($_SESSION['nombre'])) {
         <div class="row">
             <div class="col-12">
                 <div class="card sombra-panel" style="border-top:3px solid #727cf5;">
+                    <div id="panelLista">
                     <div class="card-body pb-2">
                         <div id="subirarchivo" class="mb-3">
                             <form method="post" enctype="multipart/form-data" id="formUp" name="formUp">
@@ -150,6 +151,7 @@ if (!isset($_SESSION['nombre'])) {
                         </div>
                     </div>
                     <hr class="my-0">
+                    </div>
                     <div class="card-body p-0">
                         <div class="table-responsive" id="listadoregistros">
                             <table id="tbllistado"  class="table table-sm table-striped table-centered mb-0  nowrap w-100">
@@ -185,17 +187,23 @@ if (!isset($_SESSION['nombre'])) {
                                         </div>
                                     </div>
                                     <div class="row">
-                                        <div class="col-lg-6">
+                                        <div class="col-lg-4">
                                             <div class="mb-3 position-relative">
-                                                <label for="" class="form-label">Linea</label>                                                
+                                                <label for="" class="form-label">Linea</label>
                                                 <input class="form-control" type="text"  name="linea" id="linea" required>
-                                            </div>                                           
+                                            </div>
                                         </div>
-                                        <div class="col-lg-6">
+                                        <div class="col-lg-4">
                                             <div class="mb-3 position-relative">
-                                                <label for="" class="form-label">Calibre</label>
-                                                <input class="form-control" type="text" name="calibre" id="calibre" maxlength="256" placeholder="Calibre">
-                                            </div>                                           
+                                                <label for="" class="form-label">Subrubro</label>
+                                                <input class="form-control" type="text" name="subrubro" id="subrubro" maxlength="100" placeholder="Subrubro">
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-4">
+                                            <div class="mb-3 position-relative">
+                                                <label for="" class="form-label">Marca</label>
+                                                <input class="form-control" type="text" name="marca" id="marca" maxlength="100" placeholder="Marca">
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="row">

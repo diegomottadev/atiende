@@ -62,7 +62,7 @@ if (!isset($_SESSION['nombre'])) {
                                 </div>
                             </div>
                             <div class="col-6 col-md-1">
-                                <button type="button" id="fLimpiarMotivoConsulta" class="btn btn-sm btn-soft-secondary w-100" data-bs-toggle="tooltip" data-bs-trigger="hover" title="Borrar filtros"><i class="mdi mdi-filter-remove-outline"></i> Limpiar</button>
+                                <button type="button" id="fLimpiarMotivoConsulta" class="btn btn-sm btn-soft-secondary w-100" data-bs-toggle="tooltip" data-bs-trigger="hover" title="Borrar filtros"><i class="mdi mdi-filter-remove-outline"></i></button>
                             </div>
                         </div>
                     </div>

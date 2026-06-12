@@ -32,17 +32,25 @@ class BotEngine
         $esPedidoBaja = in_array($bodyNorm, $palabrasBaja, true);
 
         // ¿Hay una baja pendiente de confirmar? (estado guardado en contactos.anterior)
-        $bajaPendiente = false;
-        $reqEstado = Connection::runQuery("SELECT anterior FROM contactos WHERE id = '" . $user . "'");
+        // También leemos vendedor_codigo: si el que escribe es un vendedor con sesión activa,
+        // las palabras de opt-out NO lo dan de baja (eso es para clientes) sino que cierran su
+        // sesión de vendedor (salir del flujo).
+        $bajaPendiente   = false;
+        $vendedorEnFlujo = '';
+        $reqEstado = Connection::runQuery("SELECT anterior, vendedor_codigo FROM contactos WHERE id = '" . $user . "'");
         if ($reqEstado && mysqli_num_rows($reqEstado) > 0) {
-            $antDec = json_decode(mysqli_fetch_assoc($reqEstado)['anterior'] ?? '', true);
-            $bajaPendiente = is_array($antDec) && (($antDec['type'] ?? '') === 'baja_pendiente');
+            $rowEstado       = mysqli_fetch_assoc($reqEstado);
+            $antDec          = json_decode($rowEstado['anterior'] ?? '', true);
+            $bajaPendiente   = is_array($antDec) && (($antDec['type'] ?? '') === 'baja_pendiente');
+            $vendedorEnFlujo = $rowEstado['vendedor_codigo'] ?? '';
         }
 
         if ($bajaPendiente) {
             if (in_array($bodyNorm, ['si', 'sí', 's'], true)) {
                 Connection::runQuery("DELETE FROM `telefonos` WHERE `telefono` like '" . $user . "'");
-                Connection::runQuery("UPDATE `contactos` SET `anterior`='', menu='0', esperaRespuesta=0 WHERE id like '" . $user . "'");
+                // La baja también cierra la sesión de vendedor: sin esto, vendedor_codigo persistía
+                // y el siguiente "hola" volvía a meter al usuario en el flujo de vendedor (menú 106).
+                Connection::runQuery("UPDATE `contactos` SET `anterior`='', menu='0', esperaRespuesta=0, `vendedor_codigo`=NULL WHERE id like '" . $user . "'");
                 $this->client->sendText($user, 'Listo, te diste de baja. No recibirás más mensajes. Si querés volver, escribí *hola* cuando quieras. ¡Gracias!');
             } else {
                 Connection::runQuery("UPDATE `contactos` SET `anterior`='' WHERE id like '" . $user . "'");
@@ -52,6 +60,13 @@ class BotEngine
         }
 
         if ($esPedidoBaja) {
+            // Vendedor con sesión activa: las palabras de opt-out NO dan de baja al sistema,
+            // sino que salen del flujo de vendedor (cierran la sesión). El cliente sí se da de baja.
+            if (strlen($vendedorEnFlujo) > 0) {
+                Connection::runQuery("UPDATE `contactos` SET `vendedor_codigo`=NULL, `anterior`='', `mensaje`='', esperaRespuesta=0, menu='0' WHERE id like '" . $user . "'");
+                $this->client->sendText($user, 'Cerraste tu sesión de vendedor. Escribí *hola* cuando quieras cargar otro pedido.');
+                return;
+            }
             $antJson = addslashes(json_encode(['type' => 'baja_pendiente'], JSON_UNESCAPED_UNICODE));
             Connection::runQuery("UPDATE `contactos` SET `anterior`='" . $antJson . "', esperaRespuesta=0 WHERE id like '" . $user . "'");
             $this->client->sendText($user, '¿Confirmás darte de baja? No recibirás más mensajes. Respondé *SI* para confirmar.');
@@ -284,16 +299,20 @@ class BotEngine
                                 }
                             }
                         } else {
-                            $requestVend = Connection::runQuery("SELECT atencion  FROM vendedores where telefono= '" . $user . "'");
+                            $requestVend = Connection::runQuery("SELECT atencion  FROM vendedores where telefono= '" . Connection::escape($user) . "'");
                             if (mysqli_num_rows($requestVend) > 0) {
                                 $rowVendedor = mysqli_fetch_assoc($requestVend);
-                                if ($rowVendedor['atencion'] !== null) {
+                                // Solo asignar cliente/vendedor al link si 'atencion' apunta a un cliente real.
+                                // Con atencion='' se generaba un link /pedidos/{id}/{vendedor} SIN cliente, y el
+                                // SELECT por atencion='' matcheaba cualquier vendedor con atencion vacío.
+                                // Misma guarda que la rama por código (más arriba).
+                                if ($rowVendedor['atencion'] !== null && $rowVendedor['atencion'] !== '') {
                                     Connection::runQuery("UPDATE `link_pedidos` SET `clienteId`= '" . Connection::escape($rowVendedor['atencion']) . "'  where id = '" . $notiPedido . "'");
-                                    $requestVendedor = Connection::runQuery("SELECT codigo  FROM vendedores where atencion= '" . $rowVendedor['atencion'] . "'");
+                                    $requestVendedor = Connection::runQuery("SELECT codigo  FROM vendedores where atencion= '" . Connection::escape($rowVendedor['atencion']) . "'");
                                     if (mysqli_num_rows($requestVendedor) > 0) {
                                         $rowVendedor = mysqli_fetch_assoc($requestVendedor);
                                         $vendedorR   = $rowVendedor['codigo'];
-                                        Connection::runQuery("UPDATE `vendedores` SET `atencion`= ''  where telefono= '" . $user . "'");
+                                        Connection::runQuery("UPDATE `vendedores` SET `atencion`= ''  where telefono= '" . Connection::escape($user) . "'");
                                     }
                                 }
                             }
@@ -372,7 +391,7 @@ class BotEngine
                                         }
                                     }
 
-                                    $numeroReclamo = Connection::runQueryID("INSERT INTO `reclamos`(empresa,`fecha_ingreso`,`clienteId`, `telefono`,nick, `motivo`, `area`, `detalle`, resolucion) VALUES ('" . $this->empresa . "',now(),'" . $codigoCliente . "','" . $user . "','" . $pushname . "','" . Connection::escape($_motivo) . "','" . $_area . "','" . $detalle . "','')");
+                                    $numeroReclamo = Connection::runQueryID("INSERT INTO `reclamos`(empresa,`fecha_ingreso`,`clienteId`, `telefono`,nick, `motivo`, `area`, `detalle`, resolucion) VALUES ('" . $this->empresa . "',now(),'" . Connection::escape($codigoCliente) . "','" . Connection::escape($user) . "','" . Connection::escape($pushname) . "','" . Connection::escape($_motivo) . "','" . Connection::escape($_area) . "','" . Connection::escape($detalle) . "','')");
                                     Connection::runQuery("UPDATE `contactos` SET `anterior`= '' where id like '" . $user . "'");
                                     $request = Connection::runQuery("SELECT telefono,area FROM `areas` WHERE `id` = '" . $_area . "'");
                                     if (mysqli_num_rows($request) > 0) {
@@ -609,12 +628,12 @@ class BotEngine
                                                                                 `resolucion`)
                                                                                 VALUES (        '" . $this->empresa . "',
                                                                                                 now(),
-                                                                                                '" . $codigoCliente . "',
-                                                                                                '" . $user . "',
-                                                                                                '" . $pushname . "',
+                                                                                                '" . Connection::escape($codigoCliente) . "',
+                                                                                                '" . Connection::escape($user) . "',
+                                                                                                '" . Connection::escape($pushname) . "',
                                                                                                 '" . Connection::escape($_motivo) . "',
-                                                                                                '" . $_area . "',
-                                                                                                '" . $mensaje . "',
+                                                                                                '" . Connection::escape($_area) . "',
+                                                                                                '" . Connection::escape($mensaje) . "',
                                                                                                 '')";
                                         $numeroReclamo  = '';
                                         $numeroConsulta = Connection::runQueryID($consultaSql);
@@ -717,7 +736,7 @@ class BotEngine
 
     private function registrarContacto($pushname, $user, $menu, $espera_respuesta)
     {
-        Connection::runQuery("INSERT INTO `contactos`(`id`,`nombre`, `telefono`, `menu`, `esperaRespuesta`, `fechaHora`) VALUES ('" . $user . "','" . $pushname . "','" . $user . "','" . $menu . "','" . $espera_respuesta . "', now()) ON DUPLICATE KEY UPDATE nombre='" . $pushname . "' ,menu='" . $menu . "', esperaRespuesta='" . $espera_respuesta . "',fechaHora=now()");
+        Connection::runQuery("INSERT INTO `contactos`(`id`,`nombre`, `telefono`, `menu`, `esperaRespuesta`, `fechaHora`) VALUES ('" . Connection::escape($user) . "','" . Connection::escape($pushname) . "','" . Connection::escape($user) . "','" . $menu . "','" . $espera_respuesta . "', now()) ON DUPLICATE KEY UPDATE nombre='" . Connection::escape($pushname) . "' ,menu='" . $menu . "', esperaRespuesta='" . $espera_respuesta . "',fechaHora=now()");
     }
 
     private function getSaludo()

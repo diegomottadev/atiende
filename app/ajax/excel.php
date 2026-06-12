@@ -2,6 +2,7 @@
 require_once '../config/auth.php';
 include_once("../config/Connection.php");
 $estado= str_replace("#", " ", $_GET["estado"]);
+$estado= Connection::escape($estado);
 
 $request=Connection::runQuery("SELECT reclamos.`reclamoId` AS Codigo,reclamos.fecha_ingreso as Fecha, reclamos.clienteId, clientes.razonSocial,clientes.direccion, clientes.vendedor, reclamos.telefono, reclamos.nick, reclamos.motivo,areas.area, reclamos.detalle, reclamos.fecha_resolucion,reclamos.resolucion, reclamos.estado FROM reclamos LEFT JOIN clientes ON reclamos.clienteId= clientes.codigo LEFT JOIN areas ON reclamos.area= areas.id where reclamos.estado like '".$estado."%' ");
 while ($row = mysqli_fetch_assoc($request)){

@@ -1,9 +1,22 @@
 <?php
-require_once '../config/auth.php';
+require_once dirname(__DIR__).'/config/auth.php';
 include_once '../config/Connection.php';
 
 // Mutación (import CSV por POST, sin switch) → exige token CSRF.
 requireCsrf();
+
+// --- Validación de archivo subido (whitelist estricta) ---------------------
+// El nombre del CSV define la tabla destino (DROP/CREATE/LOAD DATA), por eso
+// debe limitarse a un conjunto cerrado. Solo se aceptan exactamente estos
+// nombres base (las únicas tablas que crearTabla() sabe crear) y extensión csv.
+$orig = (string) $_FILES['uploaded_file']['name'];
+$ext  = strtolower(pathinfo($orig, PATHINFO_EXTENSION));
+$base = strtolower(pathinfo($orig, PATHINFO_FILENAME));
+$tablasPermitidas = ['vendedores', 'clientes', 'articulos'];
+if ($ext !== 'csv' || !in_array($base, $tablasPermitidas, true)) {
+    http_response_code(400);
+    exit('archivo no permitido');
+}
 
 //ini_set('upload_max_filesize', '200M');
 $ruta= "";
@@ -12,19 +25,19 @@ $cont=0;
 //$resu=Connection::runQuery("select @@datadir;");
 //$fila = mysqli_fetch_row($resu);
 	  
-$target_path1 = basename( $_FILES['uploaded_file']['name']);	
-      //echo $fila[0];.
+// Nombre de archivo controlado: siempre <base>.csv con $base ya validado
+// contra la whitelist. Nunca se usa el nombre crudo del cliente.
+$target_path1 = $base . ".csv";
 //echo $_FILES['uploaded_file']['tmp_name'].":::".$target_path1;
 if(move_uploaded_file($_FILES['uploaded_file']['tmp_name'], $target_path1)) {
-	
+
 	//echo  "OK";
 	$LINES=1;
-	$archivo = explode('.', $_FILES['uploaded_file']['name']);
-	
-	Connection::runQuery("DROP TABLE IF EXISTS ".$archivo[0]);
-	crearTabla($archivo[0]);
-	$sql = "LOAD DATA  LOCAL INFILE '".$archivo[0].".csv'
-        REPLACE INTO TABLE ".$archivo[0]."
+
+	Connection::runQuery("DROP TABLE IF EXISTS ".$base);
+	crearTabla($base);
+	$sql = "LOAD DATA  LOCAL INFILE '".$base.".csv'
+        REPLACE INTO TABLE ".$base."
 	   CHARACTER SET UTF8 
        FIELDS TERMINATED BY ','
        OPTIONALLY ENCLOSED BY '\"' 

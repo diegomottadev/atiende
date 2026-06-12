@@ -526,10 +526,12 @@ if (isset($_GET["ped"])) {
 
     $favorito_array = []; // favoritos se manejan en localStorage por telefono
     $row = null;
+    // Saneo anti-SQLi: 'ped' es el id autoincrement de link_pedidos (numérico).
+    $_pedId = intval($_GET["ped"] ?? 0);
     if ($responseWebMaster['data']['b2b']) {
-        $row = mysqli_fetch_array(Connection::runQuery("SELECT link_pedidos.*,link_pedidos.telefono as cel, clientes.* FROM `link_pedidos` inner join clientes on link_pedidos.clienteId=clientes.codigo where link_pedidos.id='".$_GET["ped"]."' and link_pedidos.estado=0"));
+        $row = mysqli_fetch_array(Connection::runQuery("SELECT link_pedidos.*,link_pedidos.telefono as cel, clientes.* FROM `link_pedidos` inner join clientes on link_pedidos.clienteId=clientes.codigo where link_pedidos.id='".$_pedId."' and link_pedidos.estado=0"));
     } else if ($responseWebMaster['data']['b2c']) {
-        $row = mysqli_fetch_array(Connection::runQuery("SELECT link_pedidos.*,link_pedidos.telefono as cel, clientes.* FROM `link_pedidos` inner join clientes on link_pedidos.clienteId=clientes.id where link_pedidos.id='".$_GET["ped"]."' and link_pedidos.estado=0"));
+        $row = mysqli_fetch_array(Connection::runQuery("SELECT link_pedidos.*,link_pedidos.telefono as cel, clientes.* FROM `link_pedidos` inner join clientes on link_pedidos.clienteId=clientes.id where link_pedidos.id='".$_pedId."' and link_pedidos.estado=0"));
     }
 
     if ($row != NULL) {
@@ -540,7 +542,10 @@ if (isset($_GET["ped"])) {
         $cCel     = $row["cel"];
         $cToken   = $row["token"];
         $cId      = $row["clienteId"];
-        echo "<script> telefono='".addslashes($cCel)."'; token='".addslashes($cToken)."'; nombre='".addslashes($cRazon)."'; ped='".$_GET["ped"]."'; clienteId='".addslashes($cId)."'; </script>";
+        // XSS-safe: json_encode con flags HEX evita el breakout de </script> y comillas
+        // (addslashes NO lo hacía). 'ped' es numérico → intval.
+        $jf = JSON_HEX_TAG|JSON_HEX_APOS|JSON_HEX_QUOT|JSON_HEX_AMP;
+        echo "<script> telefono=".json_encode($cCel,$jf)."; token=".json_encode($cToken,$jf)."; nombre=".json_encode($cRazon,$jf)."; ped=".intval($_GET["ped"] ?? 0)."; clienteId=".json_encode($cId,$jf)."; </script>";
 ?>
 
     <!-- Fixed top navbar -->

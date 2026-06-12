@@ -1,5 +1,6 @@
 <?php
 define('_ROOT_', dirname(dirname(__DIR__)));
+require_once _ROOT_.'/config/auth.php';   // exige sesión: este export volcaba toda la base de artículos sin login
 require_once _ROOT_.'/PHPExcel/Classes/PHPExcel.php';
 require_once _ROOT_."/modelos/Articulo.php";
 
