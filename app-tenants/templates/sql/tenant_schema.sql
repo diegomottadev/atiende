@@ -121,6 +121,8 @@ CREATE TABLE `clientes`  (
   `deposito` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `latitud` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `longitud` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `cuil` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `dni` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
   PRIMARY KEY (`id`) USING BTREE,
   KEY `idx_vendedor` (`vendedor`),
@@ -164,6 +166,7 @@ CREATE TABLE `contactos`  (
   `anterior` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
   `mensaje` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
   `fechaHora` datetime(0) NULL DEFAULT NULL,
+  `vendedor_codigo` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
@@ -573,6 +576,10 @@ CREATE TABLE `bot_config`  (
   `cuit` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
   `logo` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
   `pais` varchar(2) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'AR',
+  `costo_envio` decimal(10, 2) NOT NULL DEFAULT 0.00,
+  `costo_envio_activo` tinyint(1) NOT NULL DEFAULT 0,
+  `admin_telefono` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `admin_envio_activo` tinyint(1) NOT NULL DEFAULT 0,
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`) USING BTREE,
   CONSTRAINT `chk_single_row` CHECK (`id` = 1)
