@@ -49,11 +49,12 @@ $paises = [
 $paisTenant = strtoupper($tenant['pais'] ?? 'AR');
 if (!isset($paises[$paisTenant])) { $paisTenant = 'AR'; }
 
-$atiendeUrl = 'http://' . $tenant['slug'] . '.atiende.localhost:81/vistas/login.php';
+// $atiendeUrl se deriva del dominio configurado vía tenantLoginUrl() más abajo.
 
 include dirname(__DIR__) . '/views/layout/header.php';
 ?>
 
+<?php $atiendeUrl = tenantLoginUrl($tenant['slug']); ?>
 <!-- ===== Cabecera ===== -->
 <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3">
   <div>

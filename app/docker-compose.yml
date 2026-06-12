@@ -27,7 +27,7 @@ services:
     container_name: atiende-nginx
     tty: true
     ports:
-      - "${APP_PORT:-81}:80"
+      - "127.0.0.1:${APP_PORT:-81}:80"
     volumes:
       - .:/var/www/atiende
       - ./_docker/nginx/default.conf:/etc/nginx/conf.d/default.conf

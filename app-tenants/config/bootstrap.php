@@ -31,3 +31,19 @@ function getTenantSlug(): ?string
     }
     return preg_replace('/[^a-z0-9_]/', '', strtolower($tenant)) ?: null;
 }
+
+/**
+ * URL de acceso al sistema (app de pedidos) para un tenant.
+ * Se deriva de APP_URL (admin.atiende.lat → atiende.lat), no se hardcodea:
+ * así sigue al dominio configurado. Ej: demo → https://demo.atiende.lat/vistas/login.php
+ */
+function tenantLoginUrl(string $slug): string
+{
+    $parts  = parse_url(APP_URL);
+    $scheme = $parts['scheme'] ?? 'https';
+    $host   = $parts['host'] ?? 'atiende.lat';
+    $port   = isset($parts['port']) ? ':' . $parts['port'] : '';
+    // quitar el label 'admin.' del panel para quedarnos con el dominio raíz
+    $baseHost = preg_replace('/^admin\./', '', $host);
+    return $scheme . '://' . $slug . '.' . $baseHost . $port . '/vistas/login.php';
+}

@@ -128,7 +128,7 @@ include dirname(__DIR__) . '/views/layout/header.php';
       <tr><th>Login (usuario)</th><td><code><?= htmlspecialchars($result['email']) ?></code></td></tr>
       <tr><th>Password</th><td><code><?= htmlspecialchars($result['password']) ?></code></td></tr>
     </table>
-    <?php $atiendeUrl = 'http://' . $result['slug'] . '.atiende.localhost:81/vistas/login.php'; ?>
+    <?php $atiendeUrl = tenantLoginUrl($result['slug']); ?>
     <p class="mb-1"><strong>Para entrar a Atiende con este tenant:</strong></p>
     <ol>
       <li>Ir a <a href="<?= htmlspecialchars($atiendeUrl) ?>" target="_blank"><?= htmlspecialchars($atiendeUrl) ?></a></li>

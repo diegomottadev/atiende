@@ -1,0 +1,5 @@
+# Documentación operativa con credenciales — NO commitear
+doc-atiende-prod.md
+
+# Settings locales de Claude Code (por máquina)
+.claude/settings.local.json
