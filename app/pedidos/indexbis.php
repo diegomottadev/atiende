@@ -986,7 +986,7 @@
 <?php endif; ?>
                         mensaje += "*Ticket:* 👇\n\n";
                         // mensaje += "http://www.atiende.lat/"+token+`/reportes/exTicket.php?id=${ped}\n\n`;
-                        mensaje += url+`/reportes/exTicket.php?id=${ped}\n\n`;
+                        mensaje += url+`/ticket/${ped}\n\n`;
                         var json2 = {
                             type: "_msg_externo",
                             empresa: token,

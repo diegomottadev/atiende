@@ -489,7 +489,7 @@ try {
                         mensaje += "*Costo de envio:$* <?php echo number_format($costoEnvio, 2, '.', ''); ?> \n";
 <?php endif; ?>
                         mensaje += "*Ticket:* 👇\n\n";
-                        mensaje += url+"/reportes/exTicket.php?id="+ped+"\n\n";
+                        mensaje += url+"/ticket/"+ped+"\n\n";
                         $.ajax({ type:'POST', url:'send_wa.php', data:{ to:telefono, text:mensaje, ped:ped, t:tenantSlug, copiaAdmin:1, ved:vedid },
                             complete: function(){ pedido = []; location.href = 'finaliza.php?t=<?php echo $tenantSlug; ?>'; }
                         });

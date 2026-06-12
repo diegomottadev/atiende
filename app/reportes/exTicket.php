@@ -2,8 +2,23 @@
 // IMPORTANTE: la sesión/conexión deben arrancar ANTES de cualquier salida HTML.
 // Venta.php -> Conexion.php hace session_start(); si el HTML ya se imprimió, falla
 // ("headers already sent") y se pierde $_SESSION['tenant_db'] → DB equivocada → ticket vacío.
+
+// El ticket se abre normalmente SIN sesión (link compartido / mobile). En ese caso hay que
+// resolver el tenant por subdominio (HTTP_X_TENANT de Nginx) o ?t=, igual que index.php/finaliza.php,
+// y setearlo en la sesión ANTES de incluir Venta.php (Conexion.php abre $conexion al incluirse,
+// leyendo $_SESSION['tenant_db'] → sin esto cae a DB_NAME=atiende y la venta "no se encuentra").
+// Solo actúa si no hay sesión: NO pisa la del admin ya logueado.
+if (session_status() === PHP_SESSION_NONE) { session_start(); }
+if (empty($_SESSION['tenant_db'])) {
+    $ticketSlug = preg_replace('/[^a-z0-9_]/', '', strtolower(($_SERVER['HTTP_X_TENANT'] ?? '') ?: ($_GET['t'] ?? '')));
+    if ($ticketSlug !== '') { $_SESSION['tenant_db'] = 'atiende_' . $ticketSlug; }
+}
+
 require_once "../modelos/Venta.php";
 include_once("../config/Connection.php");
+// Alinear el override de Connection (lo usa el bloque "Observación" más abajo) con la DB del
+// tenant; si no, la conexión estática iría a DB_NAME y las líneas .001 saldrían de la DB equivocada.
+if (!empty($_SESSION['tenant_db'])) { Connection::setDatabase($_SESSION['tenant_db']); }
 
 $venta = new Venta();
 $id    = isset($_GET["id"]) ? $_GET["id"] : '';
