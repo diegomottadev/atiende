@@ -40,9 +40,21 @@ function generarTicketPdf($pedidoId)
     $w = 170; // ancho útil (A4 210 - márgenes 20*2)
 
     // ===== Datos de la empresa (tenant) — viven en bot_config (singleton id=1) =====
-    $empRow = mysqli_fetch_assoc(Connection::runQuery(
-        "SELECT nombre_empresa, razon_social, cuit, telefono, logo FROM bot_config LIMIT 1"
-    ));
+    // bot_config sufre drift de schema entre tenants: los con seed mínimo solo tienen
+    // (id, menu_json, telefono, updated_at, pais) y NO las columnas de empresa. Sin este
+    // guard, el SELECT lanzaba RuntimeException y abortaba la generación del ticket (el
+    // vendedor/cliente nunca recibía el PDF). Degradamos a solo 'telefono' (siempre existe).
+    $empRow = null;
+    try {
+        $empRow = mysqli_fetch_assoc(Connection::runQuery(
+            "SELECT nombre_empresa, razon_social, cuit, telefono, logo FROM bot_config LIMIT 1"
+        ));
+    } catch (Throwable $e) {
+        error_log('[ticket_pdf] bot_config sin columnas de empresa, degradando: ' . $e->getMessage());
+        try {
+            $empRow = mysqli_fetch_assoc(Connection::runQuery("SELECT telefono FROM bot_config LIMIT 1"));
+        } catch (Throwable $e2) { $empRow = null; }
+    }
     $empNombre = ($empRow && trim($empRow['nombre_empresa'] ?? '') !== '') ? $empRow['nombre_empresa'] : 'Atiende';
     $empRazon  = $empRow['razon_social'] ?? '';
     $empCuit   = $empRow['cuit'] ?? '';
