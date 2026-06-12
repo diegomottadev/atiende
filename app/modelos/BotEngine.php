@@ -26,6 +26,13 @@ class BotEngine
 
     public function handle($user, $pushname, $body, $type, $location = null)
     {
+        // Defensa en profundidad: $user (nº de WhatsApp del remitente) se interpola sin escapar
+        // en decenas de queries de este archivo. El webhook ya lo normaliza a dígitos
+        // (preg_replace('/\D/','') en ws/webhook.php), pero re-normalizamos acá para que la
+        // seguridad de BotEngine no dependa del caller. Idempotente para tráfico legítimo
+        // (ya viene en dígitos) → cero cambio de comportamiento, cierra la fragilidad.
+        $user = preg_replace('/\D/', '', (string) $user);
+
         // ---- Baja / opt-out (palabras estándar, coincidencia exacta del mensaje) + confirmación ----
         $bodyNorm     = strtolower(trim((string) $body));
         $palabrasBaja = ['baja', 'stop', 'cancelar', 'desuscribir', 'bajacp']; // 'bajacp' = legacy
