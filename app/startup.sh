@@ -1,10 +1,13 @@
 #!/bin/bash
 set -e
 
-DB_CONTAINER="demo_atiende_mysql"
-APP_CONTAINER="demo_atiende_app"
-DB_USER="root"
-DB_PASS="root"
+# Nombres de contenedores (overridable por entorno). El MySQL es el contenedor
+# externo compartido `mysql8` (red atiende_net); la app la crea este compose como
+# `atiende-app` (ver docker-compose.yml container_name).
+DB_CONTAINER="${DB_CONTAINER:-mysql8}"
+APP_CONTAINER="${APP_CONTAINER:-atiende-app}"
+DB_USER="${MYSQL_ROOT_USER:-root}"
+DB_PASS="${MYSQL_ROOT_PASSWORD:-root}"
 
 echo "============================================"
 echo "  ATIENDE / ATIENDE  -  Dev Setup"
