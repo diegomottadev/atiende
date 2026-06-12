@@ -14,7 +14,7 @@ Este documento registra **todas las decisiones y configuraciones de seguridad** 
 |---|---|---|---|
 | 1 | Backends Docker (81/82) atados a `127.0.0.1` | ✅ | `app/docker-compose.yml`, `app-tenants/docker-compose.yml` (versionado) |
 | 2 | Firewall **ufw** (solo 22/80/443) | ✅ | estado del SO (`ufw`) |
-| 3 | **fail2ban** (anti fuerza bruta SSH) | ✅ | `/etc/fail2ban/jail.local` |
+| 3 | **fail2ban** (anti fuerza bruta SSH **+ login del panel**) | ✅ | `/etc/fail2ban/jail.local` + `filter.d/atiende-login.conf` |
 | 4 | **SSH** endurecido (solo llave, root prohibit-password) | ✅ | `/etc/ssh/sshd_config` |
 | 5 | Acceso por llave + fallback web console | ✅ | `/root/.ssh/authorized_keys` + password de root |
 | 6 | **unattended-upgrades** + parches de seguridad | ✅ | paquete del SO |
@@ -126,6 +126,50 @@ fail2ban-client set sshd unbanip <IP>
 ```
 
 **Cómo revertir (desactivar):** `systemctl stop fail2ban && systemctl disable fail2ban`
+
+### 3.1 Jail del login del panel (`atiende-login`)
+
+**Qué / por qué:** además de SSH, el formulario de login del panel (`vistas/login.php`) era atacable por fuerza bruta vía HTTP sin ningún freno. Se agregó un jail que **banea la IP** tras varios intentos fallidos de login en el panel.
+
+**Cómo funciona (la clave es el 401):**
+- El endpoint `app/ajax/usuario.php?op=verificar` responde **HTTP 401 SOLO ante un fallo** de login (credenciales inválidas o tenant inexistente). Un login **exitoso responde 200**. Así el jail cuenta únicamente los fallos y nunca banea a un usuario que entra bien.
+- fail2ban lee el **access log del nginx del host** (`/var/log/nginx/access.log`, formato combined) que ya registra la **IP real** del cliente, y matchea las líneas `POST /ajax/usuario.php?op=verificar … 401`.
+- El front (`vistas/scripts/login.js`) maneja el 401 en `.fail()`: muestra "usuario/contraseña incorrectos" en el 401, y un aviso de "esperá unos minutos" ante cualquier otro estado (probable ban temporal).
+
+**Piezas (2 archivos en el SO, fuera del repo):**
+- `/etc/fail2ban/filter.d/atiende-login.conf` — el filtro:
+  ```
+  failregex = ^<HOST> -.*"POST /ajax/usuario\.php\?op=verificar[^"]*" 401
+  ```
+  (sin `datepattern`: fail2ban autodetecta el formato de fecha de nginx.)
+- `/etc/fail2ban/jail.local` — la sección `[atiende-login]`. **Ojo:** el `[DEFAULT]` usa `backend = systemd`; este jail lo **override con `backend = polling`** para leer el archivo de nginx en vez del journal:
+  ```ini
+  [atiende-login]
+  enabled  = true
+  filter   = atiende-login
+  backend  = polling
+  logpath  = /var/log/nginx/access.log
+  port     = http,https
+  maxretry = 5
+  findtime = 10m
+  bantime  = 1h
+  ```
+- Config actual: **5 fallos en 10 min → ban 1 hora**. Reincidentes escalan al jail `recidive` (3 bans en 1 día → 1 semana).
+
+**Cómo verificar:**
+```bash
+fail2ban-client status atiende-login                       # IPs baneadas / total
+# Probar el filtro contra el log real (sin banear nada):
+fail2ban-regex /var/log/nginx/access.log /etc/fail2ban/filter.d/atiende-login.conf
+# Generar un 401 real de prueba con IP loopback (ignorada, no banea):
+curl -sk -o /dev/null -w "%{http_code}\n" --resolve demo.atiende.lat:443:127.0.0.1 \
+  "https://demo.atiende.lat/ajax/usuario.php?op=verificar" \
+  -d "logina=x&clavea=y&empresa=demo"   # debe imprimir 401
+```
+
+**Desbanear una IP:** `fail2ban-client set atiende-login unbanip <IP>`
+
+> **Si cambiás la ruta del endpoint o el formato de log de nginx**, actualizá el `failregex` y re-validá con `fail2ban-regex`. El jail depende de que el 401 siga saliendo **solo** en los fallos (no toques esa lógica en `usuario.php`).
 
 ---
 
@@ -257,6 +301,7 @@ ss -tlnp | grep -E '0\.0\.0\.0|\[::\]'
 ufw status verbose
 # fail2ban
 fail2ban-client status sshd
+fail2ban-client status atiende-login   # fuerza bruta al login del panel
 # SSH
 sshd -T | grep -Ei 'permitrootlogin|passwordauthentication'
 # Intentos SSH fallidos / exitosos (24h)

@@ -174,7 +174,7 @@ switch ($_GET["op"]) {
 			$ppStmt = $ppPdo->prepare('SELECT db_name FROM tenants WHERE slug = ? AND estado = "activo" AND deleted_at IS NULL LIMIT 1');
 			$ppStmt->execute([$empresa]);
 			$ppRow = $ppStmt->fetch();
-			if (!$ppRow) { echo 'null'; break; }
+			if (!$ppRow) { http_response_code(401); echo 'null'; break; }
 			$dbName = $ppRow['db_name'];
 		} catch (Exception $e) {
 			echo 'null'; break;
@@ -227,6 +227,7 @@ switch ($_GET["op"]) {
 		in_array(10, $valores) ? $_SESSION['repartos']=1   : $_SESSION['repartos']=0;
 		in_array(11, $valores) ? $_SESSION['configuracion']=1 : $_SESSION['configuracion']=0;
 	}
+	if (!$authOk) { http_response_code(401); } // señal para fail2ban (jail atiende-login): solo los fallos van 401
 	echo $authOk ? json_encode($fetch) : 'null';
 	break;
 	case 'salir':

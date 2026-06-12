@@ -14,21 +14,29 @@ $("#frmAcceso").on('submit', function(e)
 		}
 	}
 
-	$.post("../ajax/usuario.php?op=verificar", {"logina":logina, "clavea":clavea, "empresa":empresa},
-        function(data)
+	$.post("../ajax/usuario.php?op=verificar", {"logina":logina, "clavea":clavea, "empresa":empresa})
+        .done(function(data)
         {
             if (data.trim()!='null')
             {
                 $(location).attr("href","escritorio.php");
-                //bootbox.alert(data);
-            }else{                
-               // $(location).attr("href","login.php");
-                //bootbox.alert("Usuario y/o Password incorrectos");
-                Swal.fire({
-                    icon: 'error',
-                    text: 'Usuario y/o contraseña incorrectos'
-                });
-
+            }else{
+                // Path de error infra (DB caída): el backend devuelve 'null' con 200
+                Swal.fire({ icon: 'error', text: 'Usuario y/o contraseña incorrectos' });
             }
-         });
+        })
+        .fail(function(xhr)
+        {
+            // 401 = credenciales inválidas (el backend lo manda así para que fail2ban
+            // cuente solo los fallos). Cualquier otro estado / sin respuesta puede ser
+            // un bloqueo temporal por demasiados intentos (fail2ban banea la IP 1h).
+            if (xhr.status === 401) {
+                Swal.fire({ icon: 'error', text: 'Usuario y/o contraseña incorrectos' });
+            } else {
+                Swal.fire({
+                    icon: 'warning',
+                    text: 'No se pudo iniciar sesión. Si reintentaste muchas veces, esperá unos minutos antes de volver a probar.'
+                });
+            }
+        });
 });
