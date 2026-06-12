@@ -22,6 +22,8 @@ docker compose down
 
 `startup.sh` hace todo automáticamente: copia `config/global.php` desde `config/global.docker.dev`, crea archivos placeholder, levanta los 3 containers (app/nginx/mariadb), espera healthcheck de MariaDB, resetea e importa las bases de datos, y aplica permisos.
 
+**Regenerar SOLO los configs (sin rebuild):** `./setup-config.sh` (bash) o `.\setup-config.ps1` (Windows) copia `config/{database,global}.php` desde los templates `*.docker.dev` (o `*.docker.prod` con `--prod`/`-Prod`). Es **idempotente**: por defecto NO pisa archivos existentes (`--force`/`-Force` para sobrescribir). **Por qué importa:** `config/global.php` y `config/database.php` están git-ignored (secretos locales) y **un `git merge`/`git pull` que los borre del working tree los elimina del disco** (le pasó al merge de `main` que los destrackeó). Si la app tira `require_once .../database.php` fatal o "No such file", correr este script los restaura. Los templates `global.docker.dev/prod` son **completos** (incluyen `tenantScheme`/`tenantUrl`/`getWebMasterConfig` con `pais`), difieren solo en los `define` de entorno — al editar las funciones, **actualizar AMBOS templates** (están duplicados a propósito para que regenerar produzca un archivo funcional).
+
 No test suite or linter is configured in this project.
 
 **Siempre usar Docker, nunca xampp.** Correr PHP, Composer y PHPUnit dentro de los containers (`docker compose run --rm` / `docker compose exec`), no con el binario local. El xampp del PATH es PHP 7.4.1 y no sirve para herramientas que requieren PHP ≥ 8.1 (ej. PHPUnit 10 en `pedidos-platform`).
