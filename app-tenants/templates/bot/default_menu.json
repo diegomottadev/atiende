@@ -33,6 +33,13 @@
                 "area": ""
             },
             {
+                "opcionId": "5",
+                "opcion": "Soy Vendedor",
+                "menuId": "105",
+                "guardar": "false",
+                "area": ""
+            },
+            {
                 "opcionId": "4",
                 "opcion": "Salir",
                 "menuId": "2.2",
@@ -256,6 +263,36 @@
                 "guardar": "false",
                 "area": "",
                 "accion": "registrarConsulta"
+            }
+        ]
+    },
+    {
+        "menuId": "105",
+        "consigna": "Ingresá tu *código de vendedor*:",
+        "finaliza": "false",
+        "menuItem": [
+            {
+                "opcionId": "",
+                "opcion": "",
+                "menuId": "106",
+                "guardar": "false",
+                "area": "",
+                "accion": "registraVendedor"
+            }
+        ]
+    },
+    {
+        "menuId": "106",
+        "consigna": "Ingresá el *código del cliente* al que vas a cargar el pedido.",
+        "finaliza": "false",
+        "menuItem": [
+            {
+                "opcionId": "",
+                "opcion": "",
+                "menuId": "350",
+                "guardar": "false",
+                "area": "",
+                "accion": "chequearVendedorCliente"
             }
         ]
     }
