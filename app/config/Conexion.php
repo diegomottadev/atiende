@@ -76,6 +76,11 @@ if (!function_exists('ejecutarConsulta')) {
     function ejecutarConsultaSimpleFila($sql){
         global $conexion;
         $query=$conexion->query($sql);
+        // Una query fallida (p.ej. columna inexistente por drift de schema entre
+        // tenants) devuelve false; sin este guard, false->fetch_assoc() era un
+        // Fatal error. Devolvemos false y el caller decide (varios ya chequean
+        // is_array()/empty() sobre el resultado).
+        if ($query === false) { return false; }
         $row=$query->fetch_assoc();
         return $row;
     }
