@@ -19,7 +19,7 @@ $error_4 = "";
 
 if (!empty($_FILES['clientes']['name'])) {
 
-    if (((strpos($_FILES['clientes']['name'], "xls") || strpos($_FILES['clientes']['name'], "xlsx")))) {
+    if (in_array(strtolower(pathinfo($_FILES['clientes']['name'], PATHINFO_EXTENSION)), ['xls','xlsx','csv'], true)) {
 
         if (strncasecmp($_FILES['clientes']['name'], "clientes", 8) === 0) {
 
@@ -41,7 +41,7 @@ if (!empty($_FILES['clientes']['name'])) {
 
 if (!empty($_FILES['articulos']['name'])) {
 
-    if (((strpos($_FILES['articulos']['name'], "xls") || strpos($_FILES['articulos']['name'], "xlsx")))) {
+    if (in_array(strtolower(pathinfo($_FILES['articulos']['name'], PATHINFO_EXTENSION)), ['xls','xlsx','csv'], true)) {
 
         if (strncasecmp($_FILES['articulos']['name'], "articulos", 9) === 0) {
             if (move_uploaded_file($_FILES['articulos']['tmp_name'], $carpeta . "/" . $_FILES['articulos']['name'])) {
@@ -60,7 +60,7 @@ if (!empty($_FILES['articulos']['name'])) {
 
 if (!empty($_FILES['vendedores']['name'])) {
 
-    if (((strpos($_FILES['vendedores']['name'], "xls") || strpos($_FILES['vendedores']['name'], "xlsx")))) {
+    if (in_array(strtolower(pathinfo($_FILES['vendedores']['name'], PATHINFO_EXTENSION)), ['xls','xlsx','csv'], true)) {
 
         if (strncasecmp($_FILES['vendedores']['name'], "Vendedores", 9) === 0) {
 
@@ -79,7 +79,7 @@ if (!empty($_FILES['vendedores']['name'])) {
 }
 if (!empty($_FILES['mensajes']['name'])) {
 
-    if (((strpos($_FILES['mensajes']['name'], "xls") || strpos($_FILES['mensajes']['name'], "xlsx")))) {
+    if (in_array(strtolower(pathinfo($_FILES['mensajes']['name'], PATHINFO_EXTENSION)), ['xls','xlsx','csv'], true)) {
 
         if (strncasecmp($_FILES['mensajes']['name'], "mensajes", 8) === 0) {
 
@@ -110,7 +110,7 @@ if (!empty($_FILES['mensajes']['name'])) {
 
 if (!empty($_FILES['repartidores']['name'])) {
 
-    if (((strpos($_FILES['repartidores']['name'], "xls") || strpos($_FILES['repartidores']['name'], "xlsx")))) {
+    if (in_array(strtolower(pathinfo($_FILES['repartidores']['name'], PATHINFO_EXTENSION)), ['xls','xlsx','csv'], true)) {
 
         if (strncasecmp($_FILES['repartidores']['name'], "repartidores", 12) === 0) {
 
@@ -192,23 +192,27 @@ function guardarClientes($archivo)
 
         for ($row = 2; $row <= $highestRow; $row++) {
             $num++;
-            $datos .= " ('" . $sheet->getCell("A" . $row)->getValue() . "', ";
-            $datos .= " '" . str_replace("'", "", $sheet->getCell("B" . $row)->getValue()) . "', ";
-            $datos .= "  '" . str_replace("'", "", $sheet->getCell("C" . $row)->getValue()) . "', ";
-            $datos .= "  '" . $sheet->getCell("D" . $row)->getValue() ."', ";
-            $datos .= "  '" . $sheet->getCell("E" . $row)->getValue() ."',";
-            $datos .= " '" . $sheet->getCell("F" . $row)->getValue() . "',";
-            $datos .= " '" . $sheet->getCell("G" . $row)->getValue() . "',";
-            $datos .= " '" . $sheet->getCell("H" . $row)->getValue() . "',";
-            $datos .= " '" . $sheet->getCell("I" . $row)->getValue() . "',";
-            $datos .= " '" . $sheet->getCell("J" . $row)->getValue() . "',";
-            $datos .= " '" . $sheet->getCell("K" . $row)->getValue() . "',";
-            $datos .= " '" . $sheet->getCell("L" . $row)->getValue() . "',";
-            $datos .= " '" . $sheet->getCell("M" . $row)->getValue() . "',";
-            $datos .= " '" . $sheet->getCell("N" . $row)->getValue() . "',";
-            $datos .= " '" . $sheet->getCell("O" . $row)->getValue() . "',";
-            $datos .= " '" . $sheet->getCell("P" . $row)->getValue() . "',";
-            $datos .= " '" . $sheet->getCell("Q" . $row)->getValue() . "'),";
+            $datos .= " ('" . Connection::escape($sheet->getCell("A" . $row)->getValue()) . "', ";
+            $datos .= " '" . Connection::escape(str_replace("'", "", $sheet->getCell("B" . $row)->getValue())) . "', ";
+            $datos .= "  '" . Connection::escape(str_replace("'", "", $sheet->getCell("C" . $row)->getValue())) . "', ";
+            $datos .= "  '" . Connection::escape($sheet->getCell("D" . $row)->getValue()) ."', ";
+            $datos .= "  '" . Connection::escape($sheet->getCell("E" . $row)->getValue()) ."',";
+            $datos .= " '" . Connection::escape($sheet->getCell("F" . $row)->getValue()) . "',";
+            $datos .= " '" . Connection::escape($sheet->getCell("G" . $row)->getValue()) . "',";
+            $datos .= " '" . Connection::escape($sheet->getCell("H" . $row)->getValue()) . "',";
+            $datos .= " '" . Connection::escape($sheet->getCell("I" . $row)->getValue()) . "',";
+            $datos .= " '" . Connection::escape($sheet->getCell("J" . $row)->getValue()) . "',";
+            $datos .= " '" . Connection::escape($sheet->getCell("K" . $row)->getValue()) . "',";
+            $datos .= " '" . Connection::escape($sheet->getCell("L" . $row)->getValue()) . "',";
+            $datos .= " '" . Connection::escape($sheet->getCell("M" . $row)->getValue()) . "',";
+            $datos .= " '" . Connection::escape($sheet->getCell("N" . $row)->getValue()) . "',";
+            // Depósito (col. O): si viene vacío, default '1' (misma convención que el alta por bot).
+            // Un cliente sin depósito no muestra productos en la página de pedido.
+            $_dep = trim((string) $sheet->getCell("O" . $row)->getValue());
+            if ($_dep === '') { $_dep = '1'; }
+            $datos .= " '" . Connection::escape($_dep) . "',";
+            $datos .= " '" . Connection::escape($sheet->getCell("P" . $row)->getValue()) . "',";
+            $datos .= " '" . Connection::escape($sheet->getCell("Q" . $row)->getValue()) . "'),";
         }
 
         //echo $datos;
@@ -296,7 +300,7 @@ function guardarArticulos($archivo)
             $datos.= "(";
 
             foreach($letters as $key => $column){
-                $datos .= "'".$sheet->getCell($column . $row)->getValue() . "',";
+                $datos .= "'".Connection::escape($sheet->getCell($column . $row)->getValue()) . "',";
             }
             $datos = substr($datos, 0, -1) . "),";
 
@@ -346,7 +350,7 @@ function guardarVendedor($archivo){
         $datos = "REPLACE INTO `vendedores`(`codigo`, `nombre`, `telefono`, `version`, `supervisor`) VALUES";
         for ($row = 2; $row <= $highestRow; $row++) {
             $num++;
-            $datos .= "('" . $sheet->getCell("A" . $row)->getValue() . "','" . $sheet->getCell("B" . $row)->getValue() . "','" . $sheet->getCell("C" . $row)->getValue() . "','" . $sheet->getCell("D" . $row)->getValue() . "','" . $sheet->getCell("E" . $row)->getValue() . "'),";
+            $datos .= "('" . Connection::escape($sheet->getCell("A" . $row)->getValue()) . "','" . Connection::escape($sheet->getCell("B" . $row)->getValue()) . "','" . Connection::escape($sheet->getCell("C" . $row)->getValue()) . "','" . Connection::escape($sheet->getCell("D" . $row)->getValue()) . "','" . Connection::escape($sheet->getCell("E" . $row)->getValue()) . "'),";
         }
         if ($num > 0){
             $re1 = Connection::runQuery(substr($datos, 0, -1));
@@ -393,8 +397,11 @@ function guardarMensajesConClientes($archivo, $titulo, $mensaje)
     }
 
     $fecha = date('Y-m-d H:i:s');
+    $titulo_e        = Connection::escape($titulo);
+    $mensaje_e       = Connection::escape($mensaje);
+    $destinatarios_e = Connection::escape($destinatarios);
     Connection::runQuery("INSERT INTO mensajes (titulo,mensaje,fecha,cantidad,destino,estado)
-                                 VALUES ('$titulo','$mensaje','$fecha',0,'$destinatarios',1)");
+                                 VALUES ('$titulo_e','$mensaje_e','$fecha',0,'$destinatarios_e',1)");
 
     return "<FONT COLOR='green'>" . $num . " registros fueron creados con exito!</FONT>";
 }
@@ -431,10 +438,17 @@ function editarMensajesConClientes($archivo = null, $id, $titulo, $mensaje)
 
         $destinatarios = json_encode($data);
 
-        Connection::runQuery("UPDATE mensajes SET titulo='$titulo', mensaje= '$mensaje', destino='$destinatarios' where id = $id ");
+        $id_e            = intval($id);
+        $titulo_e        = Connection::escape($titulo);
+        $mensaje_e       = Connection::escape($mensaje);
+        $destinatarios_e = Connection::escape($destinatarios);
+        Connection::runQuery("UPDATE mensajes SET titulo='$titulo_e', mensaje= '$mensaje_e', destino='$destinatarios_e' where id = $id_e ");
 
     } else {
-        Connection::runQuery("UPDATE mensajes SET titulo='$titulo', mensaje= '$mensaje' where id = $id ");
+        $id_e      = intval($id);
+        $titulo_e  = Connection::escape($titulo);
+        $mensaje_e = Connection::escape($mensaje);
+        Connection::runQuery("UPDATE mensajes SET titulo='$titulo_e', mensaje= '$mensaje_e' where id = $id_e ");
 
     }
 
@@ -465,7 +479,7 @@ function guardarRepartidor($archivo)
         $datos = "REPLACE INTO `repartidores`( `nombre`, `telefono`) VALUES";
         for ($row = 2; $row <= $highestRow; $row++) {
             $num++;
-            $datos .= "('" . $sheet->getCell("A" . $row)->getValue() . "','" . $sheet->getCell("B" . $row)->getValue()  . "'),";
+            $datos .= "('" . Connection::escape($sheet->getCell("A" . $row)->getValue()) . "','" . Connection::escape($sheet->getCell("B" . $row)->getValue())  . "'),";
         }
         if ($num > 0){
             $re1 = Connection::runQuery(substr($datos, 0, -1));

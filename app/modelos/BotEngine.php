@@ -32,17 +32,25 @@ class BotEngine
         $esPedidoBaja = in_array($bodyNorm, $palabrasBaja, true);
 
         // ¿Hay una baja pendiente de confirmar? (estado guardado en contactos.anterior)
-        $bajaPendiente = false;
-        $reqEstado = Connection::runQuery("SELECT anterior FROM contactos WHERE id = '" . $user . "'");
+        // También leemos vendedor_codigo: si el que escribe es un vendedor con sesión activa,
+        // las palabras de opt-out NO lo dan de baja (eso es para clientes) sino que cierran su
+        // sesión de vendedor (salir del flujo).
+        $bajaPendiente   = false;
+        $vendedorEnFlujo = '';
+        $reqEstado = Connection::runQuery("SELECT anterior, vendedor_codigo FROM contactos WHERE id = '" . $user . "'");
         if ($reqEstado && mysqli_num_rows($reqEstado) > 0) {
-            $antDec = json_decode(mysqli_fetch_assoc($reqEstado)['anterior'] ?? '', true);
-            $bajaPendiente = is_array($antDec) && (($antDec['type'] ?? '') === 'baja_pendiente');
+            $rowEstado       = mysqli_fetch_assoc($reqEstado);
+            $antDec          = json_decode($rowEstado['anterior'] ?? '', true);
+            $bajaPendiente   = is_array($antDec) && (($antDec['type'] ?? '') === 'baja_pendiente');
+            $vendedorEnFlujo = $rowEstado['vendedor_codigo'] ?? '';
         }
 
         if ($bajaPendiente) {
             if (in_array($bodyNorm, ['si', 'sí', 's'], true)) {
                 Connection::runQuery("DELETE FROM `telefonos` WHERE `telefono` like '" . $user . "'");
-                Connection::runQuery("UPDATE `contactos` SET `anterior`='', menu='0', esperaRespuesta=0 WHERE id like '" . $user . "'");
+                // La baja también cierra la sesión de vendedor: sin esto, vendedor_codigo persistía
+                // y el siguiente "hola" volvía a meter al usuario en el flujo de vendedor (menú 106).
+                Connection::runQuery("UPDATE `contactos` SET `anterior`='', menu='0', esperaRespuesta=0, `vendedor_codigo`=NULL WHERE id like '" . $user . "'");
                 $this->client->sendText($user, 'Listo, te diste de baja. No recibirás más mensajes. Si querés volver, escribí *hola* cuando quieras. ¡Gracias!');
             } else {
                 Connection::runQuery("UPDATE `contactos` SET `anterior`='' WHERE id like '" . $user . "'");
@@ -52,6 +60,13 @@ class BotEngine
         }
 
         if ($esPedidoBaja) {
+            // Vendedor con sesión activa: las palabras de opt-out NO dan de baja al sistema,
+            // sino que salen del flujo de vendedor (cierran la sesión). El cliente sí se da de baja.
+            if (strlen($vendedorEnFlujo) > 0) {
+                Connection::runQuery("UPDATE `contactos` SET `vendedor_codigo`=NULL, `anterior`='', `mensaje`='', esperaRespuesta=0, menu='0' WHERE id like '" . $user . "'");
+                $this->client->sendText($user, 'Cerraste tu sesión de vendedor. Escribí *hola* cuando quieras cargar otro pedido.');
+                return;
+            }
             $antJson = addslashes(json_encode(['type' => 'baja_pendiente'], JSON_UNESCAPED_UNICODE));
             Connection::runQuery("UPDATE `contactos` SET `anterior`='" . $antJson . "', esperaRespuesta=0 WHERE id like '" . $user . "'");
             $this->client->sendText($user, '¿Confirmás darte de baja? No recibirás más mensajes. Respondé *SI* para confirmar.');
@@ -151,6 +166,31 @@ class BotEngine
         return false;
     }
 
+    // Proyecta un array de menuItem aplicando visibilidad ("activo") y renumerando 1..N al vuelo.
+    // Es el punto único de verdad: display y match consumen la MISMA proyección, así el número
+    // que el usuario ve es exactamente el que matchea.
+    private function proyectarMenu(array $menuItem): array
+    {
+        $visibles = []; $salir = null;
+        foreach ($menuItem as $opt) {
+            // Captura de texto libre: opcionId vacío (cadena ''), NO el '0' del botón Salir.
+            // Se detecta por strlen (igual que el bucle de match) para que una captura cuyo
+            // destino es '2.2' (detalle de consulta / consultar-reclamo) NO se confunda con Salir.
+            if (strlen((string) ($opt['opcionId'] ?? '')) === 0) {
+                $visibles[] = $opt; continue;            // se conserva tal cual, no se renumera, sea cual sea su menuId destino
+            }
+            if (($opt['menuId'] ?? '') === '2.2') { $salir = $opt; continue; } // Salir → al final
+            $activo = array_key_exists('activo', $opt) ? $opt['activo'] : 'true'; // legacy = visible
+            if ($activo === 'false') continue;            // oculta
+            $visibles[] = $opt;
+        }
+        $n = 1;
+        foreach ($visibles as &$o) { if (!empty($o['opcionId'])) { $o['opcionId'] = (string)$n; $n++; } }
+        unset($o);
+        if ($salir !== null) { $salir['opcionId'] = (string)$n; $salir['activo'] = 'true'; $visibles[] = $salir; }
+        return $visibles;
+    }
+
     private function procesarAccion($menu, $esperaRespuesta, $mensaje, $pushname, $user, $codigoCliente)
     {
         if ($menu === null || $menu === '') { $menu = '0'; } // estado inicial
@@ -159,10 +199,12 @@ class BotEngine
         $numeroReclamo    = '';
         $numeroConsulta   = '';
 
-        $request = Connection::runQuery("SELECT menu,esperaRespuesta,anterior FROM contactos where telefono LIKE '" . $user . "'");
+        $codigoVendedor = '';
+        $request = Connection::runQuery("SELECT menu,esperaRespuesta,anterior,vendedor_codigo FROM contactos where telefono LIKE '" . $user . "'");
         if (mysqli_num_rows($request) > 0) {
-            $row      = mysqli_fetch_assoc($request);
-            $anterior = json_decode($row['anterior'], TRUE)['opcion'];
+            $row            = mysqli_fetch_assoc($request);
+            $anterior       = json_decode($row['anterior'], TRUE)['opcion'];
+            $codigoVendedor = $row['vendedor_codigo'] ?? '';
         }
 
         if ($menu == '0') {
@@ -172,7 +214,9 @@ class BotEngine
                 error_log('[BotEngine] menu=0 sin saludo, no se responde. msg=' . substr($mensaje, 0, 30));
                 return;
             }
-            if (strlen($codigoCliente) == 0) {
+            if (strlen($codigoVendedor) > 0) {
+                $menu = '106'; // vendedor reconocido → pedir código de cliente
+            } elseif (strlen($codigoCliente) == 0) {
                 $menu = $this->menuJson[0]['menuIdB'];
             } else {
                 $menu = '200'; // cliente identificado → ir directo al menú principal
@@ -194,7 +238,7 @@ class BotEngine
 
                     $hayMenuItem = false;
 
-                    $menuItem = $this->menuJson[$i]['menuItem'] ?? [];
+                    $menuItem = $this->proyectarMenu($this->menuJson[$i]['menuItem'] ?? []);
                     error_log('[BotEngine] menuItem count=' . count($menuItem));
 
                     for ($j = 0; $j < count($menuItem); $j++) {
@@ -243,16 +287,33 @@ class BotEngine
                     // Construir el link del pedido y dejarlo DENTRO del mismo mensaje (un solo bubble)
                     if (!$esPromo && strlen($notiPedido) > 0) {
                         $vendedorR   = '';
-                        $requestVend = Connection::runQuery("SELECT atencion  FROM vendedores where telefono= '" . $user . "'");
-                        if (mysqli_num_rows($requestVend) > 0) {
-                            $rowVendedor = mysqli_fetch_assoc($requestVend);
-                            if ($rowVendedor['atencion'] !== null) {
-                                Connection::runQuery("UPDATE `link_pedidos` SET `clienteId`= '" . $rowVendedor['atencion'] . "'  where id = '" . $notiPedido . "'");
-                                $requestVendedor = Connection::runQuery("SELECT codigo  FROM vendedores where atencion= '" . $rowVendedor['atencion'] . "'");
-                                if (mysqli_num_rows($requestVendedor) > 0) {
-                                    $rowVendedor = mysqli_fetch_assoc($requestVendedor);
-                                    $vendedorR   = $rowVendedor['codigo'];
-                                    Connection::runQuery("UPDATE `vendedores` SET `atencion`= ''  where telefono= '" . $user . "'");
+                        if (strlen($codigoVendedor) > 0) {
+                            // Vendedor identificado por código (sesión en contactos.vendedor_codigo)
+                            $reqAt = Connection::runQuery("SELECT atencion FROM vendedores WHERE codigo = '" . Connection::escape($codigoVendedor) . "'");
+                            if ($reqAt && mysqli_num_rows($reqAt) > 0) {
+                                $at = mysqli_fetch_assoc($reqAt)['atencion'];
+                                if ($at !== null && $at !== '') {
+                                    Connection::runQuery("UPDATE `link_pedidos` SET `clienteId`= '" . Connection::escape($at) . "' where id = '" . $notiPedido . "'");
+                                    $vendedorR = $codigoVendedor;
+                                    Connection::runQuery("UPDATE `vendedores` SET `atencion`= '' where codigo = '" . Connection::escape($codigoVendedor) . "'");
+                                }
+                            }
+                        } else {
+                            $requestVend = Connection::runQuery("SELECT atencion  FROM vendedores where telefono= '" . Connection::escape($user) . "'");
+                            if (mysqli_num_rows($requestVend) > 0) {
+                                $rowVendedor = mysqli_fetch_assoc($requestVend);
+                                // Solo asignar cliente/vendedor al link si 'atencion' apunta a un cliente real.
+                                // Con atencion='' se generaba un link /pedidos/{id}/{vendedor} SIN cliente, y el
+                                // SELECT por atencion='' matcheaba cualquier vendedor con atencion vacío.
+                                // Misma guarda que la rama por código (más arriba).
+                                if ($rowVendedor['atencion'] !== null && $rowVendedor['atencion'] !== '') {
+                                    Connection::runQuery("UPDATE `link_pedidos` SET `clienteId`= '" . Connection::escape($rowVendedor['atencion']) . "'  where id = '" . $notiPedido . "'");
+                                    $requestVendedor = Connection::runQuery("SELECT codigo  FROM vendedores where atencion= '" . Connection::escape($rowVendedor['atencion']) . "'");
+                                    if (mysqli_num_rows($requestVendedor) > 0) {
+                                        $rowVendedor = mysqli_fetch_assoc($requestVendedor);
+                                        $vendedorR   = $rowVendedor['codigo'];
+                                        Connection::runQuery("UPDATE `vendedores` SET `atencion`= ''  where telefono= '" . Connection::escape($user) . "'");
+                                    }
                                 }
                             }
                         }
@@ -287,7 +348,7 @@ class BotEngine
                     $esOpcionValida = false;
                     $numeroReclamo  = '';
                     $numeroConsulta = '';
-                    $menuItem       = $this->menuJson[$i]['menuItem'];
+                    $menuItem       = $this->proyectarMenu($this->menuJson[$i]['menuItem'] ?? []);
 
                     for ($j = 0; $j < count($menuItem); $j++) {
 
@@ -330,7 +391,7 @@ class BotEngine
                                         }
                                     }
 
-                                    $numeroReclamo = Connection::runQueryID("INSERT INTO `reclamos`(empresa,`fecha_ingreso`,`clienteId`, `telefono`,nick, `motivo`, `area`, `detalle`, resolucion) VALUES ('" . $this->empresa . "',now(),'" . $codigoCliente . "','" . $user . "','" . $pushname . "','" . Connection::escape($_motivo) . "','" . $_area . "','" . $detalle . "','')");
+                                    $numeroReclamo = Connection::runQueryID("INSERT INTO `reclamos`(empresa,`fecha_ingreso`,`clienteId`, `telefono`,nick, `motivo`, `area`, `detalle`, resolucion) VALUES ('" . $this->empresa . "',now(),'" . Connection::escape($codigoCliente) . "','" . Connection::escape($user) . "','" . Connection::escape($pushname) . "','" . Connection::escape($_motivo) . "','" . Connection::escape($_area) . "','" . Connection::escape($detalle) . "','')");
                                     Connection::runQuery("UPDATE `contactos` SET `anterior`= '' where id like '" . $user . "'");
                                     $request = Connection::runQuery("SELECT telefono,area FROM `areas` WHERE `id` = '" . $_area . "'");
                                     if (mysqli_num_rows($request) > 0) {
@@ -374,25 +435,45 @@ class BotEngine
                                 if (isset($menuItem[$j]['accion'])) {
 
                                     if ($menuItem[$j]['accion'] === 'chequearVendedorCliente') {
-                                        $request = Connection::runQuery("SELECT count(*) as existe, codigo  FROM vendedores where telefono = '" . $user . "'");
-                                        if (mysqli_num_rows($request) > 0) {
-                                            $rowVendedor = mysqli_fetch_assoc($request);
-                                            if ($rowVendedor['existe'] > 0) {
-                                                $requesteCiente = Connection::runQuery("SELECT razonSocial, codigo  FROM clientes where codigo =  '" . $mensaje . "' and vendedor= '" . $rowVendedor['codigo'] . "'");
-                                                if (mysqli_num_rows($requesteCiente) > 0) {
-                                                    $rowCliente = mysqli_fetch_assoc($requesteCiente);
-                                                    Connection::runQuery("UPDATE `vendedores` SET `atencion`= '" . $rowCliente['codigo'] . "'  where codigo like '" . $rowVendedor['codigo'] . "'");
-                                                    $this->client->sendText($user, 'Cliente: ' . $rowCliente['razonSocial']);
-                                                } else {
-                                                    $this->client->sendText($user, 'No se encuentra registrado como vendedor. ');
-                                                    Connection::runQuery("UPDATE `contactos` SET `mensaje`= '', `anterior`= '', `esperaRespuesta`=0,`menu` = '0'  where id like '" . $user . "'");
-                                                    return;
-                                                }
-                                            } else {
-                                                $this->client->sendText($user, 'No se encuentra registrado como vendedor. ');
-                                                Connection::runQuery("UPDATE `contactos` SET `mensaje`= '', `anterior`= '', `esperaRespuesta`=0,`menu` = '0'  where id like '" . $user . "'");
-                                                return;
-                                            }
+                                        // Vendedor de sesión (guardado por registraVendedor en contactos.vendedor_codigo)
+                                        $codVend = $codigoVendedor;
+
+                                        // "Salir": cierra la sesión de vendedor.
+                                        if (strcasecmp(trim($mensaje), 'salir') === 0) {
+                                            Connection::runQuery("UPDATE `contactos` SET `vendedor_codigo`=NULL, `mensaje`='', `anterior`='', `esperaRespuesta`=0, `menu`='0' where id like '" . $user . "'");
+                                            $this->client->sendText($user, 'Cerraste tu sesión de vendedor. ¡Hasta pronto!');
+                                            return;
+                                        }
+
+                                        // Validar que el código de cliente exista y sea de este vendedor.
+                                        $reqC = Connection::runQuery("SELECT razonSocial, codigo FROM clientes WHERE codigo = '" . Connection::escape($mensaje) . "' AND vendedor = '" . Connection::escape($codVend) . "'");
+                                        if ($reqC && mysqli_num_rows($reqC) > 0) {
+                                            $rowCliente = mysqli_fetch_assoc($reqC);
+                                            Connection::runQuery("UPDATE `vendedores` SET `atencion`= '" . Connection::escape($rowCliente['codigo']) . "' where codigo like '" . Connection::escape($codVend) . "'");
+                                            Connection::runQuery("UPDATE `contactos` SET `mensaje`='' where id like '" . $user . "'");
+                                            $this->client->sendText($user, 'Cliente: ' . $rowCliente['razonSocial']);
+                                        } else {
+                                            // Reintento: NO se resetea el estado → el próximo mensaje es otro intento.
+                                            $this->client->sendText($user, 'Codigo de cliente ingresado incorrecto intente nuevamente');
+                                            return;
+                                        }
+                                    }
+
+                                    if ($menuItem[$j]['accion'] === 'registraVendedor') {
+                                        // Doble verificación: el código debe existir en ESTE tenant Y el número que
+                                        // escribe ($user, ya normalizado a dígitos por el webhook) debe coincidir con
+                                        // el vendedores.telefono registrado (formato WhatsApp 549…). Un número no
+                                        // registrado no accede aunque conozca un código válido.
+                                        $req = Connection::runQuery("SELECT codigo FROM vendedores WHERE codigo = '" . Connection::escape($mensaje) . "' AND telefono = '" . $user . "'");
+                                        if ($req && mysqli_num_rows($req) > 0) {
+                                            $rowV = mysqli_fetch_assoc($req);
+                                            Connection::runQuery("UPDATE `contactos` SET `vendedor_codigo`= '" . Connection::escape($rowV['codigo']) . "', `mensaje`='' where id like '" . $user . "'");
+                                        } else {
+                                            // Mensaje genérico a propósito: no confirma si el código existe (evita filtrar
+                                            // códigos válidos a un número no autorizado).
+                                            $this->client->sendText($user, 'No pudimos identificarte como vendedor. Verificá tu código y escribí desde tu número registrado en el sistema.');
+                                            Connection::runQuery("UPDATE `contactos` SET `mensaje`= '', `anterior`= '', `esperaRespuesta`=0,`menu` = '0', `vendedor_codigo`=NULL where id like '" . $user . "'");
+                                            return;
                                         }
                                     }
 
@@ -420,7 +501,12 @@ class BotEngine
                                         if (strlen($cli) > 0) {
                                             Connection::runQuery("REPLACE INTO `telefonos`( `clienteId`, `telefono`, `activo`)  VALUES ('" . $codigoCliente . "','" . $user . "',1)");
                                         } else {
-                                            $this->client->sendText($user, 'El codigo de cliente no es valido.');
+                                            // Código inválido: cortar el flujo. Mandar el aviso, resetear el
+                                            // contacto a estado inicial y NO seguir al menú (return temprano,
+                                            // mismo patrón que chequearVendedorCliente/registraClientes).
+                                            $this->client->sendText($user, 'El código de cliente no es válido. Volvé a intentarlo escribiendo *Hola* nuevamente.');
+                                            Connection::runQuery("UPDATE `contactos` SET `mensaje`= '', `anterior`= '', `esperaRespuesta`=0,`menu` = '0'  where id like '" . $user . "'");
+                                            return;
                                         }
                                     }
 
@@ -542,12 +628,12 @@ class BotEngine
                                                                                 `resolucion`)
                                                                                 VALUES (        '" . $this->empresa . "',
                                                                                                 now(),
-                                                                                                '" . $codigoCliente . "',
-                                                                                                '" . $user . "',
-                                                                                                '" . $pushname . "',
+                                                                                                '" . Connection::escape($codigoCliente) . "',
+                                                                                                '" . Connection::escape($user) . "',
+                                                                                                '" . Connection::escape($pushname) . "',
                                                                                                 '" . Connection::escape($_motivo) . "',
-                                                                                                '" . $_area . "',
-                                                                                                '" . $mensaje . "',
+                                                                                                '" . Connection::escape($_area) . "',
+                                                                                                '" . Connection::escape($mensaje) . "',
                                                                                                 '')";
                                         $numeroReclamo  = '';
                                         $numeroConsulta = Connection::runQueryID($consultaSql);
@@ -650,7 +736,7 @@ class BotEngine
 
     private function registrarContacto($pushname, $user, $menu, $espera_respuesta)
     {
-        Connection::runQuery("INSERT INTO `contactos`(`id`,`nombre`, `telefono`, `menu`, `esperaRespuesta`, `fechaHora`) VALUES ('" . $user . "','" . $pushname . "','" . $user . "','" . $menu . "','" . $espera_respuesta . "', now()) ON DUPLICATE KEY UPDATE nombre='" . $pushname . "' ,menu='" . $menu . "', esperaRespuesta='" . $espera_respuesta . "',fechaHora=now()");
+        Connection::runQuery("INSERT INTO `contactos`(`id`,`nombre`, `telefono`, `menu`, `esperaRespuesta`, `fechaHora`) VALUES ('" . Connection::escape($user) . "','" . Connection::escape($pushname) . "','" . Connection::escape($user) . "','" . $menu . "','" . $espera_respuesta . "', now()) ON DUPLICATE KEY UPDATE nombre='" . Connection::escape($pushname) . "' ,menu='" . $menu . "', esperaRespuesta='" . $espera_respuesta . "',fechaHora=now()");
     }
 
     private function getSaludo()

@@ -194,7 +194,8 @@ $(document).ready(function () {
         require "../../modelos/Reclamo.php";
         //$request=Connection::runQuery("SELECT reclamos.*,clientes.razonSocial,clientes.direccion,clientes.vendedor FROM `reclamos` LEFT JOIN clientes ON reclamos.clienteId = clientes.codigo WHERE reclamoId like '".$_GET["id"]."' and estado <> 'Finalizado' ");        
         $reclamo = new Reclamo();
-        $request = $reclamo->listarRespReclamo($_GET["id"]);
+        $idGet = intval($_GET["id"] ?? 0);
+        $request = $reclamo->listarRespReclamo($idGet);
         $resolucion="";
         if( mysqli_num_rows ($request )>0){
             $row = mysqli_fetch_assoc($request);
@@ -222,7 +223,7 @@ $(document).ready(function () {
         <div class="card border sombra" style="border-width: 0.25rem !important;border-radius: 15px;">
             <div class="tab-content">
                 <?php 
-                $respReclamo = $reclamo->listarChats($_GET["id"]);
+                $respReclamo = $reclamo->listarChats($idGet);
                 ?>
                 <div class="tab-pane show active" id="tab-chat">
                     <div class="card-body px-0 pb-0 chat-body chat-supervisor" >
@@ -244,8 +245,8 @@ $(document).ready(function () {
                                     </div>
                                     <div class="conversation-text">
                                         <div class="ctext-wrap">
-                                            <i><?php echo $reg->usuario?></i>
-                                            <p> <?php echo $reg->mensaje?></p>
+                                            <i><?php echo htmlspecialchars($reg->usuario, ENT_QUOTES, 'UTF-8')?></i>
+                                            <p> <?php echo htmlspecialchars($reg->mensaje, ENT_QUOTES, 'UTF-8')?></p>
                                         </div>
                                     </div>   
                                 </li>
@@ -257,12 +258,12 @@ $(document).ready(function () {
                     </div>
                     <div class="card-footer text-muted " style="background: #a19e9e14;">
                         <form class="needs-validation mt-2" novalidate="" name="chat-form" id="form_01">
-                            <input id="nick" type="hidden" value="<?php echo $row["nick"]; ?>">
-                            <input id="reclamoId" type="hidden" value="<?php echo $row["reclamoId"]; ?>">
-                            <input id="motivo" type="hidden" value="<?php echo $row["motivo"]; ?>">
-                            <input id="fecha_hora" type="hidden" value="<?php echo $row["fecha_hora"]; ?>">
-                            <input id="telefono" type="hidden" value="<?php echo $row["telefono"]; ?>">
-                            <input id="empresa" type="hidden" value="<?php echo $row["empresa"]; ?>">
+                            <input id="nick" type="hidden" value="<?php echo htmlspecialchars($row["nick"], ENT_QUOTES, 'UTF-8'); ?>">
+                            <input id="reclamoId" type="hidden" value="<?php echo htmlspecialchars($row["reclamoId"], ENT_QUOTES, 'UTF-8'); ?>">
+                            <input id="motivo" type="hidden" value="<?php echo htmlspecialchars($row["motivo"], ENT_QUOTES, 'UTF-8'); ?>">
+                            <input id="fecha_hora" type="hidden" value="<?php echo htmlspecialchars($row["fecha_hora"], ENT_QUOTES, 'UTF-8'); ?>">
+                            <input id="telefono" type="hidden" value="<?php echo htmlspecialchars($row["telefono"], ENT_QUOTES, 'UTF-8'); ?>">
+                            <input id="empresa" type="hidden" value="<?php echo htmlspecialchars($row["empresa"], ENT_QUOTES, 'UTF-8'); ?>">
                             <div class="row">
                                 <div class="col-sm-auto mt-n2">Finalizar?<br>
                                     <input type="checkbox" id="estado2"  data-switch="bool"/>
@@ -294,35 +295,35 @@ $(document).ready(function () {
                     <div class="row">
                         <div class="col-md-4">
                             <h6 class="font-15"><i class="mdi mdi-spin mdi-rhombus-split text-info"></i> Codigo Cliente</h6>
-                            <p class="text-sm lh-150 text-break"><?php echo $row["clienteId"]; ?></p>
+                            <p class="text-sm lh-150 text-break"><?php echo htmlspecialchars($row["clienteId"], ENT_QUOTES, 'UTF-8'); ?></p>
                         </div>
                         <div class="col-md-4">
                             <h6 class="font-15"><i class="mdi mdi-spin mdi-rhombus-split text-info"></i> Razon Social Cliente</h6>
-                            <p class="text-sm lh-150 text-break"><?php echo $row["razonSocial"]; ?></p>
+                            <p class="text-sm lh-150 text-break"><?php echo htmlspecialchars($row["razonSocial"], ENT_QUOTES, 'UTF-8'); ?></p>
                         </div>
                         <div class="col-md-4">
                             <h6 class="font-15"><i class="mdi mdi-spin mdi-rhombus-split text-info"></i> Direccion Cliente</h6>
-                            <p class="text-sm lh-150 text-break"><?php echo $row["direccion"]; ?></p>
+                            <p class="text-sm lh-150 text-break"><?php echo htmlspecialchars($row["direccion"], ENT_QUOTES, 'UTF-8'); ?></p>
                         </div>
                         <div class="col-md-4">
                             <h6 class="font-15"><i class="mdi mdi-spin mdi-rhombus-split text-info"></i> Tel. Cliente</h6>
-                            <p class="text-sm lh-150 text-break"><?php echo $row["telefono"]; ?></p>
+                            <p class="text-sm lh-150 text-break"><?php echo htmlspecialchars($row["telefono"], ENT_QUOTES, 'UTF-8'); ?></p>
                         </div>
                         <div class="col-md-4">
                             <h6 class="font-15"> <i class="mdi mdi-spin mdi-rhombus-split text-info"></i> Cod. Reclamo</h6>
-                            <p class="text-sm lh-150 text-break"><?php echo $row["reclamoId"];?></p>
+                            <p class="text-sm lh-150 text-break"><?php echo htmlspecialchars($row["reclamoId"], ENT_QUOTES, 'UTF-8');?></p>
                         </div>
                         <div class="col-md-4">
                             <h6 class="font-15"> <i class="mdi mdi-spin mdi-rhombus-split text-info"></i> Motivo</h6>
-                            <p class="text-sm lh-150 text-break"> <?php echo $row["motivo"]; ?></p>
+                            <p class="text-sm lh-150 text-break"> <?php echo htmlspecialchars($row["motivo"], ENT_QUOTES, 'UTF-8'); ?></p>
                         </div>
                         <div class="col-md-4">
                             <h6 class="font-15"> <i class="mdi mdi-spin mdi-rhombus-split text-info"></i> Fecha Reclamo</h6>
-                            <p class="text-sm lh-150 text-break"><?php echo $row["fecha_ingreso"]; ?></p>
+                            <p class="text-sm lh-150 text-break"><?php echo htmlspecialchars($row["fecha_ingreso"], ENT_QUOTES, 'UTF-8'); ?></p>
                         </div>
                         <div class="col-md-4">
                             <h6 class="font-15"> <i class="mdi mdi-spin mdi-rhombus-split text-info"></i> Detalle del Motivo</h6>
-                            <p class="text-sm lh-150 text-break"><?php echo $row["detalle"]; ?></p>
+                            <p class="text-sm lh-150 text-break"><?php echo htmlspecialchars($row["detalle"], ENT_QUOTES, 'UTF-8'); ?></p>
                         </div>
                         
                     </div>

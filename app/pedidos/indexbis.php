@@ -167,6 +167,21 @@
     <?php
     define('__ROOT__', dirname(dirname(__FILE__)));
     require (__ROOT__.'/config/global.php');
+
+    // Costo de envío configurable por tenant (bot_config). Lectura aislada (conexión propia)
+    // para no alterar el estado global de Connection que usa el resto de la página.
+    $costoEnvio = 0.0; $costoEnvioActivo = 0;
+    $__ceSlug = preg_replace('/[^a-z0-9_]/', '', strtolower(($_SERVER['HTTP_X_TENANT'] ?? '') ?: ($_GET['t'] ?? '')));
+    $__ceDb   = $__ceSlug !== '' ? 'atiende_' . $__ceSlug : (!empty($_SESSION['tenant_db']) ? $_SESSION['tenant_db'] : DB_NAME);
+    $__ceLink = @mysqli_connect(DB_HOST, DB_USERNAME, DB_PASSWORD, $__ceDb);
+    if ($__ceLink) {
+        $__ceRes = @mysqli_query($__ceLink, "SELECT costo_envio, costo_envio_activo FROM bot_config LIMIT 1");
+        if ($__ceRes && ($__ceRow = mysqli_fetch_assoc($__ceRes))) {
+            $costoEnvio       = (float) $__ceRow['costo_envio'];
+            $costoEnvioActivo = (int) $__ceRow['costo_envio_activo'];
+        }
+        mysqli_close($__ceLink);
+    }
     ?>
     <script>
 
@@ -966,7 +981,9 @@
                         /**------------------------- */
                         mensaje +="*Pedido N°:* "+ped+"\n";
                         mensaje +="*Monto: $* "+getTotales(pedido)+"\n";
-                        mensaje +="*Costo de envio:$* 0.00 \n";
+<?php if ($costoEnvioActivo): ?>
+                        mensaje +="*Costo de envio:$* <?php echo number_format($costoEnvio, 2, '.', ''); ?> \n";
+<?php endif; ?>
                         mensaje += "*Ticket:* 👇\n\n";
                         // mensaje += "http://www.atiende.lat/"+token+`/reportes/exTicket.php?id=${ped}\n\n`;
                         mensaje += url+`/reportes/exTicket.php?id=${ped}\n\n`;
@@ -1018,7 +1035,9 @@
                                     messageClient +="*Vendedor Tel:* "+telefono+"\n";
                                     messageClient +="*Vendedor:* "+nombre+"\n";
                                     messageClient +="*Monto: $* "+getTotales(pedido)+"\n";
-                                    messageClient +="*Costo de envio:$* 0.00 \n";
+<?php if ($costoEnvioActivo): ?>
+                                    messageClient +="*Costo de envio:$* <?php echo number_format($costoEnvio, 2, '.', ''); ?> \n";
+<?php endif; ?>
                                     messageClient += "*Ticket:* 👇\n\n";
                                     messageClient += "http://www.atiende.lat/"+token+"/reportes/exTicket.php?id="+ped+"\n\n";
                                     jsonToClient.msg.to(data);

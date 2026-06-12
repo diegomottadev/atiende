@@ -8,7 +8,8 @@ $idarticulo=isset($_POST["idarticulo"])? limpiarCadena($_POST["idarticulo"]):"";
 $rubro=isset($_POST["rubro"])? limpiarCadena($_POST["rubro"]):"";
 $linea=isset($_POST["linea"])? limpiarCadena($_POST["linea"]):"";
 $nombre=isset($_POST["nombre"])? limpiarCadena($_POST["nombre"]):"";
-$calibre=isset($_POST["calibre"])? limpiarCadena($_POST["calibre"]):"";
+$subrubro=isset($_POST["subrubro"])? limpiarCadena($_POST["subrubro"]):"";
+$marca=isset($_POST["marca"])? limpiarCadena($_POST["marca"]):"";
 //$descripcion=isset($_POST["descripcion"])? limpiarCadena($_POST["descripcion"]):"";
 $imagen=isset($_POST["imagen"])? limpiarCadena($_POST["imagen"]):"";
 
@@ -41,7 +42,7 @@ switch ($_GET["op"]) {
 		$rspta=$articulo->insertar($idcategoria,$codigo,$nombre,$stock,$descripcion,$imagen);
 		echo $rspta ? "Datos registrados correctamente" : "No se pudo registrar los datos";
 	}else{
-         $rspta=$articulo->editar($idarticulo,$rubro,$linea,$nombre,$calibre);
+         $rspta=$articulo->editar($idarticulo,$rubro,$linea,$nombre,$subrubro,$marca);
 		echo $rspta ? "Datos actualizados correctamente" : "No se pudo actualizar los datos";
 	}
 		break;

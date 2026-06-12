@@ -22,6 +22,14 @@ if (!isset($_SESSION['nombre'])) {
 .upload-zone__filename { font-size:.8rem; font-weight:600; color:#0acf97; }
 .upload-zone__clear { margin-left:auto; flex-shrink:0; background:none; border:none; color:#aaa; font-size:1rem; cursor:pointer; padding:0 2px; line-height:1; }
 .upload-zone__clear:hover { color:#fa5c7c; }
+/* Formulario de edición — secciones agrupadas */
+#formularioregistros .form-section + .form-section { margin-top:1.25rem; padding-top:1.1rem; border-top:1px solid #eef0f4; }
+#formularioregistros .form-section__title { font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.6px; color:#727cf5; margin-bottom:.85rem; display:flex; align-items:center; gap:.45rem; }
+#formularioregistros .form-section__title i { font-size:1rem; }
+#formularioregistros .form-section__hint { font-weight:500; text-transform:none; letter-spacing:0; color:#aab1bd; font-size:.72rem; }
+#formularioregistros .form-label { font-size:.75rem; font-weight:600; color:#6c757d; margin-bottom:.3rem; }
+#formularioregistros .form-control:focus { border-color:#b3a8f5; box-shadow:0 0 0 .15rem rgba(114,124,245,.12); }
+#formularioregistros .form-footer { margin-top:1.5rem; padding-top:1rem; border-top:1px solid #eef0f4; display:flex; justify-content:flex-end; gap:.5rem; }
 </style>
         <!-- start page title -->
         <div class="row">
@@ -43,6 +51,9 @@ if (!isset($_SESSION['nombre'])) {
         <div class="row mb-2 mt-n4">
             <div class="col-sm-12">            
                 <div class="text-sm-end">
+                    <button class="btn btn-primary rounded-pill pull-right sombra-logo me-2" id="btnNuevo" onclick="nuevoCliente()" type="button">
+                        <i class="mdi mdi-plus me-1"></i> Nuevo
+                    </button>
                     <button class="btn btn-success rounded-pill pull-right sombra-logo"  id="btnExportar" onClick="exportarClientes()">
                         <i class="mdi mdi-file-excel-outline me-1"></i> Exportar
                     </button>
@@ -56,6 +67,7 @@ if (!isset($_SESSION['nombre'])) {
         <div class="row">
             <div class="col-12">
                 <div class="card sombra-panel" style="border-top:3px solid #727cf5;">
+                    <div id="panelLista">
                     <div class="card-body pb-2">
                         <div id="subirarchivo" class="mb-3">
                             <form method="post" enctype="multipart/form-data" id="formUp" name="formUp">
@@ -118,6 +130,7 @@ if (!isset($_SESSION['nombre'])) {
                         </div>
                     </div>
                     <hr class="my-0">
+                    </div>
                     <div class="card-body p-0">
                         <div class="table-responsive" id="listadoregistros"> <!-- dt-responsive -->
                             <table id="tbllistado" class="table table-striped table-centered mb-0  nowrap w-100">
@@ -142,95 +155,140 @@ if (!isset($_SESSION['nombre'])) {
                         </div>
                     </div>
                     <div class="card-body px-3 pb-3" id="formularioregistros">
-                        <h6 class="text-muted mb-2" style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;"><i class="mdi mdi-access-point me-1"></i> <span id="ribbon-text">Editar Cliente</span></h6>
-                                <form action="" name="formulario" id="formulario" method="POST">
-                                    <div class="row">
-                                        <div class="col-lg-6">
-                                            <div class="mb-3 position-relative">
-                                                <label for="" class="form-label">Nombre</label>
-                                                <input class="form-control" type="hidden" name="codigo" id="codigo">
-                                                <input class="form-control" type="text" name="nombre" id="nombre" maxlength="100" placeholder="Nombre del cliente" required>                                                
-                                            </div>                                           
-                                        </div>
-                                        <div class="col-lg-6">
-                                            <div class="mb-3 position-relative">
-                                                <label for="" class="form-label">Direcci&oacute;n</label>
-                                                <input class="form-control" type="text" name="direccion" id="direccion" maxlength="100" placeholder="Direccion" required>
-                                            </div>                                           
+                        <ul class="nav nav-tabs mb-3" id="clienteTabs" role="tablist">
+                            <li class="nav-item">
+                                <a class="nav-link active" data-bs-toggle="tab" href="#tabDatosCliente" role="tab" aria-selected="true">
+                                    <i class="mdi mdi-account-edit-outline me-1"></i> <span id="ribbon-text">Editar Cliente</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" data-bs-toggle="tab" href="#tabVendedorAsignado" role="tab" aria-selected="false">
+                                    <i class="mdi mdi-account-tie-outline me-1"></i> Vendedor asignado
+                                </a>
+                            </li>
+                        </ul>
+                        <form action="" name="formulario" id="formulario" method="POST">
+                            <input type="hidden" name="modo" id="modo" value="editar">
+                            <div class="tab-content">
+
+                                <!-- TAB 1: Datos del cliente -->
+                                <div class="tab-pane show active" id="tabDatosCliente" role="tabpanel">
+
+                                    <!-- Identificación -->
+                                    <div class="form-section">
+                                        <div class="form-section__title"><i class="mdi mdi-card-account-details-outline"></i> Identificación</div>
+                                        <div class="row g-3">
+                                            <div class="col-lg-3 col-md-4">
+                                                <label class="form-label">Código</label>
+                                                <input class="form-control" type="text" name="codigo" id="codigo" maxlength="255" placeholder="Ej: D0001" required>
+                                                <small class="text-muted" id="codigoHint" style="display:none;">El código es la clave del cliente; no se puede cambiar al editar.</small>
+                                            </div>
+                                            <div class="col-lg-5 col-md-8">
+                                                <label class="form-label">Razón Social</label>
+                                                <input class="form-control" type="text" name="nombre" id="nombre" maxlength="100" placeholder="Razón Social del cliente" required>
+                                            </div>
+                                            <div class="col-lg-2 col-md-6">
+                                                <label class="form-label">CUIL</label>
+                                                <input class="form-control" type="text" name="cuil" id="cuil" maxlength="20" placeholder="Opcional">
+                                            </div>
+                                            <div class="col-lg-2 col-md-6">
+                                                <label class="form-label">DNI</label>
+                                                <input class="form-control" type="text" name="dni" id="dni" maxlength="20" placeholder="Opcional">
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="row">
-                                        <div class="col-lg-6">
-                                            <div class="mb-3 position-relative">
-                                                <label for="" class="form-label">Localidad</label>                                                
+
+                                    <!-- Ubicación y contacto -->
+                                    <div class="form-section">
+                                        <div class="form-section__title"><i class="mdi mdi-map-marker-outline"></i> Ubicación y contacto</div>
+                                        <div class="row g-3">
+                                            <div class="col-lg-6">
+                                                <label class="form-label">Dirección</label>
+                                                <input class="form-control" type="text" name="direccion" id="direccion" maxlength="100" placeholder="Calle y número" required>
+                                            </div>
+                                            <div class="col-lg-3 col-md-6">
+                                                <label class="form-label">Localidad</label>
                                                 <input class="form-control" type="text" name="localidad" id="localidad" maxlength="20" placeholder="Localidad">
-                                            </div>                                           
+                                            </div>
+                                            <div class="col-lg-3 col-md-6">
+                                                <label class="form-label">Teléfono</label>
+                                                <input class="form-control" type="text" name="telefono" id="telefono" maxlength="20" placeholder="Número de teléfono">
+                                            </div>
                                         </div>
-                                        <div class="col-lg-6">
-                                            <div class="mb-3 position-relative">
-                                                <label for="" class="form-label">Ramo</label>
+                                    </div>
+
+                                    <!-- Datos comerciales -->
+                                    <div class="form-section">
+                                        <div class="form-section__title"><i class="mdi mdi-storefront-outline"></i> Datos comerciales</div>
+                                        <div class="row g-3">
+                                            <div class="col-lg-3 col-md-6">
+                                                <label class="form-label">Ramo</label>
                                                 <input class="form-control" type="text" name="ramo" id="ramo" maxlength="70" placeholder="Ramo">
-                                            </div>                                           
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-lg-6">
-                                            <div class="mb-3 position-relative">
-                                                <label for="" class="form-label">Telefono</label>                                                
-                                                <input class="form-control" type="text" name="telefono" id="telefono" maxlength="20" placeholder="Número de Telefono">
-                                            </div>                                           
-                                        </div>
-                                        <div class="col-lg-6">
-                                            <div class="mb-3 position-relative">
-                                                <label for="" class="form-label">Zona</label>
+                                            </div>
+                                            <div class="col-lg-3 col-md-6">
+                                                <label class="form-label">Zona</label>
                                                 <input class="form-control" type="text" name="zona" id="zona" placeholder="Zona">
-                                            </div>                                           
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-lg-6">
-                                            <div class="mb-3 position-relative">
-                                                <label for="" class="form-label">Lista</label>                                                
+                                            </div>
+                                            <div class="col-lg-3 col-md-6">
+                                                <label class="form-label">Lista</label>
                                                 <input class="form-control" type="text" name="lista" id="lista" maxlength="20" placeholder="Lista de precio">
-                                            </div>                                           
-                                        </div>
-                                        <div class="col-lg-6">
-                                            <div class="mb-3 position-relative">
-                                                <label for="" class="form-label">Vendedor</label>
-                                                <input class="form-control" type="text" name="vendedor" id="vendedor" maxlength="50" placeholder="Vendedor">
-                                            </div>                                           
-                                        </div>
-                                    </div>  
-                                    <div class="row">
-                                        <div class="col-lg-6">
-                                            <div class="mb-3 position-relative">
-                                                <label for="" class="form-label">Dep&oacute;sito</label>                                                
-                                                <input class="form-control" type="text" name="deposito" id="deposito" maxlength="20" placeholder="Depósito">
-                                            </div>                                           
-                                        </div>
-                                        <div class="col-lg-6">
-                                            <div class="mb-3 position-relative">
-                                                <label for="" class="form-label">Latitud</label>
-                                                <input class="form-control" type="text" name="latitud" id="latitud" maxlength="5" placeholder="Latitud">
-                                            </div>                                           
+                                            </div>
+                                            <div class="col-lg-3 col-md-6">
+                                                <label class="form-label">Depósito <span class="text-danger">*</span></label>
+                                                <input class="form-control" type="text" name="deposito" id="deposito" maxlength="20" placeholder="Depósito" required>
+                                                <small class="text-muted">Obligatorio: sin depósito el cliente no ve productos al hacer el pedido.</small>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="row">
-                                        <div class="col-lg-6">
-                                            <div class="mb-3 position-relative">
-                                                <label for="" class="form-label">Longitud</label>                                                
-                                                <input class="form-control" type="text" name="longitud" id="longitud" maxlength="50" placeholder="Longitud">
-                                            </div>                                           
-                                        </div>                                        
-                                    </div> 
-                                    <div class="row">
-                                        <div class="col-md-12 text-sm-end">
-                                            <button class="btn btn-success rounded-pill sombra-logo" type="submit" id="btnGuardar">
-                                                <i class="mdi mdi-content-save-all"></i> Guardar
-                                            </button>
-                                        </div>       
-                                    </div>                                    
-                                </form>
+
+                                    <!-- Geolocalización -->
+                                    <div class="form-section">
+                                        <div class="form-section__title"><i class="mdi mdi-crosshairs-gps"></i> Geolocalización <span class="form-section__hint">— opcional</span></div>
+                                        <div class="row g-3">
+                                            <div class="col-lg-3 col-md-6">
+                                                <label class="form-label">Latitud</label>
+                                                <input class="form-control" type="text" name="latitud" id="latitud" maxlength="50" placeholder="-32.89">
+                                            </div>
+                                            <div class="col-lg-3 col-md-6">
+                                                <label class="form-label">Longitud</label>
+                                                <input class="form-control" type="text" name="longitud" id="longitud" maxlength="50" placeholder="-68.84">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- TAB 2: Vendedor asignado -->
+                                <div class="tab-pane" id="tabVendedorAsignado" role="tabpanel">
+                                    <div class="form-section">
+                                        <div class="d-flex align-items-center gap-2 mb-3 p-2 px-3 rounded sombra-panel" style="background:#eef0ff;border-left:4px solid #727cf5;">
+                                            <i class="mdi mdi-account-tie text-primary" style="font-size:1.6rem;"></i>
+                                            <div>
+                                                <div style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#6c757d;">Vendedor</div>
+                                                <div class="fw-bold" id="vendedorAsignadoTexto" style="color:#4a4f9e;">— Sin asignar —</div>
+                                            </div>
+                                        </div>
+                                        <div class="row g-3">
+                                            <div class="col-lg-6">
+                                                <label for="vendedor" class="form-label">Seleccionar vendedor</label>
+                                                <select class="form-select" name="vendedor" id="vendedor">
+                                                    <option value="">— Sin asignar —</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            <div class="form-footer">
+                                <button class="btn btn-light rounded-pill" type="button" onclick="cancelarform()">
+                                    <i class="mdi mdi-close me-1"></i> Cancelar
+                                </button>
+                                <button class="btn btn-success rounded-pill sombra-logo" type="submit" id="btnGuardar">
+                                    <i class="mdi mdi-content-save-all me-1"></i> Guardar
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>

@@ -1,26 +1,29 @@
 <?php
 include_once("../config/Connection.php");
+include_once("../config/Telefono.php");
 
-// Teléfono de la persona que escribe al chat (el cliente). SIEMPRE su número,
-// nunca el del negocio: el botón "Volver a WhatsApp" reabre la conversación con él.
-$telefono = '';
-$ped = isset($_GET['ped']) ? preg_replace('/\D/', '', $_GET['ped']) : '';
-if ($ped !== '') {
-    // 1. Número guardado en el pedido confirmado
-    $request = Connection::runQuery("SELECT telefono FROM `pedidos` WHERE `pedidoid` = '" . $ped . "' AND telefono <> '' ORDER BY fecha DESC LIMIT 1");
-    if ($request !== null && mysqli_num_rows($request) > 0) {
-        $telefono = mysqli_fetch_assoc($request)['telefono'];
-    }
-    // 2. Respaldo: número del link original (pedidos.pedidoid == link_pedidos.id),
-    //    que el bot guarda con el WhatsApp del cliente.
-    if ($telefono === '') {
-        $request = Connection::runQuery("SELECT telefono FROM `link_pedidos` WHERE `id` = '" . $ped . "' AND telefono <> '' LIMIT 1");
-        if ($request !== null && mysqli_num_rows($request) > 0) {
-            $telefono = mysqli_fetch_assoc($request)['telefono'];
-        }
-    }
+// Resolver el tenant igual que index.php: subdominio (HTTP_X_TENANT de Nginx) o ?t=.
+// Sin esto, Connection cae a la DB base 'atiende' (sin bot_config) y no hay teléfono.
+// Nginx setea HTTP_X_TENANT='' (cadena vacía, no null) para el host base, por eso se usa
+// ?: y no ?? : así un acceso legacy por ?t= sigue funcionando cuando no hay subdominio.
+$tenantSlug = preg_replace('/[^a-z0-9_]/', '', strtolower(($_SERVER['HTTP_X_TENANT'] ?? '') ?: ($_GET['t'] ?? '')));
+if ($tenantSlug !== '') {
+    Connection::setDatabase('atiende_' . $tenantSlug);
 }
-$telefono = preg_replace('/\D/', '', $telefono); // wa.me: solo dígitos
+
+// Teléfono de WhatsApp del NEGOCIO. El botón "Volver a WhatsApp" reabre la
+// conversación con el bot/negocio (wa.me/<X> abre el chat CON X), así el cliente
+// vuelve al chat donde recibe la confirmación. Sale de bot_config.telefono del
+// tenant (vía getWebMasterConfig), no del pedido.
+$telefono = '';
+$cfg    = function_exists('getWebMasterConfig') ? getWebMasterConfig() : [];
+$digits = preg_replace('/\D/', '', (string) ($cfg['data']['telefono'] ?? ''));
+if ($digits !== '') {
+    // wa.me exige formato internacional (wa_id). Se normaliza según el país del tenant
+    // (bot_config.pais, default AR) vía Telefono::normalizar.
+    $paisT    = $cfg['data']['pais'] ?? 'AR';
+    $telefono = Telefono::normalizar($digits, $paisT);
+}
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -103,9 +106,11 @@ $telefono = preg_replace('/\D/', '', $telefono); // wa.me: solo dígitos
         <div class="finish-body">
             <h1 class="finish-title">¡Listo!</h1>
             <p class="finish-text">Tu pedido se registró correctamente.<br><strong>Verificá tu WhatsApp</strong> para confirmarlo.</p>
+<?php if ($telefono !== ''): ?>
             <a href="https://wa.me/<?php echo $telefono; ?>" target="_blank" class="btn-whatsapp">
                 <i class="uil uil-whatsapp"></i> Volver a WhatsApp
             </a>
+<?php endif; ?>
         </div>
         <div class="finish-foot">&copy; <?php echo date('Y'); ?> <span>Atiende</span></div>
     </div>

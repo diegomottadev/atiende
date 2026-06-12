@@ -7,9 +7,9 @@ require(__ROOT__ . '/config/global.php');
 
 $objPHPExcel = new PHPExcel();
 
-$fecha_inicio=isset($_GET["fecha_inicio"])? $_GET["fecha_inicio"]:"";
-$fecha_fin=isset($_GET["fecha_fin"])? $_GET["fecha_fin"]:"";
-$idcliente=isset($_GET["idcliente"])? $_GET["idcliente"]:"";
+$fecha_inicio=isset($_GET["fecha_inicio"])? Connection::escape($_GET["fecha_inicio"]):"";
+$fecha_fin=isset($_GET["fecha_fin"])? Connection::escape($_GET["fecha_fin"]):"";
+$idcliente=isset($_GET["idcliente"])? Connection::escape($_GET["idcliente"]):"";
 
 // Propiedades del documento
 $objPHPExcel->getProperties()->setCreator("Axum")

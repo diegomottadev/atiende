@@ -78,6 +78,8 @@ function limpiar(){
 	$("#codigo").val("");
 	$("#nombre").val("");
 	$("#descripcion").val("");
+	$("#subrubro").val("");
+	$("#marca").val("");
 	$("#stock").val("");
 	$("#imagenmuestra").attr("src","").hide();
 	$("#imagenactual").val("");
@@ -91,16 +93,19 @@ function limpiar(){
 function mostrarform(flag){
 	limpiar();
 	if(flag){
+		$("#panelLista").hide();
 		$("#listadoregistros").hide();
 		$("#subirarchivo").hide();
 		$("#filtrosArticulo").hide();
 		$("#formularioregistros").show();
-		$("#btnGuardar").prop("disabled",false);
+		$("#btnGuardar").prop("disabled",true);
+		$('#formulario').off('input.gd change.gd').on('input.gd change.gd', 'input, select, textarea', function(){ $('#btnGuardar').prop('disabled', false); });
 		$("#btnagregar").hide();
 		$("#btnExportar").hide();
 		$('#btnCancel').show();
 	}else{
 		$('#btnCancel').hide();
+		$("#panelLista").show();
 		$("#subirarchivo").show();
 		$("#listadoregistros").show();
 		$("#filtrosArticulo").show();
@@ -138,6 +143,7 @@ function listar(){
 		"aProcessing": true,//activamos el procedimiento del datatable
 		"aServerSide": true,// server-side: la DB hace búsqueda/orden/paginado → escala a millones de filas
 		dom: 'rtip',//sin 'f' (buscador propio); el selector de columnas se monta en la barra de filtros (#colvisHost), no en .dt-buttons
+		responsive: window.matchMedia('(max-width: 991.98px)').matches,//solo en mobile (<992px, incluye tablets en vertical); en desktop, todas las columnas. Convive con el colvis. Originalmente: colapsa columnas que no entran en una fila expandible (+). Convive con el colvis propio.
 		buttons: [],
 		"initComplete": function (settings, json) {
 			var api = this.api();
@@ -304,7 +310,8 @@ function mostrar(idarticulo){
 			$("#nombre").val(data.descripcion);
 			$("#rubro").val(data.rubro);
 			$("#linea").val(data.linea);
-			$("#calibre").val(data.calibre);
+			$("#subrubro").val(data.subrubro);
+			$("#marca").val(data.marca);
 			$("#imagenmuestra").attr("src","../files/articulos/"+data.codigo+".jpg?im="+(new Date()).getTime()).show();
 			$("#btnQuitarImagen").show();
 			try { bootstrap.Tooltip.getOrCreateInstance(document.getElementById('btnQuitarImagen'), {trigger:'hover', animation:false}); } catch(err){}

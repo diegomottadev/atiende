@@ -23,6 +23,12 @@ $ramo=isset($_POST["ramo"])? limpiarCadena($_POST["ramo"]):"";
 $zona=isset($_POST["zona"])? limpiarCadena($_POST["zona"]):"";
 $lista=isset($_POST["lista"])? limpiarCadena($_POST["lista"]):"";
 $telefono=isset($_POST["telefono"])? limpiarCadena($_POST["telefono"]):"";
+$deposito=isset($_POST["deposito"])? limpiarCadena($_POST["deposito"]):"";
+$latitud=isset($_POST["latitud"])? limpiarCadena($_POST["latitud"]):"";
+$longitud=isset($_POST["longitud"])? limpiarCadena($_POST["longitud"]):"";
+$cuil=isset($_POST["cuil"])? limpiarCadena($_POST["cuil"]):"";
+$dni=isset($_POST["dni"])? limpiarCadena($_POST["dni"]):"";
+$modo=isset($_POST["modo"])? limpiarCadena($_POST["modo"]):"";
 
 
 $op = $_GET['op'] ?? '';
@@ -30,11 +36,16 @@ csrfGuard($op, ['mostrar', 'listarp', 'listarc', 'filtros']);
 
 switch ($_GET["op"]) {
 	case 'guardaryeditar':
-		if (empty($idpersona)) {
-			$rspta=$persona->insertar($tipo_persona,$nombre,$tipo_documento,$num_documento,$direccion,$telefono,$email);
-			echo $rspta ? "Datos registrados correctamente" : "No se pudo registrar los datos";
+		// El depósito es obligatorio: un cliente sin depósito no muestra productos en la página de pedido
+		// (el filtro de productos compara clientes.deposito contra el depósito de cada artículo).
+		if ($deposito === '') { echo "El depósito es obligatorio (sin depósito el cliente no ve productos al hacer el pedido)."; break; }
+		if ($modo === 'nuevo') {
+			if ($idpersona === '') { echo "Ingresá un código de cliente"; break; }
+			$rspta=$persona->insertar($idpersona,$vendedor,$nombre,$direccion,$localidad,$ramo,$zona,$lista,$telefono,$deposito,$latitud,$longitud,$cuil,$dni);
+			if ($rspta === 'dup') echo "Ya existe un cliente con el código ".$idpersona;
+			else                  echo $rspta ? "Cliente registrado correctamente" : "No se pudo registrar el cliente";
 		}else{
-			$rspta=$persona->editar($idpersona,$vendedor,$nombre,$direccion,$localidad,$ramo,$zona,$lista,$telefono);
+			$rspta=$persona->editar($idpersona,$vendedor,$nombre,$direccion,$localidad,$ramo,$zona,$lista,$telefono,$cuil,$dni,$deposito);
 			echo $rspta ? "Datos actualizados correctamente" : "No se pudo actualizar los datos";
 		}
 	break;
@@ -88,7 +99,7 @@ switch ($_GET["op"]) {
 		foreach ($resc['rows'] as $reg) {
 			$cod = $reg['codigo'];
 			$data[] = array(
-				'<button class="btn btn-warning btn-sm btn-icon-line" onclick="mostrar('.$cod.')"><i class="mdi mdi-lead-pencil m-n2"></i></button> <button class="btn btn-danger btn-sm btn-icon-line" onclick="eliminar('.$cod.')"><i class="mdi mdi-delete m-n2"></i></button>',
+				'<button class="btn btn-warning btn-sm btn-icon-line" onclick="mostrar(\''.$cod.'\')"><i class="mdi mdi-lead-pencil m-n2"></i></button> <button class="btn btn-danger btn-sm btn-icon-line" onclick="eliminar(\''.$cod.'\')"><i class="mdi mdi-delete m-n2"></i></button>',
 				$reg['codigo'], $reg['vendedor'], $reg['razonSocial'], $reg['direccion'], $reg['localidad'],
 				$reg['telefono'], $reg['ramo'], $reg['zona'], $reg['lista'], $reg['latitud'], $reg['longitud'], $reg['deposito']
 			);

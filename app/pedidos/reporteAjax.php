@@ -1,4 +1,5 @@
 <?php 
+require_once dirname(__DIR__).'/config/auth.php';   // endpoint legacy: exige sesión
 include_once '../Connection.php';
 
 $colores=array("#f7a547","#3bf796","#2775b5","#d65a31","#3b0175","#fcd8c4","#387093","#6e89d8","#3ed81c","#96e2e8","#92b9dd","#99b72c","#5700f9","#ffeead","#079632","#16207c","#00a81e","#6b74d3","#f9cfc0","#ffcce3","#4c33a0","#b399ef","#f4aaf7","#3a7a06","#eaa1cf","#93f2ae","#89d358","#95eda9","#d8020c","#08567a","#01821b","#8ce5f7","#eaa448","#1788ea","#bde567","#91ffac","#e096df","#2bc681","#b23937","#ed97bb","#e8b0f2","#6fdb8a","#8afcf2","#8559db","#e5b995","#c2d5f9","#39d834","#efb1df","#f4723a","#edada3","#186d9b","#fc1ea7","#67e0b8","#edfca1","#71fce5","#5c8bc9","#9ff9e9","#fff87a","#bbe246","#4946f2");

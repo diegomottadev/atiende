@@ -2,6 +2,8 @@
 require_once '../config/auth.php';
 include_once '../config/Connection.php';
 
+Connection::setDatabase(!empty($_SESSION['tenant_db']) ? $_SESSION['tenant_db'] : DB_NAME);
+
 $op = $_GET['op'] ?? '';
 
 /*

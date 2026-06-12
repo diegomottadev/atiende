@@ -19,6 +19,7 @@
     <link href="../../public/css/styleChat.css" rel="stylesheet" type="text/css" />
 </head>
 
+<?php $idr = intval($_GET["idreclamo"] ?? 0); ?>
 <script>
 
 function NoBack(){
@@ -91,7 +92,7 @@ return texto;
 		$.ajax({
 			type: "POST",
 			url: '../../ajax/reclamo.php?op=guardarMensaje',
-			data: "idreclamo=<?php echo $_GET["idreclamo"]; ?>&resolucion="+document.getElementById('resolucion').value+"&tipo=1&canal=-1" ,
+			data: "idreclamo=<?php echo $idr; ?>&resolucion="+document.getElementById('resolucion').value+"&tipo=1&canal=-1" ,
 			success: function(data){
 			    console.log(data);
 				 document.getElementById('bloquea').style. display='none';
@@ -128,11 +129,11 @@ $(document).ready(function () {
     <div class="container ">
         <?php 
         include_once("../../config/Connection.php");
-        $row = mysqli_fetch_array(Connection::runQuery("SELECT estado FROM `reclamos` WHERE `reclamoId` = ".$_GET["idreclamo"]));
+        $row = mysqli_fetch_array(Connection::runQuery("SELECT estado FROM `reclamos` WHERE `reclamoId` = ".$idr));
         if(count($row) > 0 && $row["estado"]!="Finalizado"){
             require "../../modelos/Reclamo.php";
             $reclamo = new Reclamo();
-            $request = $reclamo->listarChats($_GET["idreclamo"]);
+            $request = $reclamo->listarChats($idr);
         ?>
             <h4 class="ps-2 pt-2">Responder Reclamo</h4>
             <div class="card border sombra" style="border-width: 0.25rem !important;border-radius: 15px;">
@@ -156,8 +157,8 @@ $(document).ready(function () {
                                 </div>
                                 <div class="conversation-text">
                                     <div class="ctext-wrap">
-                                        <i><?php echo $reg->usuario?></i>
-                                        <p> <?php echo $reg->mensaje?></p>
+                                        <i><?php echo htmlspecialchars($reg->usuario, ENT_QUOTES, 'UTF-8')?></i>
+                                        <p> <?php echo htmlspecialchars($reg->mensaje, ENT_QUOTES, 'UTF-8')?></p>
                                     </div>
                                 </div>   
                             </li>

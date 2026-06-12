@@ -46,6 +46,9 @@ if (!isset($_SESSION['nombre'])) {
                     <button class="btn btn-success rounded-pill pull-right sombra-logo"  id="btnExportar" onClick="exportarVendedores()">
                         <i class="mdi mdi-file-excel-outline me-1"></i> Exportar
                     </button>
+                    <button class="btn btn-primary rounded-pill sombra-logo" id="btnAgregar" onClick="nuevo()" type="button">
+                        <i class="mdi mdi-plus me-1"></i> Nuevo
+                    </button>
                     <button class="btn btn-light rounded-pill sombra-logo" id="btnCancel" onclick="cancelarform()" type="button">
                         <i class="mdi mdi-arrow-left-circle me-1"></i> Volver
                     </button>  
@@ -56,6 +59,7 @@ if (!isset($_SESSION['nombre'])) {
         <div class="row">
             <div class="col-12">
                 <div class="card sombra-panel" style="border-top:3px solid #727cf5;">
+                    <div id="panelLista">
                     <div class="card-body pb-2">
                         <div id="subirarchivo" class="mb-3">
                             <form method="post" enctype="multipart/form-data" id="formUp" name="formUp">
@@ -87,8 +91,6 @@ if (!isset($_SESSION['nombre'])) {
                         });
                         function clearUpload(e){e.stopPropagation();document.getElementById('vendedores').value='';document.getElementById('uploadFilename').classList.add('d-none');document.getElementById('uploadLabel').classList.remove('d-none');document.getElementById('uploadIcon').className='uil uil-file-upload-alt upload-zone__icon';document.getElementById('uploadZone').classList.remove('has-file');document.getElementById('uploadClear').classList.add('d-none');document.getElementById('btnImportar').disabled=true;}
                         </script>
-                    </div>
-                    <div class="card-body pb-2">
                         <div id="filtrosVendedor" class="row g-2 align-items-end">
                             <div class="col-12 col-md-5">
                                 <label class="form-label mb-1" style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#6c757d;">Buscar</label>
@@ -103,6 +105,7 @@ if (!isset($_SESSION['nombre'])) {
                         </div>
                     </div>
                     <hr class="my-0">
+                    </div>
                     <div class="card-body p-0">
                         <div class="table-responsive" id="listadoregistros"> <!-- dt-responsive -->
                             <table id="tbllistado" class=" table table-striped table-centered mb-0  nowrap w-100">
@@ -119,6 +122,16 @@ if (!isset($_SESSION['nombre'])) {
                     </div>
                     <div class="card-body px-3 pb-3" id="formularioregistros">
                         <h6 class="text-muted mb-2" style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;"><i class="mdi mdi-access-point me-1"></i> <span id="ribbon-text">Editar Vendedor</span></h6>
+                        <ul class="nav nav-tabs mb-3" id="vendedorTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="tab-datos-btn" data-bs-toggle="tab" data-bs-target="#tab-datos" type="button" role="tab"><i class="mdi mdi-account-edit-outline me-1"></i> Editar Vendedor</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="tab-clientes-btn" data-bs-toggle="tab" data-bs-target="#tab-clientes" type="button" role="tab"><i class="mdi mdi-account-group-outline me-1"></i> Clientes</button>
+                            </li>
+                        </ul>
+                        <div class="tab-content">
+                            <div class="tab-pane fade show active" id="tab-datos" role="tabpanel">
                                 <form action="" name="formulario" id="formulario" method="POST">
                                     <div class="row">
                                         <div class="col-lg-6">
@@ -138,8 +151,9 @@ if (!isset($_SESSION['nombre'])) {
                                     <div class="row">
                                         <div class="col-lg-6">
                                             <div class="mb-3 position-relative">
-                                                <label for="" class="form-label">Telefono</label>                                                
-                                                <input class="form-control" type="text" name="telefono" id="telefono" maxlength="256" placeholder="Telefono">
+                                                <label for="" class="form-label">Telefono</label>
+                                                <input class="form-control" type="text" name="telefono" id="telefono" maxlength="256" placeholder="Ej: 3764278402">
+                                                <small class="text-muted">Número de WhatsApp. Podés cargarlo con o sin código de país (ej: <code>3764278402</code> o <code>5493764278402</code>); se normaliza solo al guardar. No incluyas el <code>15</code>.</small>
                                             </div>                                           
                                         </div>                                        
                                     </div>
@@ -148,9 +162,65 @@ if (!isset($_SESSION['nombre'])) {
                                             <button class="btn btn-success rounded-pill sombra-logo" type="submit" id="btnGuardar">
                                                 <i class="mdi mdi-content-save-all"></i> Guardar
                                             </button>
-                                        </div>       
-                                    </div> 
+                                        </div>
+                                    </div>
                                 </form>
+                            </div>
+                            <div class="tab-pane fade" id="tab-clientes" role="tabpanel">
+                                <div id="clientesAvisoNuevo" class="alert alert-warning d-none">
+                                    <i class="mdi mdi-information-outline me-1"></i> Guardá el vendedor primero para poder asignarle clientes.
+                                </div>
+                                <div id="clientesVendedorInfo" class="d-flex align-items-center gap-2 mb-3 p-2 px-3 rounded sombra-panel" style="background:#eef0ff;border-left:4px solid #727cf5;">
+                                    <i class="mdi mdi-account-tie text-primary" style="font-size:1.6rem;"></i>
+                                    <div>
+                                        <div style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#6c757d;">Vendedor</div>
+                                        <div class="fw-bold" id="clientesVendedorTexto" style="color:#4a4f9e;">—</div>
+                                    </div>
+                                </div>
+                                <div id="clientesPanel" class="row g-3">
+                                    <div class="col-lg-6">
+                                        <h6 class="text-muted mb-2" style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;"><i class="mdi mdi-account-multiple-plus-outline me-1"></i> Disponibles</h6>
+                                        <div class="input-group input-group-sm mb-2" style="max-width:320px;">
+                                            <span class="input-group-text bg-white text-muted"><i class="mdi mdi-magnify"></i></span>
+                                            <input type="text" id="fBuscarDisp" class="form-control" placeholder="Buscar cliente...">
+                                        </div>
+                                        <div class="table-responsive">
+                                            <table id="tblClientesDisponibles" class="table table-striped table-centered mb-0 nowrap w-100">
+                                                <thead>
+                                                    <th>Opciones</th>
+                                                    <th>Codigo</th>
+                                                    <th>Cliente</th>
+                                                    <th>Localidad</th>
+                                                    <th>Telefono</th>
+                                                    <th>Vendedor</th>
+                                                </thead>
+                                                <tbody></tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6">
+                                        <h6 class="text-muted mb-2" style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;"><i class="mdi mdi-account-check-outline me-1"></i> Asignados a este vendedor</h6>
+                                        <div class="input-group input-group-sm mb-2" style="max-width:320px;">
+                                            <span class="input-group-text bg-white text-muted"><i class="mdi mdi-magnify"></i></span>
+                                            <input type="text" id="fBuscarAsig" class="form-control" placeholder="Buscar cliente...">
+                                        </div>
+                                        <div class="table-responsive">
+                                            <table id="tblClientesAsignados" class="table table-striped table-centered mb-0 nowrap w-100">
+                                                <thead>
+                                                    <th>Opciones</th>
+                                                    <th>Codigo</th>
+                                                    <th>Cliente</th>
+                                                    <th>Localidad</th>
+                                                    <th>Telefono</th>
+                                                    <th>Vendedor</th>
+                                                </thead>
+                                                <tbody></tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

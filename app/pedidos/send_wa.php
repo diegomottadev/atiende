@@ -70,8 +70,58 @@ if ($idventa && $clienteid) {
 } elseif ($ped) {
     $pdf = generarTicketPdf($ped);
     if ($pdf && file_exists($pdf['path'])) {
-        // Un solo mensaje: PDF con el resumen como caption
-        $client->sendDocument($to, $pdf['path'], $pdf['filename'], $text);
+        // Datos del cliente del pedido (para los encabezados). $ped es el id de link_pedidos;
+        // se resuelve el cliente con el mismo JOIN que index.php.
+        $cliLabel = '';
+        try {
+            $cfgWM   = getWebMasterConfig();
+            $joinKey = !empty($cfgWM['data']['b2b']) ? 'codigo' : 'id';   // b2b→codigo, b2c→id (igual que index.php)
+            $rcli = Connection::runQuery("SELECT clientes.razonSocial AS rs, clientes.codigo AS cc FROM link_pedidos JOIN clientes ON link_pedidos.clienteId = clientes.`$joinKey` WHERE link_pedidos.id = '" . intval($ped) . "' LIMIT 1");
+            if ($rcli && ($rcr = mysqli_fetch_assoc($rcli))) {
+                $cliLabel = trim((string) $rcr['rs'] . (trim((string) $rcr['cc']) !== '' ? ' - ' . $rcr['cc'] : ''));
+            }
+        } catch (Throwable $eCli) { error_log('[send_wa] resolver cliente falló: ' . $eCli->getMessage()); }
+
+        // Reemplaza la primera línea (el saludo) del mensaje, conservando Pedido N°/Monto/Ticket.
+        $reemplazarSaludo = function ($txt, $saludo) {
+            $nl = strpos($txt, "\n");
+            return $saludo . ($nl === false ? '' : substr($txt, $nl));
+        };
+
+        // Si el pedido se cargó por el flujo de vendedor (llega 'ved'), el número que confirma ES el del
+        // vendedor (la identificación exige que coincida con vendedores.telefono), así que ese mismo número
+        // recibe el mensaje en clave VENDEDOR. En el flujo normal recibe el mensaje del cliente tal cual.
+        $captionPrincipal = $text;
+        $ved = preg_replace('/[^A-Za-z0-9_\-]/', '', (string) ($_POST['ved'] ?? ''));
+        if ($ved !== '') {
+            try {
+                $rv = Connection::runQuery("SELECT nombre FROM vendedores WHERE codigo = '" . Connection::escape($ved) . "' LIMIT 1");
+                if ($rv && ($rvr = mysqli_fetch_assoc($rv))) {
+                    $vendNombre   = trim((string) ($rvr['nombre'] ?? ''));
+                    $vendGreeting = ($vendNombre !== '' ? $vendNombre . ', ' : '') . 'el pedido de cliente ' . $cliLabel . ' ha sido confirmado.';
+                    $captionPrincipal = $reemplazarSaludo($text, $vendGreeting);
+                }
+            } catch (Throwable $eV) { error_log('[send_wa] caption vendedor falló: ' . $eV->getMessage()); }
+        }
+
+        // Mensaje principal al número que confirmó (cliente en flujo normal, vendedor en flujo de vendedor).
+        $client->sendDocument($to, $pdf['path'], $pdf['filename'], $captionPrincipal);
+
+        // Copia opcional al administrador (mismo PDF), con el cliente en el encabezado. Solo si
+        // copiaAdmin=1 Y está activado en bot_config.
+        if (($_POST['copiaAdmin'] ?? '') === '1') {
+            try {
+                $rcfg = Connection::runQuery("SELECT admin_telefono, admin_envio_activo FROM bot_config LIMIT 1");
+                if ($rcfg && ($rc = mysqli_fetch_assoc($rcfg))) {
+                    $adminTel = preg_replace('/\D/', '', (string) ($rc['admin_telefono'] ?? ''));
+                    if ((int) $rc['admin_envio_activo'] === 1 && $adminTel !== '' && $adminTel !== preg_replace('/\D/', '', $to)) {
+                        $adminGreeting = $cliLabel !== '' ? 'Haz recibido un pedido del cliente ' . $cliLabel : '*Haz recibido un Pedido*';
+                        $client->sendDocument($adminTel, $pdf['path'], $pdf['filename'], $reemplazarSaludo($text, $adminGreeting));
+                    }
+                }
+            } catch (Throwable $eAdm) { error_log('[send_wa] copia admin falló: ' . $eAdm->getMessage()); }
+        }
+
         unlink($pdf['path']);
     } else {
         $client->sendText($to, $text);

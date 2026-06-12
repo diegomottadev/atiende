@@ -140,7 +140,7 @@ switch ($_GET["op"]) {
             $modal="";
             $key = array_search($reg->pedidoid, $array);
             if($key)
-                $modal='<a href="#" class="text-info" data-bs-toggle="tooltip" title="Ver observación" onclick="comentario(\''.$obs[$key].'\')" ><i class="mdi mdi-comment-processing" style="font-size:1rem;vertical-align:middle;"></i></a>';
+                $modal='<a href="#" class="text-info" data-bs-toggle="tooltip" title="Ver observación" onclick="comentario(\''.htmlspecialchars($obs[$key], ENT_QUOTES, 'UTF-8').'\')" ><i class="mdi mdi-comment-processing" style="font-size:1rem;vertical-align:middle;"></i></a>';
 
             $url='/ticket/';
             if($reg->estado==-1)
@@ -172,19 +172,20 @@ switch ($_GET["op"]) {
             $repartidorAsignador = $reg->repartidor !== null? '<span class="badge badge-success-lighten uil uil-truck"><span>'  : "";
             $noRepartidor =  $reg->repartidor !== null ? '': '<input class="" type="checkbox" id="checkPedido"  name="ckxPedido[]" value="'.$reg->pedidoid.'"/>';
             $msj =$reg->repartidor !== null ? '<input class="" type="checkbox" id="checkMsj-'.$reg->repartidor.'" name="ckxMsj[]" data-id="'.$reg->repartidor.'" value="'.$reg->pedidoid.'"/>' :"";
-            $repartidor = $reg->repartidor !== null ? $reparto->getNombreRepartidor($reg->repartidor) . " ". '('.$reg->repartidor.')' : "";
+            $repartidor = $reg->repartidor !== null ? $reg->repartidorNombre . " ". '('.$reg->repartidor.')' : "";
             $desasignar =$reg->repartidor !== null ? '<button class="btn btn-danger btn-sm btn-icon-line" data-bs-toggle="tooltip" title="Desasignar repartidor" onclick="desasignar('.$reg->pedidoid.','.$reg->repartidor.')" ><i class="mdi mdi-minus-circle m-n2"></i></button>' :"";
             $sended   = $reg->fecha_notificacion !== null ? '&nbsp;<i class="uil uil-envelope"></i>' : "";
             $reenviar = $reg->fecha_notificacion !== null
                 ? '<button class="btn btn-primary btn-sm btn-icon-line" data-bs-toggle="tooltip" title="Reenviar mensaje al repartidor" onclick="reenviarMensaje('.$reg->pedidoid.')"><i class="mdi mdi-send m-n2"></i></button>'
                 : '';
+            $rs = htmlspecialchars($reg->razonSocial, ENT_QUOTES, 'UTF-8');
             $data[]=array(
                 "0"=> $noRepartidor . $msj,
-                "1"=>'<div style="display:flex;gap:2px;"><button class="btn btn-warning btn-sm btn-icon-line" data-bs-toggle="tooltip" title="Ver pedido" onclick="mostrar('.$reg->pedidoid.')"><i class="mdi mdi-eye m-n2"></i></button>'.'<a target="_blank" href="'.$url.$reg->pedidoid.'"><button class="btn btn-info btn-sm btn-icon-line" data-bs-toggle="tooltip" title="Imprimir ticket"><i class="mdi mdi-printer m-n2"></i></button></a>'.'<button class="btn btn-success btn-sm btn-icon-line" data-bs-toggle="tooltip" title="Enviar mensaje al cliente" onclick="sendMessageCustomizer('."'".$reg->telefono."'".','."'".$reg->razonSocial."'".')"><i class="uil uil-envelope m-n2"></i></button>'.'<button class="btn btn-secondary btn-sm btn-icon-line" data-bs-toggle="tooltip" title="Cambiar estado" onclick="enProceso('.$reg->pedidoid.')"><i class="mdi mdi-cog m-n2"></i></button>'.$desasignar.$reenviar.'</div>',
+                "1"=>'<div style="display:flex;gap:2px;"><button class="btn btn-warning btn-sm btn-icon-line" data-bs-toggle="tooltip" title="Ver pedido" onclick="mostrar('.$reg->pedidoid.')"><i class="mdi mdi-eye m-n2"></i></button>'.'<a target="_blank" href="'.$url.$reg->pedidoid.'"><button class="btn btn-info btn-sm btn-icon-line" data-bs-toggle="tooltip" title="Imprimir ticket"><i class="mdi mdi-printer m-n2"></i></button></a>'.'<button class="btn btn-success btn-sm btn-icon-line" data-bs-toggle="tooltip" title="Enviar mensaje al cliente" onclick="sendMessageCustomizer('."'".$reg->telefono."'".','."'".$rs."'".')"><i class="uil uil-envelope m-n2"></i></button>'.'<button class="btn btn-secondary btn-sm btn-icon-line" data-bs-toggle="tooltip" title="Cambiar estado" onclick="enProceso('.$reg->pedidoid.')"><i class="mdi mdi-cog m-n2"></i></button>'.$desasignar.$reenviar.'</div>',
                 "2"=> $reg->pedidoid. $currentDay,
                 "3"=> $reg->fecha,
                 "4"=> $reg->clienteId,
-                "5"=> $reg->razonSocial,
+                "5"=> $rs,
                 "6"=> $reg->telefono,
                 "7"=> "$".$reg->total,
                 "8"=> strval($reg->fecha_asignacion),
@@ -254,11 +255,12 @@ switch ($_GET["op"]) {
                 if($reg->estado=="0")$color='bgcolor="#cccccc"';
             }
 
+            $mensajeEsc = htmlspecialchars($reg->mensaje, ENT_QUOTES, 'UTF-8');
             echo '<tr class="filas"  >
 			<td '.$color.' >'.$reg->id.'</td>
 			<td '.$color.'  >'.$tipo.'</td>
 			<td '.$color.'  >'.$reg->fecha.'</td>
-			<td '.$color.'  >'.$reg->mensaje.'</td>
+			<td '.$color.'  >'.$mensajeEsc.'</td>
 			
 			</tr>';
 
@@ -297,14 +299,20 @@ switch ($_GET["op"]) {
             while ($reg=$rspta->fetch_object()) {
                 $telefonos[]=$reg->telefono;
             }
+            // Pre-cargar los productos de TODOS los pedidos en una sola query y agruparlos
+            // por pedidoid (antes: 1 query por pedido dentro del loop → N+1).
+            $prodsPorPedido = array();
+            $prodsAll = $reparto->obtenerProductosPorPedidos($pedidosIdToSendMsj);
+            if ($prodsAll) {
+                while ($p = $prodsAll->fetch_object()) {
+                    $prodsPorPedido[$p->pedidoid][] = ['cantidad'=> $p->cantidad,'codProd' => $p->producto, 'producto' =>$p->descripcion];
+                }
+            }
+
             $pedidos= array();
             $rspta=$reparto->obtenerPedidos($pedidosIdToSendMsj);
             while ($reg=$rspta->fetch_object()) {
-                $productos = [];
-                $prods=$reparto-> obtenerProductosPorPedido( $reg->pedidoid);
-                while ($p=$prods->fetch_object()) {
-                    $productos[] = ['cantidad'=> $p->cantidad,'codProd' => $p->producto, 'producto' =>$p->descripcion];
-                }
+                $productos = isset($prodsPorPedido[$reg->pedidoid]) ? $prodsPorPedido[$reg->pedidoid] : [];
                 $pedidos[]= ['cantidad'=> $reg->cantidadTotal,'telefono' => $reg->telefonoR, 'cliente' =>$reg->razonSocial,  "total" =>  $reg->total, "pedido" => $reg->pedidoid, "latitud" =>  $reg->latitud, "longitud" => $reg->longitud, "direccion" => $reg->direccion, "telCliente" => $reg->telefonoC, "productos" => $productos];
 
             }

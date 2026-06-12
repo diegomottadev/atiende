@@ -2,6 +2,7 @@
 define('__ROOT__', dirname(dirname(__FILE__)));
 require_once __ROOT__ . '/config/auth.php';
 require (__ROOT__.'/config/Conexion.php');
+require_once __DIR__ . '/../config/Telefono.php';
 
 header('Content-Type: application/json');
 
@@ -15,7 +16,7 @@ if (empty($_SESSION['configuracion'])) {
     exit;
 }
 
-csrfGuard($op, ['listarAreas', 'listarReclamos', 'listarConsultas', 'getMenuPrincipal', 'listarAreasAdmin', 'getToken', 'getEmpresa']);
+csrfGuard($op, ['listarAreas', 'listarReclamos', 'listarConsultas', 'getMenuPrincipal', 'listarAreasAdmin', 'getToken', 'getEmpresa', 'getCostoEnvio', 'getAdminCopia']);
 
 switch ($op) {
 
@@ -109,7 +110,11 @@ switch ($op) {
             $items = [];
             foreach (($entry['menuItem'] ?? []) as $opt) {
                 if (!empty($opt['opcionId'])) {
-                    $items[] = ['opcionId' => $opt['opcionId'], 'opcion' => $opt['opcion']];
+                    $esSalir = (($opt['menuId'] ?? '') === '2.2');
+                    $activo  = $esSalir
+                        ? 'true'
+                        : (array_key_exists('activo', $opt) ? ($opt['activo'] === 'true' ? 'true' : 'false') : 'true');
+                    $items[] = ['opcionId' => $opt['opcionId'], 'opcion' => $opt['opcion'], 'activo' => $activo, 'esSalir' => $esSalir];
                 }
             }
             $groups[] = ['menuId' => $mid, 'label' => $editable[$mid], 'items' => $items];
@@ -123,8 +128,18 @@ switch ($op) {
     case 'saveMenuPrincipal':
         $incoming     = json_decode($_POST['items'] ?? '[]', true);
         $targetMenuId = $_POST['menuId'] ?? '';
-        $map          = [];
-        foreach ($incoming as $it) $map[$it['opcionId']] = $it['opcion'];
+        // Solo los menús previstos por la feature son editables (mismo allowlist que getMenuPrincipal).
+        if (!in_array($targetMenuId, ['200', '100'], true)) { echo json_encode(['ok' => false, 'error' => 'menú no editable']); break; }
+        if (!is_array($incoming)) { echo json_encode(['ok' => false, 'error' => 'menú inválido']); break; }
+        $txt = []; $vis = [];
+        foreach ($incoming as $it) {
+            $oid = $it['opcionId'] ?? '';
+            if ($oid === '') continue;
+            // Defensa en profundidad: el texto se muestra en el panel (escHtml) y se envía por WhatsApp (texto plano);
+            // acá se quitan tags y se acota el largo. El escape SQL se hace luego sobre el JSON completo.
+            $txt[$oid] = mb_substr(trim(strip_tags((string)($it['opcion'] ?? ''))), 0, 200);
+            $vis[$oid] = (($it['activo'] ?? '') === 'true') ? 'true' : 'false';
+        }
 
         $res  = mysqli_query($conexion, "SELECT menu_json FROM bot_config LIMIT 1");
         $jrow = $res ? mysqli_fetch_assoc($res) : null;
@@ -138,9 +153,29 @@ switch ($op) {
             if (($entry['menuId'] ?? '') === $targetMenuId) {
                 $found = true;
                 foreach ($entry['menuItem'] as &$opt) {
-                    if (isset($map[$opt['opcionId']])) { $opt['opcion'] = $map[$opt['opcionId']]; }
+                    $oid     = $opt['opcionId'] ?? '';
+                    $esSalir = (($opt['menuId'] ?? '') === '2.2');
+                    if ($oid !== '' && array_key_exists($oid, $txt)) { $opt['opcion'] = $txt[$oid]; }
+                    if ($esSalir) {
+                        $opt['activo'] = 'true';                       // Salir: siempre visible, ignora el cliente
+                    } elseif ($oid !== '' && array_key_exists($oid, $vis)) {
+                        $opt['activo'] = $vis[$oid];
+                    } elseif ($oid !== '' && !array_key_exists('activo', $opt)) {
+                        $opt['activo'] = 'true';                       // default legacy = visible
+                    }
                 }
                 unset($opt);
+                // GUARDRAIL sobre el entry COMPLETO: ≥1 visible (Salir siempre cuenta).
+                $visibles = 0;
+                foreach ($entry['menuItem'] as $opt) {
+                    if (empty($opt['opcionId'])) continue;             // captura de texto libre no cuenta
+                    if (($opt['menuId'] ?? '') === '2.2') { $visibles++; continue; }
+                    if (($opt['activo'] ?? 'true') !== 'false') { $visibles++; }
+                }
+                if ($visibles < 1) {
+                    echo json_encode(['ok' => false, 'error' => 'Debe quedar al menos una opción visible']);
+                    break 2;
+                }
                 break;
             }
         }
@@ -252,10 +287,10 @@ switch ($op) {
         // El logo es un archivo local del tenant → vive en bot_config.
         $slug = (strncmp($_SESSION['tenant_db'] ?? '', 'atiende_', 8) === 0)
             ? substr($_SESSION['tenant_db'], 8) : ($_SESSION['tenant_db'] ?? '');
-        $emp = ['nombre' => '', 'razon_social' => '', 'cuit' => '', 'telefono' => ''];
+        $emp = ['nombre' => '', 'razon_social' => '', 'cuit' => '', 'telefono' => '', 'pais' => 'AR'];
         try {
             $pp = new PDO('mysql:host=' . DB_HOST . ';dbname=pedidos_platform;charset=utf8mb4', DB_USERNAME, DB_PASSWORD, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC]);
-            $st = $pp->prepare('SELECT nombre, razon_social, cuit, telefono FROM tenants WHERE slug = ? AND deleted_at IS NULL LIMIT 1');
+            $st = $pp->prepare('SELECT nombre, razon_social, cuit, telefono, pais FROM tenants WHERE slug = ? AND deleted_at IS NULL LIMIT 1');
             $st->execute([$slug]);
             $t = $st->fetch();
             if ($t) { $emp = $t; }
@@ -269,6 +304,7 @@ switch ($op) {
             'razonSocial' => $emp['razon_social'] ?? '',
             'cuit'        => $emp['cuit'] ?? '',
             'telefono'    => $emp['telefono'] ?? '',
+            'pais'        => $emp['pais'] ?? 'AR',
             'logo'        => $logo,
         ]);
         break;
@@ -278,6 +314,8 @@ switch ($op) {
         $razonSocial = trim($_POST['razonSocial'] ?? '');
         $cuit        = trim($_POST['cuit'] ?? '');
         $telefono    = trim($_POST['telefono'] ?? '');
+        $pais = strtoupper(trim($_POST['pais'] ?? 'AR'));
+        if (!isset(Telefono::PAISES[$pais])) { $pais = 'AR'; }
 
         // Logo (opcional): validación server-side de tamaño (2 MB) + contenido real (no el Content-Type del cliente)
         $logoName = null;
@@ -303,22 +341,72 @@ switch ($op) {
             $slug = (strncmp($_SESSION['tenant_db'] ?? '', 'atiende_', 8) === 0)
                 ? substr($_SESSION['tenant_db'], 8) : ($_SESSION['tenant_db'] ?? '');
             $pp = new PDO('mysql:host=' . DB_HOST . ';dbname=pedidos_platform;charset=utf8mb4', DB_USERNAME, DB_PASSWORD, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
-            $okT = $pp->prepare('UPDATE tenants SET nombre = ?, razon_social = ?, cuit = ?, telefono = ? WHERE slug = ? AND deleted_at IS NULL')
-                      ->execute([$nombre, $razonSocial, $cuit, $telefono, $slug]);
+            $okT = $pp->prepare('UPDATE tenants SET nombre = ?, razon_social = ?, cuit = ?, telefono = ?, pais = ? WHERE slug = ? AND deleted_at IS NULL')
+                      ->execute([$nombre, $razonSocial, $cuit, $telefono, $pais, $slug]);
         } catch (Exception $e) { error_log('[configuracion] guardarEmpresa: ' . $e->getMessage()); }
 
         // 2) Logo (+ teléfono como cache para el bot) → bot_config local del tenant
         if ($logoName !== null) {
-            $stmt = $conexion->prepare("UPDATE bot_config SET logo = ?, telefono = ? WHERE id = 1");
-            $stmt->bind_param('ss', $logoName, $telefono);
+            $stmt = $conexion->prepare("UPDATE bot_config SET logo = ?, telefono = ?, pais = ? WHERE id = 1");
+            $stmt->bind_param('sss', $logoName, $telefono, $pais);
         } else {
-            $stmt = $conexion->prepare("UPDATE bot_config SET telefono = ? WHERE id = 1");
-            $stmt->bind_param('s', $telefono);
+            $stmt = $conexion->prepare("UPDATE bot_config SET telefono = ?, pais = ? WHERE id = 1");
+            $stmt->bind_param('ss', $telefono, $pais);
         }
         $stmt->execute();
         $stmt->close();
 
         echo json_encode(['ok' => (bool)$okT, 'logo' => $logoName]);
+        break;
+
+    case 'getCostoEnvio':
+        $costo = '0.00'; $activo = false;
+        $r = mysqli_query($conexion, "SELECT costo_envio, costo_envio_activo FROM bot_config LIMIT 1");
+        if ($r && ($rr = mysqli_fetch_assoc($r))) {
+            $costo  = number_format((float) $rr['costo_envio'], 2, '.', '');
+            $activo = ((int) $rr['costo_envio_activo']) === 1;
+        }
+        echo json_encode(['ok' => true, 'costo' => $costo, 'activo' => $activo]);
+        break;
+
+    case 'saveCostoEnvio':
+        $costo = (float) str_replace(',', '.', (string) ($_POST['costo'] ?? '0'));
+        if ($costo < 0) $costo = 0;
+        $activo = (($_POST['activo'] ?? '') === '1' || ($_POST['activo'] ?? '') === 'true') ? 1 : 0;
+        $stmt = $conexion->prepare("UPDATE bot_config SET costo_envio = ?, costo_envio_activo = ? WHERE id = 1");
+        $stmt->bind_param('di', $costo, $activo);
+        $ok = $stmt->execute();
+        $stmt->close();
+        echo json_encode(['ok' => (bool) $ok]);
+        break;
+
+    case 'getAdminCopia':
+        $tel = ''; $activo = false;
+        $r = mysqli_query($conexion, "SELECT admin_telefono, admin_envio_activo FROM bot_config LIMIT 1");
+        if ($r && ($rr = mysqli_fetch_assoc($r))) {
+            $tel    = (string) ($rr['admin_telefono'] ?? '');
+            $activo = ((int) $rr['admin_envio_activo']) === 1;
+        }
+        echo json_encode(['ok' => true, 'telefono' => $tel, 'activo' => $activo]);
+        break;
+
+    case 'saveAdminCopia':
+        $tel = preg_replace('/\D/', '', (string) ($_POST['telefono'] ?? ''));
+        // Normalizar al formato wa_id según el país del tenant (bot_config.pais, default AR)
+        // vía Telefono::normalizar. En el envío, WhatsAppClient::normalizePhone saca el 9 móvil
+        // (549… → 54…) solo para AR, para el endpoint de Meta.
+        $pais = 'AR';
+        $rpais = mysqli_query($conexion, "SELECT pais FROM bot_config LIMIT 1");
+        if ($rpais && ($rr = mysqli_fetch_assoc($rpais)) && !empty($rr['pais'])) { $pais = $rr['pais']; }
+        $tel = Telefono::normalizar($tel, $pais);
+        $activo = (($_POST['activo'] ?? '') === '1' || ($_POST['activo'] ?? '') === 'true') ? 1 : 0;
+        // Guardrail: no se puede activar el envío sin un número cargado.
+        if ($activo === 1 && $tel === '') { echo json_encode(['ok' => false, 'error' => 'Cargá un número para activar la copia']); break; }
+        $stmt = $conexion->prepare("UPDATE bot_config SET admin_telefono = ?, admin_envio_activo = ? WHERE id = 1");
+        $stmt->bind_param('si', $tel, $activo);
+        $ok = $stmt->execute();
+        $stmt->close();
+        echo json_encode(['ok' => (bool) $ok, 'telefono' => $tel]);
         break;
 
     default:

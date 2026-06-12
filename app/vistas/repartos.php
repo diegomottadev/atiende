@@ -262,7 +262,7 @@ if (!isset($_SESSION['nombre'])) {
     if (isset($_GET["pedidoid"])) {
         ?>
         <script> mostrarform(true);
-            mostrar('<?php echo $_GET["pedidoid"]; ?>');
+            mostrar('<?php echo intval($_GET["pedidoid"] ?? 0); ?>');
         </script>
         <?php
     }

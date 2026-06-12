@@ -11,8 +11,8 @@ switch ($_GET["op"]) {
 	
 
     case 'comprasfecha':
-    $fecha_inicio=$_REQUEST["fecha_inicio"];
-    $fecha_fin=$_REQUEST["fecha_fin"];
+    $fecha_inicio=limpiarCadena($_REQUEST["fecha_inicio"]);
+    $fecha_fin=limpiarCadena($_REQUEST["fecha_fin"]);
 
 		$rspta=$consulta->comprasfecha($fecha_inicio,$fecha_fin);
 		$data=Array();
@@ -38,9 +38,9 @@ switch ($_GET["op"]) {
 		break;
 
      case 'ventasfechacliente':
-        $fecha_inicio=$_REQUEST["fecha_inicio"];
-        $fecha_fin=$_REQUEST["fecha_fin"];
-        $idcliente=$_REQUEST["idcliente"];
+        $fecha_inicio=limpiarCadena($_REQUEST["fecha_inicio"]);
+        $fecha_fin=limpiarCadena($_REQUEST["fecha_fin"]);
+        $idcliente=limpiarCadena($_REQUEST["idcliente"]);
 	
 	   $totalPedido=0;
 	   $rspta=$consulta->pedidosfechacliente($fecha_inicio,$fecha_fin,$idcliente);

@@ -188,6 +188,8 @@ CREATE TABLE `clientes`  (
   `vendedor` varchar(10) CHARACTER SET utf8 COLLATE utf8_spanish_ci NOT NULL,
   `supervisor` varchar(100) CHARACTER SET utf8 COLLATE utf8_spanish_ci NULL DEFAULT NULL,
   `telefono` varchar(50) CHARACTER SET utf8 COLLATE utf8_spanish_ci NULL DEFAULT NULL,
+  `cuil` varchar(20) CHARACTER SET utf8 COLLATE utf8_spanish_ci NULL DEFAULT NULL,
+  `dni`  varchar(20) CHARACTER SET utf8 COLLATE utf8_spanish_ci NULL DEFAULT NULL,
   `lista` varchar(10) CHARACTER SET utf8 COLLATE utf8_spanish_ci NULL DEFAULT NULL,
   `orden` varchar(50) CHARACTER SET utf8 COLLATE utf8_spanish_ci NULL DEFAULT NULL,
   `ramo` varchar(100) CHARACTER SET utf8 COLLATE utf8_spanish_ci NULL DEFAULT NULL,
@@ -256,6 +258,7 @@ CREATE TABLE `contactos`  (
   `esperaRespuesta` int(1) NOT NULL DEFAULT 0,
   `anterior` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
   `mensaje` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
+  `vendedor_codigo` varchar(50) CHARACTER SET utf8 COLLATE utf8_spanish_ci NULL DEFAULT NULL,
   `fechaHora` datetime(0) NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_spanish_ci ROW_FORMAT = Dynamic;
@@ -314,7 +317,8 @@ CREATE TABLE `fidelizar`  (
   `tipo` int(11) NOT NULL,
   `mensaje` varchar(250) CHARACTER SET utf8 COLLATE utf8_spanish_ci NOT NULL,
   `estado` int(11) NOT NULL,
-  PRIMARY KEY (`id`) USING BTREE
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `idx_fidelizar_pedido_estado_tipo`(`pedidoid`, `estado`, `tipo`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 313 CHARACTER SET = utf8 COLLATE = utf8_spanish_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
@@ -648,7 +652,11 @@ CREATE TABLE `pedidos`  (
   `repartidor_id` varchar(18) CHARACTER SET utf8 COLLATE utf8_spanish_ci NULL DEFAULT NULL,
   `fecha_asignacion` datetime(0) NULL DEFAULT NULL,
   `fecha_notificacion` datetime(0) NULL DEFAULT NULL,
-  PRIMARY KEY (`id`) USING BTREE
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `idx_pedidos_pedidoid`(`pedidoid`(20)) USING BTREE,
+  INDEX `idx_pedidos_clienteId`(`clienteId`) USING BTREE,
+  INDEX `idx_pedidos_vendedorId`(`vendedorId`) USING BTREE,
+  INDEX `idx_pedidos_repartidor`(`repartidor_id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 258 CHARACTER SET = utf8 COLLATE = utf8_spanish_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------

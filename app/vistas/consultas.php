@@ -13,6 +13,10 @@ if (!isset($_SESSION['nombre'])) {
     letter-spacing: 0.4px;
     white-space: nowrap;
 }
+/* Tarjeta de datos de la consulta (form de edición) */
+.datos-info { background:#f8f9ff; border:1px solid #e7e9ff; border-left:4px solid #727cf5; border-radius:8px; }
+.di-lbl { display:block; font-size:.66rem; font-weight:700; text-transform:uppercase; letter-spacing:.4px; color:#9a9a9a; margin-bottom:1px; }
+.di-val { display:block; font-size:.9rem; font-weight:500; color:#3b3b4f; word-break:break-word; min-height:1.1em; }
 </style>
     <!-- start title y botones -->
     <div class="row">
@@ -101,32 +105,33 @@ if (!isset($_SESSION['nombre'])) {
                                     <i class="mdi mdi-access-point me-1"></i> <span id="ribbon-text">Datos del Motivo</span>
                                 </div>-->
 
-                                <div class="bs-callout bs-callout-violeta sombra pt-3">
-                                    <h6 class="text-muted mb-2" style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;"><i class="mdi mdi-access-point me-1"></i> Datos de la Consulta</h6>
-                                    <!--<h5><strong>Datos del Reclamo</strong></h5>-->
-                                    <ul class="list-unstyled mt-n0" style="padding-left: 3em;">
-                                        <li><strong>Nick: </strong> <span id="nick"></span></li>
-                                        <li><strong>Fecha y Hora: </strong> <span id="fechaHora"></span></li>
-                                        <li><strong>Cliente: </strong><span id="cliente"></span></li>
-                                        <li><strong>Telefono: </strong><span id="telefono"></span></li>
-                                        <li><strong>Motivo: </strong><span id="motivo"></span></li>
-                                        <li><strong>Detalle del Motivo: </strong> <span id="detalleMotivo"></span></li>
-                                    </ul>
+                                <div class="datos-info p-3 mb-3">
+                                    <h6 class="text-muted mb-3" style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;"><i class="mdi mdi-clipboard-text-outline me-1"></i> Datos de la Consulta</h6>
+                                    <div class="row g-3">
+                                        <div class="col-6 col-md-4"><span class="di-lbl">Nick</span><span class="di-val" id="nick"></span></div>
+                                        <div class="col-6 col-md-4"><span class="di-lbl">Fecha y Hora</span><span class="di-val" id="fechaHora"></span></div>
+                                        <div class="col-6 col-md-4"><span class="di-lbl">Cliente</span><span class="di-val" id="cliente"></span></div>
+                                        <div class="col-6 col-md-4"><span class="di-lbl">Telefono</span><span class="di-val" id="telefono"></span></div>
+                                        <div class="col-6 col-md-4"><span class="di-lbl">Motivo</span><span class="di-val" id="motivo"></span></div>
+                                        <div class="col-12"><span class="di-lbl">Detalle del Motivo</span><span class="di-val" id="detalleMotivo"></span></div>
+                                    </div>
                                 </div>
                                 <form action="" name="formRespuestaConsulta" id="formRespuestaConsulta" method="POST">
                                     <input class="form-control" type="hidden" name="idconsulta" id="idconsulta">       
                                     <div class="row mt-2" >
                                         <div class="form-group col-lg-12">
-                                            <label  class="form-label"><strong>Resolucion</strong></label> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;                                            
-                                            <div class="form-check form-check-inline form-radio-info">
-                                                <input type="radio" name="estado" id="estadoa" value="En analisis"  class="form-check-input">
-                                                <label class="form-check-label" for="estadoa">En Analisis</label>
+                                            <div class="d-flex flex-wrap align-items-center gap-3 mb-2">
+                                                <label class="form-label mb-0"><strong>Resolucion</strong></label>
+                                                <div class="form-check form-check-inline form-radio-info mb-0">
+                                                    <input type="radio" name="estado" id="estadoa" value="En analisis" class="form-check-input">
+                                                    <label class="form-check-label" for="estadoa">En Analisis</label>
+                                                </div>
+                                                <div class="form-check form-check-inline form-radio-info mb-0">
+                                                    <input type="radio" name="estado" id="estadob" value="Finalizado" class="form-check-input">
+                                                    <label class="form-check-label" for="estadob">Finalizado</label>
+                                                </div>
                                             </div>
-                                            <div class="form-check form-check-inline form-radio-info">
-                                                <input type="radio"  name="estado" id="estadob" value="Finalizado"  class="form-check-input">
-                                                <label class="form-check-label" for="estadob">Finalizado</label>
-                                            </div>
-                                            <textarea class="form-control" id="resolucion" name="resolucion" rows="4"></textarea>
+                                            <textarea class="form-control" id="resolucion" name="resolucion" rows="4" placeholder="Escribí la resolución de la consulta..."></textarea>
                                         </div>
                                     </div>
                                     <div class="row">

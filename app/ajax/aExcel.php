@@ -3,6 +3,8 @@ require_once '../config/auth.php';
 include_once("../config/Connection.php");
 require_once '../PHPExcel/Classes/PHPExcel.php';
 
+Connection::setDatabase(!empty($_SESSION['tenant_db']) ? $_SESSION['tenant_db'] : DB_NAME);
+
 $objPHPExcel = new PHPExcel();
 
 // Propiedades del documento

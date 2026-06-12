@@ -16,7 +16,7 @@ ensureCsrfToken();
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <meta content="width=device-width, initial-scale=1, viewport-fit=cover" name="viewport">
     <link href="../public/img/logo30x30.png" rel="shortcut icon" type="image/x-icon">
    
     <link href="../public/mapboxgl/mapbox-gl.css" rel="stylesheet" />
@@ -43,6 +43,11 @@ ensureCsrfToken();
             font-size: .75rem !important;
             font-weight: 600;
             padding: .35em .55em;
+        }
+        /* Botones deshabilitados (ej: Guardar antes de modificar): cursor de "no permitido" al pasar el puntero */
+        .btn:disabled, .btn[disabled], button:disabled, button[disabled] {
+            pointer-events: auto !important;
+            cursor: not-allowed !important;
         }
         /* Topbar más fino (70px -> 56px) con el perfil (avatar + nombre) centrado en flex. */
         .navbar-custom { min-height: 56px !important; height: 56px !important; box-shadow: none !important; padding-right: 0 !important; }
@@ -217,6 +222,54 @@ ensureCsrfToken();
         .btn[id^="fLimpiar"] {
             border: 1px solid var(--ct-input-border-color, #dee2e6) !important;
         }
+        /* ===== Menú mobile (off-canvas) — pulido pro (≤ 991.98px) ===== */
+        @media (max-width: 991.98px) {
+            /* Hamburguesa: botón redondeado, target táctil amplio, color de marca */
+            .button-menu-mobile {
+                width: 42px; height: 42px;
+                display: inline-flex; align-items: center; justify-content: center;
+                margin: 7px 6px;
+                border: 0; border-radius: 12px;
+                background: #f0edff; color: #6650EA;
+                font-size: 1.4rem; line-height: 1;
+                transition: background .15s ease, transform .1s ease;
+            }
+            .button-menu-mobile:active { transform: scale(.94); background: #e3ddff; }
+            /* Sidebar deslizante: por encima del backdrop, sombra y transición suave */
+            .leftside-menu {
+                z-index: 1045 !important;
+                box-shadow: 8px 0 40px rgba(20,18,40,.35) !important;
+                transition: transform .26s cubic-bezier(.4,0,.2,1), margin-left .26s cubic-bezier(.4,0,.2,1) !important;
+            }
+            /* Backdrop oscuro al abrir el menú (Hyper agrega .sidebar-enable al body) */
+            body.sidebar-enable::after {
+                content: ""; position: fixed; inset: 0;
+                background: rgba(15,14,30,.5);
+                z-index: 1040; animation: vfcMenuFade .2s ease;
+            }
+            @keyframes vfcMenuFade { from { opacity: 0 } to { opacity: 1 } }
+            /* Items del menú: más alto para el dedo */
+            .side-nav .side-nav-link { padding-top: 12px !important; padding-bottom: 12px !important; font-size: .95rem; }
+            .side-nav-second-level li > a { padding-top: 10px !important; padding-bottom: 10px !important; }
+        }
+        /* Fix mobile: el topbar es position:fixed → dar aire arriba para que NO tape el
+           contenido (breadcrumb + botones de acción), y soltar el tirón negativo mt-n4. */
+        @media (max-width: 767.98px) {
+            /* 64px arriba: despeja el topbar fijo (56px). 12px a los lados: el tema deja
+               el padding horizontal en 0 en mobile y overflow:hidden recorta botones/sombras. */
+            .content-page { padding: 64px 12px 60px !important; }
+            .row.mt-n4 { margin-top: .25rem !important; }
+            /* Barra de acciones (Nuevo/Exportar/Volver): sin floats que desbordan;
+               flex que envuelve y alinea a la derecha, sin cortar botones. */
+            .row.mt-n4 .text-sm-end {
+                display: flex; flex-wrap: wrap; justify-content: flex-end;
+                gap: .4rem;
+            }
+            .row.mt-n4 .text-sm-end .btn {
+                float: none !important;
+                margin-left: 0 !important; margin-right: 0 !important;
+            }
+        }
     </style>
 </head>
 <body class="show" data-layout-color="light" data-leftbar-theme="dark" data-layout-mode="fluid" data-rightbar-onstart="true">
@@ -295,7 +348,22 @@ ensureCsrfToken();
             <!--- Sidemenu -->
             <ul class="side-nav">
 
-                <li class="side-nav-title side-nav-item"> </li>            
+                <li class="side-nav-title side-nav-item"> </li>
+                <?php
+                    $imgMob = (strlen($_SESSION['imagen'] ?? '') > 0 && file_exists('../files/usuarios/'.$_SESSION['imagen']))
+                        ? '../files/usuarios/'.$_SESSION['imagen']
+                        : '../files/usuarios/user.png';
+                ?>
+                <!-- Mobile: ficha del usuario dentro del menú (en desktop está en el topbar) -->
+                <li class="side-nav-item d-lg-none">
+                    <div class="d-flex align-items-center gap-2 px-3 py-2 mb-2" style="border-bottom:1px solid rgba(255,255,255,.08);">
+                        <img src="<?php echo $imgMob; ?>" onerror="this.src='../files/usuarios/user.png'" class="rounded-circle" style="width:42px;height:42px;object-fit:cover;flex:0 0 42px;">
+                        <div class="overflow-hidden">
+                            <div class="text-truncate" style="font-weight:600;font-size:.9rem;line-height:1.2;color:#fff;"><?php echo htmlspecialchars($_SESSION['nombre'] ?? '', ENT_QUOTES, 'UTF-8'); ?></div>
+                            <div style="font-size:.72rem;color:#8a93a5;">Sesión activa</div>
+                        </div>
+                    </div>
+                </li>
                 <?php if ($_SESSION['escritorio'] == 1) { ?>
                     <li class="side-nav-item" data-id="Panel de control">
                         <a href="escritorio.php" class="side-nav-link">
@@ -481,6 +549,13 @@ ensureCsrfToken();
                         </a>
                     </li>
                 <?php } ?>
+                <!-- Mobile: cerrar sesión dentro del menú (en desktop está en el dropdown del topbar) -->
+                <li class="side-nav-item d-lg-none mt-1" style="border-top:1px solid rgba(255,255,255,.08);">
+                    <a href="../ajax/usuario.php?op=salir" class="side-nav-link" style="color:#fa5c7c;">
+                        <i class="mdi mdi-logout"></i>
+                        <span> Salir </span>
+                    </a>
+                </li>
             </ul>
             <!-- End Sidebar -->
 
@@ -513,7 +588,7 @@ ensureCsrfToken();
                                 <img src="<?php echo $img; ?>" id="topbarAvatar" alt="user" onerror="this.src='../files/usuarios/user.png'" class="rounded-circle sombra-logo" style="width:36px;height:36px;object-fit:cover;">
                             </span>
                             <span  class="account-user-name" style="margin-top: 0.9em">
-                                <?php echo $_SESSION['nombre']; ?>
+                                <?php echo htmlspecialchars($_SESSION['nombre'] ?? '', ENT_QUOTES, 'UTF-8'); ?>
                             </span>
                         </a>
                         <div class="dropdown-menu dropdown-menu-end dropdown-menu-animated topbar-dropdown-menu profile-dropdown">
@@ -521,7 +596,7 @@ ensureCsrfToken();
                             <div class="dd-userbox">
                                 <img src="<?php echo $img; ?>" alt="user" onerror="this.src='../files/usuarios/user.png'" class="rounded-circle">
                                 <div class="overflow-hidden">
-                                    <div class="dd-name text-truncate"><?php echo $_SESSION['nombre']; ?></div>
+                                    <div class="dd-name text-truncate"><?php echo htmlspecialchars($_SESSION['nombre'] ?? '', ENT_QUOTES, 'UTF-8'); ?></div>
                                     <div class="dd-sub">Sesión activa</div>
                                 </div>
                             </div>

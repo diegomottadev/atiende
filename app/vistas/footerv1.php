@@ -119,6 +119,18 @@
                 }, 0);
             }, true);
 
+            // ── Menú mobile: cerrar el sidebar off-canvas al tocar fuera (sobre el backdrop) ──
+            // Hyper marca body.sidebar-enable al abrirlo; lo quitamos si el tap no fue dentro
+            // del sidebar ni en la hamburguesa. En captura, para correr antes de cualquier re-render.
+            document.addEventListener('click', function (e) {
+                if (!document.body.classList.contains('sidebar-enable')) return;
+                var sb = document.querySelector('.leftside-menu');
+                var toggle = e.target.closest ? e.target.closest('.button-menu-mobile') : null;
+                if (sb && !sb.contains(e.target) && !toggle) {
+                    document.body.classList.remove('sidebar-enable');
+                }
+            }, true);
+
             // Manejo global de errores AJAX: un 403/401 no debe dejar la UI colgada.
             $(document).ajaxError(function (e, xhr) {
                 if (xhr.status === 403) {

@@ -24,11 +24,26 @@ if ($tenantSlug !== '') {
     } catch (Exception $_e) {}
 }
 require(__ROOT__ . '/config/global.php');
+
+// Costo de envío configurable por tenant (bot_config). Si no está activo, no se muestra la línea.
+$costoEnvio = 0.0; $costoEnvioActivo = 0;
+try {
+    $__ce = Connection::runQuery("SELECT costo_envio, costo_envio_activo FROM bot_config LIMIT 1");
+    if ($__ce && ($__ceRow = mysqli_fetch_assoc($__ce))) {
+        $costoEnvio       = (float) $__ceRow['costo_envio'];
+        $costoEnvioActivo = (int) $__ceRow['costo_envio_activo'];
+    }
+} catch (Throwable $__ceE) { /* sin bot_config/columnas → línea oculta */ }
 ?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="utf-8">
+    <!-- Base fija: la URL "linda" /pedidos/{id}/{ved} agrega un segmento extra y rompe las
+         rutas relativas (../public, ../files, ../ajax) → el navegador pedía /pedidos/public/...
+         (404) y no cargaba Bootstrap. Con <base> todo resuelve como si el documento estuviera
+         en /pedidos/, igual que la URL de un solo segmento /pedidos/{id}. -->
+    <base href="/pedidos/">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
@@ -401,7 +416,7 @@ require(__ROOT__ . '/config/global.php');
                         var c1 = row.insertCell(0), c2 = row.insertCell(1), c3 = row.insertCell(2), c4 = row.insertCell(3), c5 = row.insertCell(4);
                         c3.className = 'text-center'; c4.className = 'text-end'; c5.className = 'text-end';
                         c1.innerHTML = "<span class='cart-linenum'>" + lineNum + "</span>";
-                        c2.innerHTML = comentario + "<a class='cart-prod-name' href='#' onclick='irProducto(\"" + pedido[x][0] + "\")'>" + pedido[x][1] + "</a>";
+                        c2.innerHTML = comentario + "<a class='cart-prod-name' href='javascript:void(0)' onclick='irProducto(\"" + pedido[x][0] + "\")'>" + pedido[x][1] + "</a>";
                         c3.innerHTML = "<span class='cart-qty'>" + pedido[x][2] + "</span>";
                         c4.innerHTML = "<span class='cart-subtotal'>$" + pedido[x][3] + "</span>";
                         c5.innerHTML = "<button type='button' class='cart-del' title='Quitar' onclick='eliminarPedido(\"" + pedido[x][0] + "\",\"" + pedido[x][1] + "\")'><i class='uil uil-trash-alt'></i></button>";
@@ -439,7 +454,11 @@ require(__ROOT__ . '/config/global.php');
             tabProd.addEventListener('shown.bs.tab', function() {
                 document.getElementById('idBuscar').style.display = 'block';
                 document.getElementById('idHistocico').style.display = 'none';
-                document.location.href = '#' + anclaje;
+                // OJO: con <base href="/pedidos/">, hacer `location.href = '#'+anclaje` resuelve
+                // el fragmento contra la base (/pedidos/) y NAVEGA a /pedidos/ perdiendo ?ped=
+                // → "La aplicación no está disponible sin credencial". location.hash solo cambia
+                // el fragmento de la URL actual (no toca el path ni usa <base>), así que es seguro.
+                if (anclaje) { location.hash = anclaje; }
                 document.documentElement.scrollTop = $(window).scrollTop() - 180;
             });
         });
@@ -452,6 +471,8 @@ require(__ROOT__ . '/config/global.php');
         }
         function enviarPedidoSeleccionado() {
             $('#btnEnviarPedidos').prop('disabled', true);
+            // Spinner durante todo el envío (guardado + WhatsApp/PDF), hasta navegar a finaliza.php.
+            Swal.fire({ title: 'Enviando pedido…', html: 'Aguardá un momento, no cierres esta ventana.', allowOutsideClick: false, allowEscapeKey: false, didOpen: function () { Swal.showLoading(); } });
             var empresa = "<?php echo DB_NAME; ?>";
             var tenantSlug = "<?php echo $tenantSlug ?? ''; ?>";
             var url = "<?php echo tenantUrl($tenantSlug); ?>";
@@ -464,20 +485,31 @@ require(__ROOT__ . '/config/global.php');
                         var mensaje = "*"+nombre+"* Su pedido a sido confirmado. \n";
                         mensaje += "*Pedido N°:* "+ped+"\n";
                         mensaje += "*Monto: $* "+getTotales(pedido)+"\n";
-                        mensaje += "*Costo de envio:$* 0.00 \n";
+<?php if ($costoEnvioActivo): ?>
+                        mensaje += "*Costo de envio:$* <?php echo number_format($costoEnvio, 2, '.', ''); ?> \n";
+<?php endif; ?>
                         mensaje += "*Ticket:* 👇\n\n";
                         mensaje += url+"/reportes/exTicket.php?id="+ped+"\n\n";
-                        $.ajax({ type:'POST', url:'send_wa.php', data:{ to:telefono, text:mensaje, ped:ped, t:tenantSlug },
-                            complete: function(){ pedido = []; location.href = 'finaliza.php'; }
+                        $.ajax({ type:'POST', url:'send_wa.php', data:{ to:telefono, text:mensaje, ped:ped, t:tenantSlug, copiaAdmin:1, ved:vedid },
+                            complete: function(){ pedido = []; location.href = 'finaliza.php?t=<?php echo $tenantSlug; ?>'; }
                         });
-                    } else { alert("Ocurrio un error inesperado"); }
+                    } else {
+                        // Swal.fire reemplaza el spinner por el error y rehabilita el botón.
+                        Swal.fire({ icon: 'error', title: 'Ocurrió un error', text: 'No se pudo enviar el pedido. Probá de nuevo.' });
+                        $('#btnEnviarPedidos').prop('disabled', false);
+                    }
+                },
+                error: function () {
+                    document.getElementById('bloquea').style.display = 'none';
+                    Swal.fire({ icon: 'error', title: 'Sin conexión', text: 'No se pudo enviar el pedido. Revisá tu conexión y probá de nuevo.' });
+                    $('#btnEnviarPedidos').prop('disabled', false);
                 }
             });
         }
         function openWSConnection(hostname, port, endpoint, mensaje) {
             try {
                 var ws = new WebSocket(hostname + endpoint);
-                ws.onopen = function() { ws.send(mensaje); pedido = []; ws.close(); location.href = "finaliza.php"; };
+                ws.onopen = function() { ws.send(mensaje); pedido = []; ws.close(); location.href = "finaliza.php?t=<?php echo $tenantSlug; ?>"; };
                 ws.onclose = function(e) { console.log("WS CLOSE", e); };
                 ws.onerror = function(e) { console.log("WS ERROR", e); };
             } catch(e) { console.error(e); }
@@ -494,10 +526,12 @@ if (isset($_GET["ped"])) {
 
     $favorito_array = []; // favoritos se manejan en localStorage por telefono
     $row = null;
+    // Saneo anti-SQLi: 'ped' es el id autoincrement de link_pedidos (numérico).
+    $_pedId = intval($_GET["ped"] ?? 0);
     if ($responseWebMaster['data']['b2b']) {
-        $row = mysqli_fetch_array(Connection::runQuery("SELECT link_pedidos.*,link_pedidos.telefono as cel, clientes.* FROM `link_pedidos` inner join clientes on link_pedidos.clienteId=clientes.codigo where link_pedidos.id='".$_GET["ped"]."' and link_pedidos.estado=0"));
+        $row = mysqli_fetch_array(Connection::runQuery("SELECT link_pedidos.*,link_pedidos.telefono as cel, clientes.* FROM `link_pedidos` inner join clientes on link_pedidos.clienteId=clientes.codigo where link_pedidos.id='".$_pedId."' and link_pedidos.estado=0"));
     } else if ($responseWebMaster['data']['b2c']) {
-        $row = mysqli_fetch_array(Connection::runQuery("SELECT link_pedidos.*,link_pedidos.telefono as cel, clientes.* FROM `link_pedidos` inner join clientes on link_pedidos.clienteId=clientes.id where link_pedidos.id='".$_GET["ped"]."' and link_pedidos.estado=0"));
+        $row = mysqli_fetch_array(Connection::runQuery("SELECT link_pedidos.*,link_pedidos.telefono as cel, clientes.* FROM `link_pedidos` inner join clientes on link_pedidos.clienteId=clientes.id where link_pedidos.id='".$_pedId."' and link_pedidos.estado=0"));
     }
 
     if ($row != NULL) {
@@ -508,7 +542,10 @@ if (isset($_GET["ped"])) {
         $cCel     = $row["cel"];
         $cToken   = $row["token"];
         $cId      = $row["clienteId"];
-        echo "<script> telefono='".addslashes($cCel)."'; token='".addslashes($cToken)."'; nombre='".addslashes($cRazon)."'; ped='".$_GET["ped"]."'; clienteId='".addslashes($cId)."'; </script>";
+        // XSS-safe: json_encode con flags HEX evita el breakout de </script> y comillas
+        // (addslashes NO lo hacía). 'ped' es numérico → intval.
+        $jf = JSON_HEX_TAG|JSON_HEX_APOS|JSON_HEX_QUOT|JSON_HEX_AMP;
+        echo "<script> telefono=".json_encode($cCel,$jf)."; token=".json_encode($cToken,$jf)."; nombre=".json_encode($cRazon,$jf)."; ped=".intval($_GET["ped"] ?? 0)."; clienteId=".json_encode($cId,$jf)."; </script>";
 ?>
 
     <!-- Fixed top navbar -->

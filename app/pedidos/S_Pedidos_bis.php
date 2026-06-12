@@ -32,18 +32,35 @@ $pedidos= $dataJson["mensaje"];
 $vendedor = $dataJson["ved"]!=="" ? $dataJson["ved"] : null ;//echo $pedidos[0][0];
 $cant=0;
 $codigoCliente = null;
+// Saneo anti-SQLi: TODO viene de $_POST['json'] en un endpoint público sin auth.
+// Escapamos cada string con Connection::escape() y casteamos el id de link_pedidos a int.
+$pedEsc  = intval($dataJson["ped"] ?? 0);
+$telEsc  = Connection::escape($dataJson["telefono"] ?? '');
+$nomEsc  = Connection::escape($dataJson["nombre"] ?? '');
+$vendEsc = Connection::escape($vendedor);
 for($i=0;$i<count($pedidos);$i++) {
     $codigoCliente = $pedidos[$i][5];
+    $cli  = Connection::escape($pedidos[$i][5]);
+    $prod = Connection::escape($pedidos[$i][0]);
+    $dsc  = Connection::escape($pedidos[$i][1]);
+    $cnt  = Connection::escape($pedidos[$i][2]);
+    $prc  = Connection::escape($pedidos[$i][4]);
+    $d9   = Connection::escape($pedidos[$i][6]);
+    $sub  = Connection::escape($pedidos[$i][3]);
     $insert= Connection::runQuery("INSERT INTO `pedidos`(`clienteId`, `fecha`, `producto`, `descripcion`, `cantidad`, `precio`, `descuento`,pedidoid,telefono, dato9, `subtotal`, `flag`,`vendedorId`)
-     VALUE ('".$pedidos[$i][5]."',now(),'".$pedidos[$i][0]."','".$pedidos[$i][1]."','".$pedidos[$i][2]."','".$pedidos[$i][4]."','0','".$dataJson["ped"]."','".$dataJson["telefono"]."','".$pedidos[$i][6]."','".$pedidos[$i][3]."','-1','".$vendedor."')");
+     VALUE ('".$cli."',now(),'".$prod."','".$dsc."','".$cnt."','".$prc."','0','".$pedEsc."','".$telEsc."','".$d9."','".$sub."','-1','".$vendEsc."')");
     if($insert)
         $cant++;
 }
 if($cant>0){
-    $request=Connection::runQuery("REPLACE INTO `contactos`(`id`,`nombre`, `telefono`, `menu`, `esperaRespuesta`, `fechaHora`) VALUES ('".$dataJson["telefono"]."','".$dataJson["nombre"]."','".$dataJson["telefono"]."','0','0', now())  ");
-    $request=Connection::runQuery("UPDATE `link_pedidos` SET estado= 1 where id =".$dataJson["ped"]);
+    // Resetear el contacto a estado inicial tras guardar el pedido, SIN borrar la sesión de
+    // vendedor: REPLACE INTO borraba la fila y la recreaba con vendedor_codigo=NULL (el teléfono
+    // del pedido es el del vendedor en su flujo), perdiendo la identidad. Con upsert se preserva.
+    $request=Connection::runQuery("INSERT INTO `contactos`(`id`,`nombre`, `telefono`, `menu`, `esperaRespuesta`, `fechaHora`) VALUES ('".$telEsc."','".$nomEsc."','".$telEsc."','0','0', now()) ON DUPLICATE KEY UPDATE `nombre`=VALUES(`nombre`), `telefono`=VALUES(`telefono`), `menu`='0', `esperaRespuesta`='0', `fechaHora`=now()");
+    $request=Connection::runQuery("UPDATE `link_pedidos` SET estado= 1 where id =".$pedEsc);
 }
-$row = mysqli_fetch_array(Connection::runQuery("SELECT pedidoid FROM pedidos where clienteId ='".$codigoCliente."'  ORDER BY fecha DESC limit 1 "));
+$codCliEsc = Connection::escape($codigoCliente);
+$row = mysqli_fetch_array(Connection::runQuery("SELECT pedidoid FROM pedidos where clienteId ='".$codCliEsc."'  ORDER BY fecha DESC limit 1 "));
 
 Connection::runQuery("UPDATE pedidos SET flag = 0 WHERE pedidoid = '".$row["pedidoid"]."' ");
 

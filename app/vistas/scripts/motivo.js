@@ -50,7 +50,8 @@ function mostrarform(flag){
 		$("#listadoregistros").hide();
 		$("#filtrosMotivo").hide();
 		$("#formularioregistros").show();
-		$("#btnGuardar").prop("disabled",false);
+		$("#btnGuardar").prop("disabled",true);
+		$('#formulario').off('input.gd change.gd').on('input.gd change.gd', 'input, select, textarea', function(){ $('#btnGuardar').prop('disabled', false); });
 		$("#btnAgregar").hide();
 		$('#ribbon-text').text('Nuevo Motivo');
 	}else{

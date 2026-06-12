@@ -68,8 +68,54 @@ if (!isset($_SESSION['nombre'])) {
 
                         <!-- ===== MENÚ PRINCIPAL ===== -->
                         <div class="tab-pane show active" id="tab-menu">
-                            <p class="text-muted mb-3">Editá el texto de cada opción del menú principal del bot. Los números de opción no cambian.</p>
+                            <p class="text-muted mb-3">Editá el texto y la visibilidad de cada opción. El número de la columna <strong>Opción</strong> es el que verá el cliente: al ocultar una opción, las demás se renumeran solas (1, 2, 3…) y <em>Salir</em> queda siempre al final.</p>
                             <div id="menuPrincipalList"></div>
+
+                            <!-- ===== Costo de envío ===== -->
+                            <div class="card border mt-3">
+                                <div class="card-header bg-light py-2"><strong>Costo de envío</strong></div>
+                                <div class="card-body p-3">
+                                    <p class="text-muted mb-3" style="font-size:.85rem;">Se muestra en el mensaje de confirmación del pedido, debajo del <strong>Monto</strong>. Si lo desactivás, esa línea no aparece en el mensaje.</p>
+                                    <div class="row g-2 align-items-end">
+                                        <div class="col-sm-4">
+                                            <label class="form-label mb-1" for="costoEnvioMonto">Monto ($)</label>
+                                            <input type="number" step="0.01" min="0" class="form-control form-control-sm" id="costoEnvioMonto" value="0.00">
+                                        </div>
+                                        <div class="col-sm-5">
+                                            <div class="form-check form-switch mt-2">
+                                                <input class="form-check-input" type="checkbox" role="switch" id="costoEnvioActivo">
+                                                <label class="form-check-label" for="costoEnvioActivo">Mostrar costo de envío</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-3 text-sm-end">
+                                            <button class="btn btn-primary btn-sm" id="btnGuardarCostoEnvio"><i class="mdi mdi-content-save me-1"></i>Guardar</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- ===== Copia a administrador ===== -->
+                            <div class="card border mt-3">
+                                <div class="card-header bg-light py-2"><strong>Copia a administrador</strong></div>
+                                <div class="card-body p-3">
+                                    <p class="text-muted mb-3" style="font-size:.85rem;">Si lo activás, cada pedido confirmado se reenvía como copia (mismo mensaje + ticket PDF) a este número de WhatsApp. Podés ingresarlo con o sin código de país (ej: <code>3764278402</code> o <code>5493764278402</code>); se normaliza solo al guardar. No incluyas el <code>15</code>.</p>
+                                    <div class="row g-2 align-items-end">
+                                        <div class="col-sm-4">
+                                            <label class="form-label mb-1" for="adminTelefono">Número de WhatsApp</label>
+                                            <input type="text" inputmode="numeric" class="form-control form-control-sm" id="adminTelefono" placeholder="5493764278402">
+                                        </div>
+                                        <div class="col-sm-5">
+                                            <div class="form-check form-switch mt-2">
+                                                <input class="form-check-input" type="checkbox" role="switch" id="adminEnvioActivo">
+                                                <label class="form-check-label" for="adminEnvioActivo">Enviar copia al administrador</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-3 text-sm-end">
+                                            <button class="btn btn-primary btn-sm" id="btnGuardarAdminCopia"><i class="mdi mdi-content-save me-1"></i>Guardar</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- ===== MOTIVOS RECLAMO ===== -->
@@ -172,6 +218,20 @@ if (!isset($_SESSION['nombre'])) {
                                     <div class="col-md-5">
                                         <label class="form-label fw-bold">Teléfono</label>
                                         <input type="text" class="form-control" id="empTelefono" placeholder="3764000000">
+                                    </div>
+                                    <div class="col-md-5">
+                                        <label class="form-label fw-bold">País</label>
+                                        <select class="form-select" id="empPais">
+                                            <option value="AR">Argentina</option>
+                                            <option value="BR">Brasil</option>
+                                            <option value="MX">México</option>
+                                            <option value="UY">Uruguay</option>
+                                            <option value="CL">Chile</option>
+                                            <option value="PY">Paraguay</option>
+                                            <option value="CO">Colombia</option>
+                                            <option value="PE">Perú</option>
+                                        </select>
+                                        <small class="text-muted d-block mt-1">Define cómo se normalizan los números de WhatsApp del negocio.</small>
                                     </div>
                                     <div class="col-12">
                                         <label for="empLogo" class="form-label fw-bold">Logo</label>
@@ -280,6 +340,8 @@ if (!isset($_SESSION['nombre'])) {
             cargarTabla('reclamos');
             cargarTabla('consultas');
         });
+        cargarCostoEnvio();
+        cargarAdminCopia();
 
         // recargar tablas al cambiar de tab
         document.querySelectorAll('#cfgTabs a[data-bs-toggle="tab"]').forEach(function (el) {
@@ -302,6 +364,47 @@ if (!isset($_SESSION['nombre'])) {
         });
     }
 
+    // ===== COSTO DE ENVÍO =====
+    function cargarCostoEnvio() {
+        $.getJSON('../ajax/configuracion.php?op=getCostoEnvio', function (r) {
+            if (!r || !r.ok) return;
+            document.getElementById('costoEnvioMonto').value   = r.costo;
+            document.getElementById('costoEnvioActivo').checked = !!r.activo;
+        });
+    }
+    $(document).on('click', '#btnGuardarCostoEnvio', function () {
+        var costo  = document.getElementById('costoEnvioMonto').value;
+        var activo = document.getElementById('costoEnvioActivo').checked ? '1' : '0';
+        $.post('../ajax/configuracion.php?op=saveCostoEnvio', { costo: costo, activo: activo }, function (r) {
+            if (r && r.ok) {
+                Swal.fire({ icon: 'success', text: 'Costo de envío actualizado', timer: 1200, showConfirmButton: false });
+            } else {
+                Swal.fire({ icon: 'error', text: 'Error al guardar' });
+            }
+        }, 'json');
+    });
+
+    // ===== COPIA A ADMINISTRADOR =====
+    function cargarAdminCopia() {
+        $.getJSON('../ajax/configuracion.php?op=getAdminCopia', function (r) {
+            if (!r || !r.ok) return;
+            document.getElementById('adminTelefono').value     = r.telefono;
+            document.getElementById('adminEnvioActivo').checked = !!r.activo;
+        });
+    }
+    $(document).on('click', '#btnGuardarAdminCopia', function () {
+        var telefono = document.getElementById('adminTelefono').value;
+        var activo   = document.getElementById('adminEnvioActivo').checked ? '1' : '0';
+        $.post('../ajax/configuracion.php?op=saveAdminCopia', { telefono: telefono, activo: activo }, function (r) {
+            if (r && r.ok) {
+                if (r.telefono) document.getElementById('adminTelefono').value = r.telefono; // mostrar el nº normalizado
+                Swal.fire({ icon: 'success', text: 'Copia a administrador actualizada', timer: 1200, showConfirmButton: false });
+            } else {
+                Swal.fire({ icon: 'error', text: (r && r.error) ? r.error : 'Error al guardar' });
+            }
+        }, 'json');
+    });
+
     // ===== MENÚ PRINCIPAL =====
     function cargarMenuPrincipal() {
         $.getJSON('../ajax/configuracion.php?op=getMenuPrincipal', function (groups) {
@@ -311,11 +414,21 @@ if (!isset($_SESSION['nombre'])) {
                 html += '<div class="card-header bg-light py-2"><strong>' + escHtml(g.label) + '</strong></div>';
                 html += '<div class="card-body p-2">';
                 html += '<table class="table table-sm table-bordered mb-2">';
-                html += '<thead class="table-light"><tr><th width="8%">Opción</th><th>Texto que ve el usuario</th></tr></thead><tbody>';
+                html += '<thead class="table-light"><tr><th width="8%">Opción</th><th>Texto que ve el usuario</th><th width="18%" class="text-center">Visible</th></tr></thead><tbody>';
                 g.items.forEach(function (it) {
-                    var lbl = it.opcionId === '0' ? '0 (Salir)' : it.opcionId;
-                    html += '<tr><td class="text-center fw-bold">' + lbl + '</td>';
-                    html += '<td><input type="text" class="form-control form-control-sm" data-menuid="' + escHtml(g.menuId) + '" data-opcionid="' + escHtml(it.opcionId) + '" value="' + escHtml(it.opcion) + '"></td></tr>';
+                    var salir = it.esSalir === true;
+                    html += '<tr data-menuid="' + escHtml(g.menuId) + '" data-essalir="' + (salir ? '1' : '0') + '">';
+                    html += '<td class="text-center fw-bold num-cell"></td>'; // número correlativo que verá el cliente (se calcula en recalcNumeros)
+                    html += '<td><input type="text" class="form-control form-control-sm" data-menuid="' + escHtml(g.menuId) + '" data-opcionid="' + escHtml(it.opcionId) + '" value="' + escHtml(it.opcion) + '"></td>';
+                    html += '<td class="text-center align-middle">';
+                    if (salir) {
+                        html += '<span data-bs-toggle="tooltip" data-bs-trigger="hover" title="La opción Salir siempre debe estar visible.">';
+                        html += '<div class="form-check form-switch d-inline-block m-0"><input class="form-check-input menu-visible" type="checkbox" role="switch" data-menuid="' + escHtml(g.menuId) + '" data-opcionid="' + escHtml(it.opcionId) + '" checked disabled></div>';
+                        html += '</span>';
+                    } else {
+                        html += '<div class="form-check form-switch d-inline-block m-0"><input class="form-check-input menu-visible" type="checkbox" role="switch" data-menuid="' + escHtml(g.menuId) + '" data-opcionid="' + escHtml(it.opcionId) + '"' + (it.activo === 'true' ? ' checked' : '') + '></div>';
+                    }
+                    html += '</td></tr>';
                 });
                 html += '</tbody></table>';
                 html += '<button class="btn btn-primary btn-sm" onclick="guardarGrupoMenu(\'' + escJs(g.menuId) + '\')">';
@@ -323,13 +436,51 @@ if (!isset($_SESSION['nombre'])) {
                 html += '</div></div>';
             });
             document.getElementById('menuPrincipalList').innerHTML = html || '<p class="text-muted">Sin menús</p>';
+            groups.forEach(function (g) { recalcNumeros(g.menuId); }); // pintar números correlativos iniciales
+            document.querySelectorAll('#menuPrincipalList [data-bs-toggle="tooltip"]').forEach(function (el) {
+                new bootstrap.Tooltip(el, { trigger: 'hover', animation: false });
+            });
         });
     }
 
+    // Espeja BotEngine::proyectarMenu en el panel: renumera 1..N solo lo visible y deja Salir último,
+    // así el número de la columna "Opción" es exactamente el que escribirá el cliente en WhatsApp.
+    function recalcNumeros(menuId) {
+        var rows = document.querySelectorAll('#menuPrincipalList tr[data-menuid="' + menuId + '"]');
+        var n = 1, salirCell = null;
+        rows.forEach(function (tr) {
+            var cell = tr.querySelector('.num-cell');
+            if (!cell) return;
+            if (tr.dataset.essalir === '1') { salirCell = cell; return; } // Salir → al final
+            var sw = tr.querySelector('.menu-visible');
+            if (sw && sw.checked) {
+                cell.textContent = n++; cell.classList.remove('text-muted');
+            } else {
+                cell.textContent = '—'; cell.classList.add('text-muted'); // oculta: el cliente no la ve
+            }
+        });
+        if (salirCell) { salirCell.textContent = n; salirCell.classList.remove('text-muted'); }
+    }
+
+    // Guardrail front: no permitir apagar el último switch visible de un grupo.
+    $(document).on('change', '.menu-visible:not([disabled])', function () {
+        var m = this.dataset.menuid;
+        if (!this.checked) {
+            // Contar visibles sin contar Salir (siempre checked+disabled): el menú necesita ≥1 opción real.
+            var vis = document.querySelectorAll('.menu-visible[data-menuid="' + m + '"]:not([disabled]):checked').length;
+            if (vis === 0) {
+                this.checked = true;
+                Swal.fire({ icon: 'warning', title: 'Al menos una opción visible', text: 'El menú debe mostrar como mínimo una opción al cliente.', timer: 2000, showConfirmButton: false });
+            }
+        }
+        recalcNumeros(m); // mantener los números en sincronía con lo que verá el cliente
+    });
+
     function guardarGrupoMenu(menuId) {
         var items = [];
-        document.querySelectorAll('input[data-menuid="' + menuId + '"]').forEach(function (inp) {
-            items.push({ opcionId: inp.dataset.opcionid, opcion: inp.value.trim() });
+        document.querySelectorAll('input[type="text"][data-menuid="' + menuId + '"]').forEach(function (inp) {
+            var sw = document.querySelector('.menu-visible[data-menuid="' + menuId + '"][data-opcionid="' + inp.dataset.opcionid + '"]');
+            items.push({ opcionId: inp.dataset.opcionid, opcion: inp.value.trim(), activo: (sw && sw.checked) ? 'true' : 'false' });
         });
         $.post('../ajax/configuracion.php?op=saveMenuPrincipal', { menuId: menuId, items: JSON.stringify(items) }, function (r) {
             if (r.ok) {
@@ -348,6 +499,7 @@ if (!isset($_SESSION['nombre'])) {
             document.getElementById('empCuit').value        = r.cuit        || '';
             document.getElementById('empRazonSocial').value = r.razonSocial || '';
             document.getElementById('empTelefono').value    = r.telefono    || '';
+            document.getElementById('empPais').value        = r.pais        || 'AR';
             var prev = document.getElementById('empLogoPreview');
             var btn  = document.getElementById('empLogoQuitar');
             if (r.logo) {
@@ -389,6 +541,7 @@ if (!isset($_SESSION['nombre'])) {
         fd.append('cuit',        document.getElementById('empCuit').value.trim());
         fd.append('razonSocial', document.getElementById('empRazonSocial').value.trim());
         fd.append('telefono',    document.getElementById('empTelefono').value.trim());
+        fd.append('pais', document.getElementById('empPais').value);
         var lf = document.getElementById('empLogo').files[0];
         if (lf) fd.append('logo', lf);
         $.ajax({

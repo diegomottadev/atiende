@@ -93,16 +93,16 @@ class Reparto{
                     $where = "GROUP BY p.pedidoid ORDER BY p.fecha DESC";
             }
             if($this->responseWebMaster['data']['mix'] || $this->responseWebMaster['data']['b2c'] ){
-                $sql="SELECT p.fecha_notificacion, p.repartidor_id as repartidor, vendedorId as vendedor, p.pedidoid, CONCAT(DATE_FORMAT(p.fecha, '%d/%m/%Y %H:%i'),' hs') AS fecha ,p.clienteId,c.razonSocial,flag as estado, ROUND(sum(p.subtotal),2) AS total, p.telefono,pagado, p.fecha_asignacion FROM pedidos p INNER JOIN clientes c ON c.id=p.clienteId $where  ";
+                $sql="SELECT p.fecha_notificacion, p.repartidor_id as repartidor, r.nombre AS repartidorNombre, vendedorId as vendedor, p.pedidoid, CONCAT(DATE_FORMAT(p.fecha, '%d/%m/%Y %H:%i'),' hs') AS fecha ,p.clienteId,c.razonSocial,flag as estado, ROUND(sum(p.subtotal),2) AS total, p.telefono,pagado, p.fecha_asignacion FROM pedidos p LEFT JOIN repartidores r ON r.id=p.repartidor_id INNER JOIN clientes c ON c.id=p.clienteId $where  ";
             }else if ($this->responseWebMaster['data']['b2b'] ){
-                $sql="SELECT p.fecha_notificacion, p.repartidor_id as repartidor, vendedorId as vendedor, p.pedidoid, CONCAT(DATE_FORMAT(p.fecha, '%d/%m/%Y %H:%i'),' hs') AS fecha ,p.clienteId,c.razonSocial,flag as estado, ROUND(sum(p.subtotal),2) AS total, p.telefono,pagado, p.fecha_asignacion FROM pedidos p INNER JOIN clientes c ON c.codigo=p.clienteId $where  ";
+                $sql="SELECT p.fecha_notificacion, p.repartidor_id as repartidor, r.nombre AS repartidorNombre, vendedorId as vendedor, p.pedidoid, CONCAT(DATE_FORMAT(p.fecha, '%d/%m/%Y %H:%i'),' hs') AS fecha ,p.clienteId,c.razonSocial,flag as estado, ROUND(sum(p.subtotal),2) AS total, p.telefono,pagado, p.fecha_asignacion FROM pedidos p LEFT JOIN repartidores r ON r.id=p.repartidor_id INNER JOIN clientes c ON c.codigo=p.clienteId $where  ";
             }
         }else{
 
             if($this->responseWebMaster['data']['mix'] || $this->responseWebMaster['data']['b2c'] ){
-                $sql="SELECT p.repartidor_id as repartidor, vendedorId as vendedor, p.pedidoid, CONCAT(DATE_FORMAT(p.fecha, '%d/%m/%Y %H:%i'),' hs') AS fecha,p.clienteId,c.razonSocial,flag as estado, ROUND(sum(p.subtotal),2) AS total, p.telefono,pagado FROM pedidos p INNER JOIN clientes c ON c.id=p.clienteId where p.repartidor_id IS NULL GROUP BY p.pedidoid ORDER BY p.fecha DESC ";
+                $sql="SELECT p.repartidor_id as repartidor, r.nombre AS repartidorNombre, vendedorId as vendedor, p.pedidoid, CONCAT(DATE_FORMAT(p.fecha, '%d/%m/%Y %H:%i'),' hs') AS fecha,p.clienteId,c.razonSocial,flag as estado, ROUND(sum(p.subtotal),2) AS total, p.telefono,pagado FROM pedidos p LEFT JOIN repartidores r ON r.id=p.repartidor_id INNER JOIN clientes c ON c.id=p.clienteId where p.repartidor_id IS NULL GROUP BY p.pedidoid ORDER BY p.fecha DESC ";
             }else if ($this->responseWebMaster['data']['b2b'] ){
-                $sql="SELECT p.repartidor_id as repartidor, vendedorId as vendedor, p.pedidoid, CONCAT(DATE_FORMAT(p.fecha, '%d/%m/%Y %H:%i'),' hs') AS fecha,p.clienteId,c.razonSocial,flag as estado, ROUND(sum(p.subtotal),2) AS total, p.telefono,pagado FROM pedidos p INNER JOIN clientes c ON c.codigo=p.clienteId where p.repartidor_id IS NULL GROUP BY p.pedidoid ORDER BY p.fecha DESC ";
+                $sql="SELECT p.repartidor_id as repartidor, r.nombre AS repartidorNombre, vendedorId as vendedor, p.pedidoid, CONCAT(DATE_FORMAT(p.fecha, '%d/%m/%Y %H:%i'),' hs') AS fecha,p.clienteId,c.razonSocial,flag as estado, ROUND(sum(p.subtotal),2) AS total, p.telefono,pagado FROM pedidos p LEFT JOIN repartidores r ON r.id=p.repartidor_id INNER JOIN clientes c ON c.codigo=p.clienteId where p.repartidor_id IS NULL GROUP BY p.pedidoid ORDER BY p.fecha DESC ";
             }
 
         }
@@ -137,35 +137,56 @@ class Reparto{
     }
 
     public function asignar($repartidor, $pedidosId){
-        $sql="UPDATE pedidos SET repartidor_id='$repartidor', fecha_asignacion=CURRENT_TIMESTAMP() WHERE pedidoid in ($pedidosId)";
+        $repartidor = intval($repartidor);
+        $ids = implode(',', array_map('intval', explode(',', (string)$pedidosId)));
+        if ($ids==='') { $ids='0'; }
+        $sql="UPDATE pedidos SET repartidor_id='$repartidor', fecha_asignacion=CURRENT_TIMESTAMP() WHERE pedidoid in ($ids)";
         return ejecutarConsulta($sql);
     }
 
     public function obtenerTelefono($pedidosId){
-        $sql="SELECT repartidor.telefono as telefono FROM `pedidos` as pedido INNER JOIN `repartidores` as repartidor ON  pedido.repartidor_id = repartidor.id   where pedido.pedidoid in ($pedidosId) GROUP BY repartidor.telefono";
+        $ids = implode(',', array_map('intval', explode(',', (string)$pedidosId)));
+        if ($ids==='') { $ids='0'; }
+        $sql="SELECT repartidor.telefono as telefono FROM `pedidos` as pedido INNER JOIN `repartidores` as repartidor ON  pedido.repartidor_id = repartidor.id   where pedido.pedidoid in ($ids) GROUP BY repartidor.telefono";
 
         return ejecutarConsulta($sql);
     }
 
     public function obtenerPedidos($pedidosId){
-        $sql = "UPDATE pedidos SET fecha_notificacion=CURRENT_TIMESTAMP() where pedidoid in (".$pedidosId.")";
+        $ids = implode(',', array_map('intval', explode(',', (string)$pedidosId)));
+        if ($ids==='') { $ids='0'; }
+        $sql = "UPDATE pedidos SET fecha_notificacion=CURRENT_TIMESTAMP() where pedidoid in (".$ids.")";
         ejecutarConsulta($sql);
 
         if($this->responseWebMaster['data']['mix'] || $this->responseWebMaster['data']['b2c'] ){
-            $sql = "SELECT repartidor.telefono as telefonoR,cliente.telefono as telefonoC, pedido.*, cliente.* , SUM(CAST(pedido.subtotal AS DECIMAL(25,2))) AS total ,  SUM(pedido.cantidad) as cantidadTotal  FROM `pedidos` as pedido INNER JOIN `repartidores` as repartidor ON  pedido.repartidor_id = repartidor.id INNER JOIN clientes as cliente on pedido.clienteId = cliente.id  where pedido.pedidoid in  ($pedidosId) GROUP BY pedidoid, repartidor.telefono";
+            $sql = "SELECT repartidor.telefono as telefonoR,cliente.telefono as telefonoC, pedido.*, cliente.* , SUM(CAST(pedido.subtotal AS DECIMAL(25,2))) AS total ,  SUM(pedido.cantidad) as cantidadTotal  FROM `pedidos` as pedido INNER JOIN `repartidores` as repartidor ON  pedido.repartidor_id = repartidor.id INNER JOIN clientes as cliente on pedido.clienteId = cliente.id  where pedido.pedidoid in  ($ids) GROUP BY pedidoid, repartidor.telefono";
         }else if ($this->responseWebMaster['data']['b2b'] ){
-            $sql = "SELECT repartidor.telefono as telefonoR,cliente.telefono as telefonoC, pedido.*, cliente.* , SUM(CAST(pedido.subtotal AS DECIMAL(25,2))) AS total ,  SUM(pedido.cantidad) as cantidadTotal  FROM `pedidos` as pedido INNER JOIN `repartidores` as repartidor ON  pedido.repartidor_id = repartidor.id INNER JOIN clientes as cliente on pedido.clienteId = cliente.codigo  where pedido.pedidoid in  ($pedidosId) GROUP BY pedidoid, repartidor.telefono";
+            $sql = "SELECT repartidor.telefono as telefonoR,cliente.telefono as telefonoC, pedido.*, cliente.* , SUM(CAST(pedido.subtotal AS DECIMAL(25,2))) AS total ,  SUM(pedido.cantidad) as cantidadTotal  FROM `pedidos` as pedido INNER JOIN `repartidores` as repartidor ON  pedido.repartidor_id = repartidor.id INNER JOIN clientes as cliente on pedido.clienteId = cliente.codigo  where pedido.pedidoid in  ($ids) GROUP BY pedidoid, repartidor.telefono";
         }
         return ejecutarConsulta($sql);
     }
 
     public function obtenerProductosPorPedido($id){
+        $id = intval($id);
         $sql = "SELECT  pedido.*  FROM `pedidos` as pedido where pedido.pedidoid=$id";
         return ejecutarConsulta($sql);
     }
 
+    // Versión batch: trae los productos de TODOS los pedidos de una vez (evita el N+1
+    // de llamar obtenerProductosPorPedido() por cada pedido). $pedidosId es la lista
+    // separada por comas que ya se usa en los IN(...) de este flujo.
+    public function obtenerProductosPorPedidos($pedidosId){
+        $ids = implode(',', array_map('intval', explode(',', (string)$pedidosId)));
+        if ($ids==='') { $ids='0'; }
+        $sql = "SELECT  pedido.*  FROM `pedidos` as pedido where pedido.pedidoid IN ($ids)";
+        return ejecutarConsulta($sql);
+    }
+
     public function desasignar($repartidor,$pedido){
-        $sql="UPDATE pedidos SET repartidor_id=NULL, fecha_asignacion=NULL WHERE pedidoid in ($pedido) and repartidor_id='$repartidor' ";
+        $repartidor = intval($repartidor);
+        $ids = implode(',', array_map('intval', explode(',', (string)$pedido)));
+        if ($ids==='') { $ids='0'; }
+        $sql="UPDATE pedidos SET repartidor_id=NULL, fecha_asignacion=NULL WHERE pedidoid in ($ids) and repartidor_id='$repartidor' ";
         ejecutarConsulta($sql);
         $sql="SELECT repartidor.telefono as telefono FROM `repartidores` as repartidor   where repartidor.id ='$repartidor'";
         return ejecutarConsultaSimpleFila($sql);

@@ -183,6 +183,7 @@ function listar() {
         "aProcessing": true,//activamos el procedimiento del datatable
         "aServerSide": true,//paginacion y filrado realizados por el server
         dom: 'Br<"toolbar">tip ',//definimos los elementos del control de la tabla
+        responsive: window.matchMedia('(max-width: 991.98px)').matches,//solo en mobile (<992px, incluye tablets en vertical); en desktop, todas las columnas. Originalmente: colapsa columnas que no entran en una fila expandible (+)
 
         buttons: [],
         "ajax":
@@ -610,6 +611,7 @@ function enviarLink(empresa) {
         "aProcessing": true,//activamos el procedimiento del datatable
         "aServerSide": false,//paginacion y filrado realizados por el server
         dom: 'Br<"toolbar">tip',//definimos los elementos del control de la tabla
+        responsive: window.matchMedia('(max-width: 991.98px)').matches,//solo en mobile (<992px, incluye tablets en vertical); en desktop, todas las columnas. Originalmente: colapsa columnas que no entran en una fila expandible (+)
         buttons: [],
         "ajax":{
             url: '../ajax/reparto.php?op=listar&filter='+filter,

@@ -60,13 +60,13 @@ class Usuario{
 
 	//metodo para mostrar registros
 	public function mostrar($idusuario){
-		$sql="SELECT * FROM usuario WHERE idusuario='$idusuario'";
+		$sql="SELECT idusuario,nombre,tipo_documento,num_documento,direccion,telefono,email,cargo,login,imagen,condicion FROM usuario WHERE idusuario='$idusuario'";
 		return ejecutarConsultaSimpleFila($sql);
 	}
 
 	//listar registros
 	public function listar(){
-		$sql="SELECT * FROM usuario";
+		$sql="SELECT idusuario,nombre,tipo_documento,num_documento,direccion,telefono,email,cargo,login,imagen,condicion FROM usuario";
 		return ejecutarConsulta($sql);
 	}
 

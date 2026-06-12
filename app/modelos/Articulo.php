@@ -17,9 +17,8 @@ public function insertar($idcategoria,$codigo,$nombre,$stock,$descripcion,$image
 	return ejecutarConsulta($sql);
 }
 
-public function editar($idarticulo,$rubro,$linea,$nombre,$calibre){
-///SELECT `codigo`, `descripcion`, `lista1`, `linea`, `rubro`, `capacidad`, `pack`, `impInt`, `codBarra`, `calibre` FROM `articulos` WHERE 1
-	$sql="UPDATE articulos SET rubro='$rubro',linea='$linea', descripcion='$nombre' WHERE codigo='$idarticulo' ";
+public function editar($idarticulo,$rubro,$linea,$nombre,$subrubro,$marca){
+	$sql="UPDATE articulos SET rubro='$rubro',linea='$linea', subrubro='$subrubro', marca='$marca', descripcion='$nombre' WHERE codigo='$idarticulo' ";
 	return ejecutarConsulta($sql);
 }
 public function desactivar($idarticulo){
