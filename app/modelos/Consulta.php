@@ -11,17 +11,20 @@ class Consulta{
     }
 
     public function editar($idConsulta,$resolucion,$estado){
+        $idConsulta = (int)$idConsulta;
         $sql="UPDATE consultas SET resolucion='$resolucion', estado='$estado' , fecha_resolucion =NOW() WHERE consultaId='$idConsulta'";
         ejecutarConsulta("INSERT INTO `msj_consultas`(`id_consulta`, tipo,`fecha`, `mensaje`,respondido, `estado`) VALUES ($idConsulta,0,NOW(),'$resolucion',1,'$estado')");
         ejecutarConsulta("UPDATE `msj_consultas` SET `respondido`=1  WHERE `id_consulta` = ".$idConsulta);
         return ejecutarConsulta($sql);
     }
     public function insertarMensaje($idConsulta,$resolucion,$estado,$canal){
+        $idConsulta = (int)$idConsulta;
         $sql = "INSERT INTO `msj_consultas`(`id_consulta`, tipo,`fecha`, `mensaje`, respondido,`estado`,canal) VALUES ($idConsulta,1,NOW(),'$resolucion',0,'$estado',$canal)";
         return ejecutarConsulta($sql);
 
     }
     public function listarChats($id_consulta){
+		$id_consulta = (int)$id_consulta;
 		$sql = "SELECT fecha, DATE_FORMAT(fecha, '%e de %M %Y ') as fechaMensaje, 
                     DATE_FORMAT(fecha, ' %H:%i') as hora, mensaje, id_consulta, canal, 
                     CASE WHEN canal= '-1' THEN 'Cliente' ELSE 'Administrativo' END AS usuario 
@@ -30,6 +33,7 @@ class Consulta{
 		return ejecutarConsulta($sql);
 	}
     public function mostrar($idConsulta){
+        $idConsulta = (int)$idConsulta;
         $sql="SELECT consultas.*, consultas.area as _area FROM `consultas` WHERE consultaId='$idConsulta' ";
         return ejecutarConsultaSimpleFila($sql);
     }
@@ -49,11 +53,13 @@ class Consulta{
     }
 
     public function listarMensajes($idventa){
+        $idventa = (int)$idventa;
         $sql="SELECT * FROM `msj_consultas` WHERE `id_consulta` = $idventa ";
         return ejecutarConsulta($sql) ;
     }
 
     public function listarMensaje($idventa){
+        $idventa = (int)$idventa;
         $sql="SELECT * FROM `msj_consultas` WHERE `id_consulta` = $idventa ";
         return ejecutarConsulta($sql) ;
     }

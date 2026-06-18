@@ -157,6 +157,7 @@ class Reclamo{
 	}
 
 	public function listarRespReclamo($reclamoId){
+		$reclamoId = (int)$reclamoId;
 		$sql = null;
 		if($this->responseWebMaster['data']['mix'] || $this->responseWebMaster['data']['b2c'] ){
 			$sql="SELECT reclamos.*,clientes.razonSocial,clientes.direccion,clientes.vendedor FROM `reclamos` LEFT JOIN clientes ON reclamos.clienteId = clientes.id WHERE reclamoId like '$reclamoId' and estado <> 'Finalizado'";
