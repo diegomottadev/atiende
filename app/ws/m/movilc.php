@@ -9,6 +9,10 @@ require (__ROOT__.'/config/global.php');
 <head>
     <title>Atiende | Consulta | Supervisor</title>
     <meta charset="utf-8">
+    <!-- URL linda /responder/consulta/{id}: resolver TODAS las rutas relativas (assets, C_Respuesta.php,
+         finaliza.php, loading.gif) como si el documento estuviera en /ws/m/ — si no, se resuelven contra
+         /responder/consulta/ y dan 404 (mismo patrón que el <base> de /pedidos). -->
+    <base href="/ws/m/">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="../../public/img/logo30x30.png" rel="shortcut icon" type="image/x-icon">
     <link href="../../public/assets/css/icons.min.css" rel="stylesheet" type="text/css" />
@@ -114,11 +118,6 @@ require (__ROOT__.'/config/global.php');
                         "*Estado:* "+_estado+"\n"+
                         "*Resolucion:* "+document.getElementById('resolucion').value+"\n";
 
-                    if(_estado !== "Finalizado"){
-                        // mensaje+="Para responder a la empresa hace clic aquí: "+ globalUrl+"/"+globalNombreEmpresa+"/ws/m/respc.php?idconsulta="+document.getElementById('consultaId').value;
-                        mensaje+="Para responder a la empresa hace clic aquí: "+ globalUrl+"/ws/m/respc.php?idconsulta="+document.getElementById('consultaId').value;
-
-                    }
 
                     var json = {
                         type: "_msg_externo",
@@ -132,11 +131,15 @@ require (__ROOT__.'/config/global.php');
                             }
                         }
                     };
-                    openWSConnection(globalWS,'8080','/'+globalNombreEmpresa+'/ws',JSON.stringify(json));
+                    // El envío al cliente ya lo hizo C_Respuesta.php por la API directa de WhatsApp
+                    // (antes salía por WebSocket/WEB_MASTER legacy, que no entrega en tenants migrados).
+                    document.getElementById('bloquea').style.display='none';
+                    document.location.href="/responder/listo";
 
                 }else{
                     console.log(data);
-                    alert("Ocurrio un erro inesperado");
+                    document.getElementById('bloquea').style.display='none';
+                    alert("Ocurrió un error inesperado");
                 }
             }
         });
@@ -193,6 +196,8 @@ require (__ROOT__.'/config/global.php');
     <div class="container">
         <?php
         include_once("../../config/Connection.php");
+        require_once("../../config/tenant_subdominio.php");
+        resolverTenantPorSubdominio(); // resolver el tenant por subdominio (link sin login)
         require "../../modelos/Consulta.php";
         //$request=Connection::runQuery("SELECT consultas.*,clientes.razonSocial,clientes.direccion,clientes.vendedor FROM `consultas` LEFT JOIN clientes ON consultas.clienteId = clientes.codigo WHERE consultaId like '".$_GET["id"]."' and estado <> 'Finalizado' ");
         $consulta = new Consulta();
@@ -226,8 +231,41 @@ require (__ROOT__.'/config/global.php');
                 $respConsulta = $consulta->listarChats($idGet);
                 ?>
                 <div class="tab-pane show active" id="tab-chat">
+                    <?php $tituloMotivo = trim((string)($row["motivo"] ?? '')); if ($tituloMotivo !== '') { ?>
+                    <div class="px-3 py-2 border-bottom">
+                        <h5 class="mb-0 text-truncate" title="<?php echo htmlspecialchars($tituloMotivo, ENT_QUOTES, 'UTF-8'); ?>">
+                            <i class="mdi mdi-message-alert-outline text-primary me-1"></i><?php echo htmlspecialchars($tituloMotivo, ENT_QUOTES, 'UTF-8'); ?>
+                        </h5>
+                    </div>
+                    <?php } ?>
                     <div class="card-body px-0 pb-0 chat-body chat-supervisor " >
                         <ul class="conversation-list px-3"  style="max-height: 538px">
+                            <?php
+                            // Mensaje original de la consulta: el cliente lo escribió por WhatsApp y se
+                            // guarda en `consultas.detalle` (NO en msj_consultas), por eso el chat arrancaba
+                            // vacío. Lo mostramos como primer globo (lado Cliente). El motivo va de titular
+                            // del chat (arriba), así el globo queda solo con el detalle. Es solo display.
+                            $detalleOriginal = trim((string)($row["detalle"] ?? ''));
+                            $horaOriginal    = '';
+                            if (!empty($row["fecha_ingreso"])) {
+                                $tsOriginal = strtotime($row["fecha_ingreso"]);
+                                if ($tsOriginal) { $horaOriginal = date('H:i', $tsOriginal); }
+                            }
+                            if ($detalleOriginal !== '') {
+                            ?>
+                                <li class="clearfix">
+                                    <div class="chat-avatar">
+                                        <img src="../../public/img/avatars/user1.png" class="rounded" alt="Cliente" />
+                                        <i><?php echo htmlspecialchars($horaOriginal, ENT_QUOTES, 'UTF-8'); ?></i>
+                                    </div>
+                                    <div class="conversation-text">
+                                        <div class="ctext-wrap">
+                                            <i>Cliente</i>
+                                            <p><?php echo nl2br(htmlspecialchars($detalleOriginal, ENT_QUOTES, 'UTF-8')); ?></p>
+                                        </div>
+                                    </div>
+                                </li>
+                            <?php } ?>
                             <?php $etiquetaFecha ='';
                             while ($reg = $respConsulta->fetch_object()) { ?>
                                 <?php $fecha = $reg->fechaMensaje;

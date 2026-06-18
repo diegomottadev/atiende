@@ -428,8 +428,8 @@ class BotEngine
                                                 '*Vendedor:* ' . $vendedor . "\n" .
                                                 '*Motivo:* ' . $_motivo . "\n" .
                                                 '*Fecha:* ' . strftime('%Y-%m-%d %H:%M:%S', time()) . "\n" .
-                                                '*Tel:* ' . substr($user, 3) . "\n" .
-                                                '*Responder:* ' . tenantUrl($this->empresa, '/ws/m/movil.php?id=' . $numeroReclamo) . "\n";
+                                                '*Tel:* ' . substr($user, 3) . "\n\n" .
+                                                '*Responder:* ' . tenantUrl($this->empresa, '/responder/reclamo/' . $numeroReclamo) . "\n";
                                             $this->client->sendText(trim($telResponsable), $resultado);
                                         }
                                     }
@@ -645,10 +645,11 @@ class BotEngine
                                         $numeroReclamo  = '';
                                         $numeroConsulta = Connection::runQueryID($consultaSql);
                                         Connection::runQuery("UPDATE `contactos` SET `mensaje`= '', `anterior`= '', `esperaRespuesta`=0,`menu` = '0'  where id like '" . $user . "'");
-                                        $request = Connection::runQuery("SELECT telefono FROM `areas_consultas` WHERE `id` = '" . $_area . "'");
+                                        $request = Connection::runQuery("SELECT telefono, area FROM `areas_consultas` WHERE `id` = '" . $_area . "'");
                                         if (mysqli_num_rows($request) > 0) {
                                             $row            = mysqli_fetch_assoc($request);
                                             $telResponsable  = $row['telefono'];
+                                            $areaResponsable = $row['area'];
                                             if (strlen($row['telefono']) > 0) {
                                                 $request = null;
                                                 if ($this->tenantConfig['data']['b2b']) {
@@ -664,15 +665,16 @@ class BotEngine
                                                     $direccion   = $row['direccion'];
                                                 }
 
-                                                $resultado  = 'Hay un nueva consulta de *' . $pushname . "* :\n";
+                                                $resultado  = '*‼️Esta consulta te ha sido informada porque estás asignado como supervisor del área ' . $areaResponsable . "*\n\n";
+                                                $resultado .= 'Hay un nueva consulta de *' . $pushname . "* :\n";
                                                 $resultado .= '*Consulta N°:* ' . $numeroConsulta . "\n" .
                                                     '*Cliente:* ' . $razonSocial . "\n" .
                                                     '*Dirección* ' . $direccion . "\n" .
                                                     '*Vendedor* ' . $vendedor . "\n" .
                                                     '*Motivo:* ' . $_motivo . "\n" .
                                                     '*Fecha:* ' . strftime('%Y-%m-%d %H:%M:%S', time()) . "\n" .
-                                                    '*Tel:* ' . substr($user, 3) . "\n" .
-                                                    '*Responder:* ' . tenantUrl($this->empresa, '/ws/m/movilc.php?id=' . $numeroConsulta) . "\n";
+                                                    '*Tel:* ' . substr($user, 3) . "\n\n" .
+                                                    '*Responder:* ' . tenantUrl($this->empresa, '/responder/consulta/' . $numeroConsulta) . "\n";
                                                 $this->client->sendText(trim($telResponsable), $resultado);
                                             }
                                         }

@@ -165,9 +165,11 @@ function guardarEditarConsulta(e){
                 "*Estado:* "+_estado+"\n"+
                 "*Resolucion:* "+document.getElementById('resolucion').value+"\n\n";
 
-            if(_estado !== "Finalizado")
-                // mensaje+=`Para responder a la empresa hace clic aquí: ${globalUrl}/${globalNombreEmpresa}/ws/m/respc.php?idconsulta=${document.getElementById('idconsulta').value}`;
-                mensaje+=`Para responder a la empresa hace clic aquí: ${globalUrl}/ws/m/respc.php?idconsulta=${document.getElementById('idconsulta').value}`;
+            // Sin link: el cliente responde con los botones "Sí, responder / No, gracias" (send_wa.php
+            // interactive='1'). La pregunta va en el cuerpo del mismo mensaje, igual que el del supervisor.
+            if(_estado !== "Finalizado"){
+                mensaje += "¿Deseas responder sobre tu consulta?";
+            }
 
 
             var to = $("#telefono").text();

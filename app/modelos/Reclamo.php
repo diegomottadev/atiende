@@ -11,12 +11,14 @@ class Reclamo{
 	}
 
 	public function editar($idreclamo,$resolucion,$estado,$canal){
+		$idreclamo = (int)$idreclamo;
 		$sql="UPDATE reclamos SET resolucion='$resolucion', estado='$estado' , fecha_resolucion =NOW() WHERE reclamoId=$idreclamo";
 		ejecutarConsulta("INSERT INTO `msj_reclamos`(`id_reclamo`, tipo,`fecha`, `mensaje`,respondido, `estado`,`canal`) VALUES ($idreclamo,0,NOW(),'$resolucion',1,'$estado','$canal')");
 		ejecutarConsulta("UPDATE `msj_reclamos` SET `respondido`=1  WHERE `id_reclamo` = ".$idreclamo);
 		return ejecutarConsulta($sql);
 	}
 	public function insertarMensaje($idreclamo,$resolucion,$estado,$canal){
+		$idreclamo = (int)$idreclamo;
 		$sql= "INSERT INTO `msj_reclamos`(`id_reclamo`, tipo,`fecha`, `mensaje`, respondido,`estado`,`canal`) VALUES ($idreclamo,1,NOW(),'$resolucion',0,'$estado',$canal )";
 		return ejecutarConsulta($sql);
 	}
@@ -27,6 +29,7 @@ class Reclamo{
 	}
 
 	public function mostrar($idreclamo){
+		$idreclamo = (int)$idreclamo;
 		$sql="SELECT reclamos.*, reclamos.area as _area FROM `reclamos` WHERE reclamoId='$idreclamo' ";
 		return ejecutarConsultaSimpleFila($sql);
 	}
@@ -56,11 +59,13 @@ class Reclamo{
 	}
 
 	public function listarMensajes($idventa){
+		$idventa = (int)$idventa;
 		$sql="SELECT * FROM `msj_reclamos` WHERE `id_reclamo` = $idventa ";
 		return ejecutarConsulta($sql) ;
 	}
 	public function listarChats($id_reclamo){
-		$sql = "SELECT 
+		$id_reclamo = (int)$id_reclamo;
+		$sql = "SELECT
 					fecha,DATE_FORMAT(fecha, '%e de %M %Y ') as fechaMensaje,
 					DATE_FORMAT(fecha, ' %H:%i')  as hora, mensaje,
 					id_reclamo, canal, CASE WHEN canal= '-1' THEN 'Cliente' 

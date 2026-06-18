@@ -1,5 +1,6 @@
 <?php
 require_once '../config/auth.php';
+require_once "../config/Telefono.php";
 require_once "../modelos/AreaConsulta.php";
 
 $areaConsulta=new AreaConsulta();
@@ -14,6 +15,13 @@ csrfGuard($op, ['mostrar', 'listarp']);
 
 switch ($_GET["op"]) {
     case 'guardaryeditar':
+        // Normalizar el teléfono al formato wa_id según el país del tenant (bot_config.pais).
+        // El bot envía el aviso de la consulta a este número (areas_consultas.telefono) → debe
+        // quedar en formato internacional para que WhatsApp lo entregue. Default AR si no hay pais.
+        $pais = 'AR';
+        $rp = ejecutarConsultaSimpleFila("SELECT pais FROM bot_config LIMIT 1");
+        if (is_array($rp) && !empty($rp['pais'])) { $pais = $rp['pais']; }
+        $telefono = Telefono::normalizar($telefono, $pais);
         if (empty($idpersona)) {
             $rspta=$areaConsulta->insertar($nombre,$telefono);
             echo $rspta ? "Datos registrados correctamente" : "No se pudo registrar los datos";

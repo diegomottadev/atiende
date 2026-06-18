@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Atiende · Qué hace el software</title>
+<style>
+  :root{
+    --verde:#16a34a;
+    --verde-claro:#dcfce7;
+    --verde-oscuro:#14532d;
+    --tinta:#0f172a;
+    --gris:#475569;
+    --gris-suave:#64748b;
+    --linea:#e2e8f0;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    color:var(--tinta);background:#f8fafc;line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  .hoja{
+    max-width:820px;margin:24px auto;background:#fff;
+    padding:48px 56px 44px;border-radius:16px;
+    box-shadow:0 1px 3px rgba(0,0,0,.08);
+  }
+
+  .top{
+    display:flex;align-items:center;justify-content:space-between;gap:16px;
+    background:var(--tinta);border-radius:14px;padding:18px 24px;margin-bottom:32px;
+  }
+  .logo{height:46px;width:auto;display:block}
+  .top .claim{color:#cbd5e1;font-size:13px;text-align:right;max-width:240px}
+
+  .intro h1{font-size:27px;font-weight:700;letter-spacing:-.5px;margin-bottom:8px}
+  .intro h1 em{color:var(--verde);font-style:normal}
+  .intro p{font-size:15px;color:var(--gris);max-width:640px;margin-bottom:34px}
+
+  .feat{
+    display:grid;grid-template-columns:44px 1fr;gap:18px;
+    padding:22px 0;border-top:1px solid var(--linea);
+  }
+  .feat:first-of-type{border-top:none;padding-top:4px}
+  .ico{
+    width:44px;height:44px;border-radius:12px;
+    background:var(--verde-claro);color:var(--verde-oscuro);
+    display:flex;align-items:center;justify-content:center;
+    font-size:22px;
+  }
+  .feat h2{font-size:17px;font-weight:700;margin-bottom:6px}
+  .feat p{font-size:14px;color:var(--gris);margin-bottom:8px}
+  .feat p:last-child{margin-bottom:0}
+
+  .cierre{
+    margin-top:34px;padding:22px 26px;border-radius:14px;
+    background:var(--tinta);color:#fff;
+  }
+  .cierre h3{font-size:18px;font-weight:700;margin-bottom:6px}
+  .cierre p{font-size:13px;color:#cbd5e1;max-width:560px}
+
+  @media print{
+    body{background:#fff}
+    .hoja{box-shadow:none;margin:0;max-width:none;padding:24px 30px;border-radius:0}
+    .top,.cierre,.ico{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  }
+</style>
+</head>
+<body>
+<div class="hoja">
+
+  <div class="top">
+    <img class="logo" src="LOGO_PLACEHOLDER" alt="Atiende">
+    <div class="claim">Tu WhatsApp atiende, toma pedidos y organiza tu negocio</div>
+  </div>
+
+  <div class="intro">
+    <h1>Qué hace <em>Atiende</em></h1>
+    <p>Atiende convierte tu WhatsApp en un canal de atención y ventas que trabaja solo. Centraliza las conversaciones, responde a tus clientes al instante y deja todo organizado en un panel web, para que tu equipo dedique su tiempo a vender y no a tareas repetitivas.</p>
+  </div>
+
+  <div class="feat">
+    <div class="ico">💬</div>
+    <div>
+      <h2>Centralización de consultas y pedidos</h2>
+      <p>Atiende reúne todas las conversaciones que llegan por WhatsApp y las organiza en un único lugar.</p>
+      <p>Cada cliente y cada pedido queda registrado, así las conversaciones no se pierden ni quedan dispersas entre distintas personas o teléfonos.</p>
+    </div>
+  </div>
+
+  <div class="feat">
+    <div class="ico">🤖</div>
+    <div>
+      <h2>Atención automática 24/7</h2>
+      <p>El bot conversa con tus clientes, los guía por un menú simple y toma sus pedidos, reclamos y consultas — sin que tu equipo tenga que estar conectado.</p>
+      <p>Responde al instante a cualquier hora, en tu mismo número de WhatsApp de siempre.</p>
+    </div>
+  </div>
+
+  <div class="feat">
+    <div class="ico">📦</div>
+    <div>
+      <h2>Gestión de pedidos y reclamos</h2>
+      <p>Cada pedido y cada reclamo queda registrado con su estado, y podés seguirlo desde que entra hasta la entrega.</p>
+      <p>Evita que algo quede olvidado y te da control de todo lo que pasa en tu negocio desde un solo panel.</p>
+    </div>
+  </div>
+
+  <div class="feat">
+    <div class="ico">🧑‍💼</div>
+    <div>
+      <h2>Asistencia al equipo de ventas</h2>
+      <p>Cada cliente puede asignarse a un vendedor. Cuando se confirma un pedido, el vendedor recibe toda la información para avanzar con la venta.</p>
+      <p>Así el equipo comercial dedica menos tiempo a tareas repetitivas y más a las conversaciones que cierran ventas.</p>
+    </div>
+  </div>
+
+  <div class="feat">
+    <div class="ico">⚙️</div>
+    <div>
+      <h2>Automatización de tareas</h2>
+      <p>Atiende ejecuta solo las tareas operativas: registra los datos del cliente, actualiza el estado de los pedidos y genera el comprobante en PDF de cada operación.</p>
+      <p>Esto reduce el trabajo administrativo y mejora la velocidad de respuesta de tu negocio.</p>
+    </div>
+  </div>
+
+  <div class="feat">
+    <div class="ico">📊</div>
+    <div>
+      <h2>Toda tu información en un panel</h2>
+      <p>Pedidos, clientes y contactos quedan organizados y siempre a mano en tu panel web.</p>
+      <p>Tenés una visión clara de tu actividad comercial, sin planillas sueltas ni datos dispersos.</p>
+    </div>
+  </div>
+
+  <div class="cierre">
+    <h3>Menos tareas manuales, más ventas</h3>
+    <p>Atiende se encarga de atender, registrar y organizar — para que vos y tu equipo se enfoquen en lo que realmente hace crecer el negocio. Todo en tu mismo WhatsApp, sin costos ocultos.</p>
+  </div>
+
+</div>
+</body>
+</html>

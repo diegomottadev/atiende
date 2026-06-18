@@ -787,9 +787,9 @@ function  procesarAccion($menuJson,$menu,$esperaRespuesta,$mensaje,$pushname,$us
                                             "*Vendedor:* ".$vendedor."\n".
                                             "*Motivo:* ".$_motivo."\n".
                                             "*Fecha:* ".strftime( "%Y-%m-%d %H:%M:%S", time() )."\n".
-                                            "*Tel:* ".substr($user, 3)."\n".
+                                            "*Tel:* ".substr($user, 3)."\n\n".
                                             //"*Responder:* ".__PROD__."/".$empresa."/ws/m/movil.php?id=".$numeroReclamo."\n";
-                                            "*Responder:* ".tenantUrl($empresa,'/ws/m/movil.php?id='.$numeroReclamo)."\n";
+                                            "*Responder:* ".tenantUrl($empresa,'/responder/reclamo/'.$numeroReclamo)."\n";
                                         echo sendChat(trim($telResponsable), $resultado );
                                     }
                                 }
@@ -1041,7 +1041,7 @@ function  procesarAccion($menuJson,$menu,$esperaRespuesta,$mensaje,$pushname,$us
                                             "*Fecha:* ".strftime( "%Y-%m-%d %H:%M:%S", time() )."\n".
                                             "*Tel:* ".substr($user, 3)."\n".
 //                                            "*Responder:* ".__PROD__."/".$empresa."/ws/m/movilc.php?id=".$numeroConsulta."\n";
-                                             "*Responder:* ".tenantUrl($empresa,'/ws/m/movilc.php?id='.$numeroConsulta)."\n";
+                                             "*Responder:* ".tenantUrl($empresa,'/responder/consulta/'.$numeroConsulta)."\n";
 
                                         echo sendChat(trim($telResponsable), $resultado );
                                     }

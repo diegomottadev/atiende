@@ -195,10 +195,11 @@ function _guardarReclamo(){
 		 "*Estado:* "+_estado+"\n"+
 		 "*Resolucion:* "+document.getElementById('resolucion').value+"\n\n";		 
 		 
-		 if(_estado !== "Finalizado"){
-			 //mensaje+="Para responder a la empresa hace clic aquí: "+ globalUrl+"/"+empresa+"/ws/m/resp.php?idreclamo="+document.getElementById('idreclamo').value;
-			 mensaje+="Para responder a la empresa hace clic aquí: "+ globalUrl+"/ws/m/resp.php?idreclamo="+document.getElementById('idreclamo').value;
-		 }
+		 // Link a resp.php quitado: el cliente responde con los botones "Sí, responder / No, gracias"
+		 // (send_wa.php con interactive='1') → conversación continua manejada por el webhook.
+			 if(_estado !== "Finalizado"){
+				 mensaje += "¿Deseas responder sobre tu reclamo?";
+			 }
 
 		  var to = $("#telefono").text();
 			var postData = { to: to, text: mensaje };

@@ -178,6 +178,17 @@ if ($type === 'text') {
     $rawBodyText = $message['text']['body'] ?? '';
     $body        = $conexion->real_escape_string(substr($rawBodyText, 0, 1000));
 
+    // ¿El texto es un saludo? (hola/buenas/menú…). Sirve para SALIR de una conversación abierta
+    // (reclamo/consulta) y reiniciar el menú cuando el cliente escribe "hola". Mirror de
+    // BotEngine::esSaludo (private, no accesible desde acá).
+    $__s = strtr(strtolower(trim($rawBodyText)), ['á'=>'a','é'=>'e','í'=>'i','ó'=>'o','ú'=>'u','ü'=>'u','ñ'=>'n']);
+    $__s = trim(preg_replace('/[^a-z ]/', '', $__s));
+    $esSaludoMsg = false;
+    if ($__s !== '') {
+        $esSaludoMsg = in_array($__s, ['hola','holaa','holaaa','ola','buenas','buen dia','buenos dias','buenas tardes','buenas noches','hi','hello','hey','menu','inicio','empezar','comenzar','que tal','holis'], true);
+        if (!$esSaludoMsg) { foreach (['hola','buenas','buen dia','buenos dias','hello'] as $__p) { if (strpos($__s, $__p) === 0) { $esSaludoMsg = true; break; } } }
+    }
+
     $req = Connection::runQuery("SELECT anterior FROM contactos WHERE id = '$user'");
     $row = mysqli_fetch_assoc($req);
     if ($row) {
@@ -210,6 +221,40 @@ if ($type === 'text') {
             $client->sendText($user, "Gracias, *$pushname*, tu respuesta fue registrada. ¡Hasta pronto!");
             exit;
         }
+
+        // Conversación CONTINUA cliente↔supervisor (reclamo). Tras la respuesta del supervisor
+        // (S_Respuesta.php) el cliente queda en este estado: cada mensaje que escribe se agrega
+        // al hilo del reclamo (canal=-1) y aparece en /responder/reclamo/{id}. NO se resetea el
+        // estado ni se cierra: la conversación sigue abierta hasta que el supervisor finalice el
+        // reclamo (ahí S_Respuesta limpia contactos y el cliente vuelve al menú).
+        if (($ant['type'] ?? '') === 'reclamo_conversacion') {
+            if ($esSaludoMsg) {
+                // Un saludo SALE de la conversación y reinicia el menú: reseteamos el estado y NO
+                // hacemos exit → cae al flujo normal del bot (BotEngine muestra el menú más abajo).
+                Connection::runQuery("UPDATE contactos SET anterior='', esperaRespuesta=0, menu='0' WHERE id='$user'");
+            } else {
+                $idReclamo = intval($ant['idReclamo']);
+                Connection::runQuery("INSERT INTO msj_reclamos(id_reclamo, tipo, fecha, mensaje, respondido, estado, canal) VALUES ($idReclamo, 1, NOW(), '$body', 0, 'En analisis', -1)");
+                // Confirmar al cliente que su respuesta llegó, SIN cerrar: la conversación sigue abierta
+                // (no se resetea el estado) hasta que el supervisor finalice el reclamo.
+                $client->sendText($user, "✅ Gracias, *$pushname*, tu respuesta fue enviada.");
+                exit;
+            }
+        }
+
+        // Conversación CONTINUA cliente↔supervisor (consulta), análoga a la de reclamos.
+        if (($ant['type'] ?? '') === 'consulta_conversacion') {
+            if ($esSaludoMsg) {
+                // Un saludo SALE de la conversación y reinicia el menú (cae al flujo normal del bot).
+                Connection::runQuery("UPDATE contactos SET anterior='', esperaRespuesta=0, menu='0' WHERE id='$user'");
+            } else {
+                $idConsulta = intval($ant['idConsulta']);
+                Connection::runQuery("INSERT INTO msj_consultas(id_consulta, tipo, fecha, mensaje, respondido, estado, canal) VALUES ($idConsulta, 1, NOW(), '$body', 0, 'En analisis', -1)");
+                // Confirmar al cliente que su respuesta llegó, SIN cerrar la conversación.
+                $client->sendText($user, "✅ Gracias, *$pushname*, tu respuesta fue enviada.");
+                exit;
+            }
+        }
     }
 
 } elseif ($type === 'interactive') {
@@ -227,26 +272,29 @@ if ($type === 'text') {
 
     if ($antType === 'reclamo_pregunta') {
         if ($buttonId === 'reclamo_si') {
-            $ant['type'] = 'reclamo_respuesta';
+            // Conversación CONTINUA (antes 'reclamo_respuesta' = un solo mensaje): el cliente puede
+            // mandar varios mensajes que se cargan al hilo del supervisor hasta que se finalice.
+            $ant['type'] = 'reclamo_conversacion';
             $antJson     = addslashes(json_encode($ant, JSON_UNESCAPED_UNICODE));
             Connection::runQuery("UPDATE contactos SET anterior='$antJson', esperaRespuesta=1 WHERE id='$user'");
-            $client->sendText($user, "Por favor, escribí tu respuesta:");
+            $client->sendText($user, "Escribí la *respuesta* a tu reclamo:\n\n*Recordá que no puedo escuchar audios, ni ver fotos y videos.*");
         } elseif ($buttonId === 'reclamo_no') {
             Connection::runQuery("UPDATE contactos SET anterior='', esperaRespuesta=0 WHERE id='$user'");
-            $client->sendText($user, "Entendido. Podés responder más adelante desde el link en el mensaje anterior.");
+            $client->sendText($user, "*$pushname*, hasta pronto.");
         }
         exit;
     }
 
     if ($antType === 'consulta_pregunta') {
         if ($buttonId === 'consulta_si') {
-            $ant['type'] = 'consulta_respuesta';
+            // Conversación CONTINUA (antes 'consulta_respuesta' = un solo mensaje).
+            $ant['type'] = 'consulta_conversacion';
             $antJson     = addslashes(json_encode($ant, JSON_UNESCAPED_UNICODE));
             Connection::runQuery("UPDATE contactos SET anterior='$antJson', esperaRespuesta=1 WHERE id='$user'");
-            $client->sendText($user, "Por favor, escribí tu respuesta:");
+            $client->sendText($user, "Escribí la *respuesta* a tu consulta:\n\n*Recordá que no puedo escuchar audios, ni ver fotos y videos.*");
         } elseif ($buttonId === 'consulta_no') {
             Connection::runQuery("UPDATE contactos SET anterior='', esperaRespuesta=0 WHERE id='$user'");
-            $client->sendText($user, "Entendido. Podés responder más adelante desde el link en el mensaje anterior.");
+            $client->sendText($user, "*$pushname*, hasta pronto.");
         }
         exit;
     }

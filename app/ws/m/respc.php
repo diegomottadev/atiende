@@ -1,3 +1,4 @@
+<?php if (session_status() === PHP_SESSION_NONE) { session_start(); } // antes de cualquier salida HTML, si no session_start() falla con "headers already sent" ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -120,8 +121,11 @@
     <div class="container">
     <?php
     include_once("../../config/Connection.php");
+    require_once("../../config/global.php");
+    require_once("../../config/tenant_subdominio.php");
+    resolverTenantPorSubdominio(); // resolver el tenant por subdominio (página sin login)
     $row = mysqli_fetch_array(Connection::runQuery("SELECT estado FROM `consultas` WHERE `consultaId` = ".$idc));
-     if(count($row) > 0 && $row["estado"]!="Finalizado"){
+     if($row && $row["estado"]!="Finalizado"){
             require "../../modelos/Consulta.php";
             $consulta = new Consulta();
             $request = $consulta->listarChats($idc);
