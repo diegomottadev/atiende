@@ -3,6 +3,7 @@ if (!defined('__ROOT__')) define('__ROOT__', dirname(__DIR__));
 require_once __ROOT__ . '/config/Connection.php';
 require_once __ROOT__ . '/config/Conexion.php';
 require_once __ROOT__ . '/config/WhatsAppClient.php';
+require_once __ROOT__ . '/config/Telefono.php';
 
 class BotEngine
 {
@@ -118,6 +119,11 @@ class BotEngine
         $request = Connection::runQuery("SELECT `opcionId`, `opcion`, `menuId`, IF(guardar, 'true', 'false') guardar, `area` FROM `motivo_reclamos`");
         if ($request) {
             while ($row = mysqli_fetch_assoc($request)) {
+                // El motivo reservado del flujo "recuperar código" (opcionId '99') NO debe
+                // aparecer como opción seleccionable al hacer un reclamo normal (§6 de la spec).
+                if (($row['opcionId'] ?? '') === '99') {
+                    continue;
+                }
                 $rows[] = $row;
             }
             $rows[] = ['opcionId' => '0', 'opcion' => 'Salir', 'menuId' => '2.2', 'guardar' => false, 'area' => ''];
@@ -368,8 +374,15 @@ class BotEngine
                             }
 
                             if ($menuItem[$j]['guardar'] == 'true') {
-                                if (isset($menuItem[$j]['accion'])) {
-                                    // accion is set — skip the generic reclamo save
+                                // Solo el flujo "olvido de código" tiene accion propia bajo guardar:true.
+                                // Cualquier otra accion (o sin accion) cae al guardado genérico de reclamos
+                                // del else → no se rompe el comportamiento previo.
+                                if (isset($menuItem[$j]['accion']) && $menuItem[$j]['accion'] == 'registrarOlvidoReclamo') {
+                                    if ($menuItem[$j]['accion'] == 'registrarOlvidoReclamo') {
+                                        $this->registrarOlvidoReclamo($user, $pushname, $mensaje, $codigoCliente);
+                                        $this->procesarAccion('3', '0', $mensaje, $pushname, $user, $codigoCliente);
+                                        return;
+                                    }
                                 } else {
 
                                     //* AQUI EMPIEZA REGISTRO DE RECLAMOS *//
@@ -429,7 +442,7 @@ class BotEngine
                                                 '*Motivo:* ' . $_motivo . "\n" .
                                                 '*Fecha:* ' . strftime('%Y-%m-%d %H:%M:%S', time()) . "\n" .
                                                 '*Tel:* ' . substr($user, 3) . "\n\n" .
-                                                '*Responder:* ' . tenantUrl($this->empresa, '/responder/reclamo/' . $numeroReclamo) . "\n";
+                                                '*Responder:* ' . tenantUrl($this->empresa, '/responder/reclamo/' . intval($numeroReclamo) . '/' . substr(hash_hmac('sha256', 'reclamo:' . intval($numeroReclamo), (defined('PLATFORM_ENCRYPTION_KEY') ? PLATFORM_ENCRYPTION_KEY : '')), 0, 32)) . "\n";
                                             $this->client->sendText(trim($telResponsable), $resultado);
                                         }
                                     }
@@ -515,6 +528,24 @@ class BotEngine
                                             Connection::runQuery("UPDATE `contactos` SET `mensaje`= '', `anterior`= '', `esperaRespuesta`=0,`menu` = '0'  where id like '" . $user . "'");
                                             return;
                                         }
+                                    }
+
+                                    if ($menuItem[$j]['accion'] == 'recuperarCodigoCliente') {
+                                        // Lookup del código de cliente por el número desde el que escribe ($user).
+                                        // Si hay match → responde el/los código(s), resetea al menú 100 y corta el
+                                        // flujo (NO navega al 103); si no, deja seguir al 103 para capturar los datos.
+                                        if ($this->recuperarCodigoCliente($user)) {
+                                            return; // hubo match: ya respondió y reseteó el contacto (patrón registraNumero)
+                                        }
+                                        // sin match: cae al final del loop y navega al menuId destino (103) con la captura activa
+                                    }
+
+                                    if ($menuItem[$j]['accion'] == 'registrarOlvidoReclamo') {
+                                        // Caso sin match: el cliente envió sus datos en un mensaje → reclamo + aviso en cascada.
+                                        $this->registrarOlvidoReclamo($user, $pushname, $mensaje, $codigoCliente);
+                                        // Cierra reutilizando el menuId 3 ("Nos estamos ocupando de inmediato...") y vuelve al inicio.
+                                        $this->procesarAccion('3', '0', $mensaje, $pushname, $user, $codigoCliente);
+                                        return;
                                     }
 
                                     if ($menuItem[$j]['accion'] == 'consultarReclamo') {
@@ -674,7 +705,7 @@ class BotEngine
                                                     '*Motivo:* ' . $_motivo . "\n" .
                                                     '*Fecha:* ' . strftime('%Y-%m-%d %H:%M:%S', time()) . "\n" .
                                                     '*Tel:* ' . substr($user, 3) . "\n\n" .
-                                                    '*Responder:* ' . tenantUrl($this->empresa, '/responder/consulta/' . $numeroConsulta) . "\n";
+                                                    '*Responder:* ' . tenantUrl($this->empresa, '/responder/consulta/' . intval($numeroConsulta) . '/' . substr(hash_hmac('sha256', 'consulta:' . intval($numeroConsulta), (defined('PLATFORM_ENCRYPTION_KEY') ? PLATFORM_ENCRYPTION_KEY : '')), 0, 32)) . "\n";
                                                 $this->client->sendText(trim($telResponsable), $resultado);
                                             }
                                         }
@@ -715,6 +746,145 @@ class BotEngine
                 }
             }
         }
+    }
+
+    // País del tenant (bot_config.pais) para normalizar teléfonos al formato wa_id. Default 'AR'.
+    private function paisTenant(): string
+    {
+        $req = Connection::runQuery("SELECT pais FROM bot_config LIMIT 1");
+        if ($req && mysqli_num_rows($req) > 0) {
+            $row  = mysqli_fetch_assoc($req);
+            $pais = strtoupper(trim((string) ($row['pais'] ?? '')));
+            if ($pais !== '') return $pais;
+        }
+        return 'AR';
+    }
+
+    // Recupera el/los código(s) de cliente asociados al número $user.
+    //   1) match exacto en `telefonos` (mapa teléfono→cliente que arma el bot).
+    //   2) si no hay, compara `clientes.telefono` normalizado vs $user normalizado (Telefono::normalizar).
+    // Devuelve true si hubo match (ya respondió el/los código(s) y reseteó el contacto al menú 100);
+    // false si no hubo ninguno (el caller debe seguir al menuId 103 para capturar los datos).
+    private function recuperarCodigoCliente($user): bool
+    {
+        $pais     = $this->paisTenant();
+        $userNorm = Telefono::normalizar($user, $pais);
+        $clientes = []; // filas [codigo, razonSocial] (clave = código, evita duplicados)
+
+        // 1) Match exacto por `telefonos`.
+        $req = Connection::runQuery("SELECT clienteId FROM `telefonos` WHERE `telefono` = '" . Connection::escape($user) . "'");
+        if ($req) {
+            while ($row = mysqli_fetch_assoc($req)) {
+                $cid = $row['clienteId'];
+                if ($cid === null || $cid === '') continue;
+                // En B2B el cliente se ubica por `codigo`; en B2C por `id` (igual que el resto del bot).
+                if ($this->tenantConfig['data']['b2b']) {
+                    $rc = Connection::runQuery("SELECT codigo, razonSocial FROM clientes WHERE `codigo` = '" . Connection::escape($cid) . "'");
+                } else {
+                    $rc = Connection::runQuery("SELECT id AS codigo, razonSocial FROM clientes WHERE `id` = '" . Connection::escape($cid) . "'");
+                }
+                if ($rc && mysqli_num_rows($rc) > 0) {
+                    $r = mysqli_fetch_assoc($rc);
+                    $clientes[(string) $r['codigo']] = $r;
+                }
+            }
+        }
+
+        // 2) Si no hubo match exacto, comparar clientes.telefono normalizado vs $user normalizado.
+        if (count($clientes) === 0 && $userNorm !== '') {
+            $codCol = $this->tenantConfig['data']['b2b'] ? 'codigo' : 'id';
+            $rc = Connection::runQuery("SELECT `$codCol` AS codigo, razonSocial, telefono FROM clientes WHERE telefono IS NOT NULL AND telefono <> ''");
+            if ($rc) {
+                while ($row = mysqli_fetch_assoc($rc)) {
+                    if (Telefono::normalizar($row['telefono'], $pais) === $userNorm) {
+                        $clientes[(string) $row['codigo']] = $row;
+                    }
+                }
+            }
+        }
+
+        if (count($clientes) === 0) {
+            return false; // sin match → el caller navega al 103
+        }
+
+        // Hay match (uno o varios): responder el/los código(s) y resetear al menú 100 (patrón registraNumero).
+        if (count($clientes) === 1) {
+            $c   = reset($clientes);
+            $msg = 'Tu código de cliente es: *' . $c['codigo'] . '* — ' . $c['razonSocial'];
+        } else {
+            $msg = "Encontramos estos códigos asociados a tu número:\n";
+            foreach ($clientes as $c) {
+                $msg .= '*' . $c['codigo'] . '* — ' . $c['razonSocial'] . "\n";
+            }
+            $msg = rtrim($msg);
+        }
+        $this->client->sendText($user, $msg);
+        Connection::runQuery("UPDATE `contactos` SET `mensaje`= '', `anterior`= '', `esperaRespuesta`=0,`menu` = '100'  where id like '" . $user . "'");
+        return true;
+    }
+
+    // Caso sin match: registra el reclamo de "olvido de código" (§4) y avisa en cascada (§5):
+    // supervisor del área del motivo reservado → admin_telefono → nada.
+    private function registrarOlvidoReclamo($user, $pushname, $detalle, $codigoCliente)
+    {
+        $motivo = 'No recuerdo mi numero de cliente'; // string fijo (sin tilde, tal cual la spec)
+
+        // Área del motivo reservado (opcionId '99'); puede ser 0 si el admin todavía no la asignó.
+        $area = 0;
+        $req  = Connection::runQuery("SELECT area FROM motivo_reclamos WHERE opcionId = '99' LIMIT 1");
+        if ($req && mysqli_num_rows($req) > 0) {
+            $row  = mysqli_fetch_assoc($req);
+            $area = $row['area'];
+        }
+
+        // Insertar el reclamo (clienteId='' porque el número no está asociado a ningún cliente).
+        $numeroReclamo = Connection::runQueryID("INSERT INTO `reclamos`(empresa,`fecha_ingreso`,`clienteId`, `telefono`,nick, `motivo`, `area`, `detalle`, resolucion) VALUES ('" . $this->empresa . "',now(),'','" . Connection::escape($user) . "','" . Connection::escape($pushname) . "','" . Connection::escape($motivo) . "','" . Connection::escape($area) . "','" . Connection::escape($detalle) . "','')");
+
+        // --- Aviso en cascada (§5) ---
+        // 1) Supervisor del área del motivo (areas.telefono), si esa área tiene teléfono cargado.
+        $destino = '';
+        $areaResponsable = '';
+        if (strlen((string) $area) > 0) {
+            $reqA = Connection::runQuery("SELECT telefono, area FROM `areas` WHERE `id` = '" . Connection::escape($area) . "'");
+            if ($reqA && mysqli_num_rows($reqA) > 0) {
+                $rowA = mysqli_fetch_assoc($reqA);
+                if (strlen(trim((string) $rowA['telefono'])) > 0) {
+                    $destino         = trim($rowA['telefono']);
+                    $areaResponsable = $rowA['area'];
+                }
+            }
+        }
+
+        // 2) Si no hay supervisor → admin_telefono (normalizado al wa_id del país).
+        if ($destino === '') {
+            $reqAdmin = Connection::runQuery("SELECT admin_telefono FROM bot_config LIMIT 1");
+            if ($reqAdmin && mysqli_num_rows($reqAdmin) > 0) {
+                $rowAdmin = mysqli_fetch_assoc($reqAdmin);
+                $admin    = Telefono::normalizar($rowAdmin['admin_telefono'] ?? '', $this->paisTenant());
+                if ($admin !== '') {
+                    $destino = $admin;
+                }
+            }
+        }
+
+        // 3) Si no hay ninguno → no se avisa (queda solo en el panel).
+        if ($destino === '') {
+            return;
+        }
+
+        // Mismo formato que un reclamo normal (nombre, tel, detalle, link /responder con token HMAC).
+        $resultado = '';
+        if ($areaResponsable !== '') {
+            $resultado .= '*‼️Este reclamo te ha sido informado porque estás asignado como supervisor del área ' . $areaResponsable . "*\n\n";
+        }
+        $resultado .= 'Hay un nuevo reclamo de *' . $pushname . "*:\n" .
+            '*Reclamo N°:* ' . $numeroReclamo . "\n" .
+            '*Motivo:* ' . $motivo . "\n" .
+            '*Detalle:* ' . $detalle . "\n" .
+            '*Fecha:* ' . strftime('%Y-%m-%d %H:%M:%S', time()) . "\n" .
+            '*Tel:* ' . substr($user, 3) . "\n\n" .
+            '*Responder:* ' . tenantUrl($this->empresa, '/responder/reclamo/' . intval($numeroReclamo) . '/' . substr(hash_hmac('sha256', 'reclamo:' . intval($numeroReclamo), (defined('PLATFORM_ENCRYPTION_KEY') ? PLATFORM_ENCRYPTION_KEY : '')), 0, 32)) . "\n";
+        $this->client->sendText($destino, $resultado);
     }
 
     private function consultarReclamo($reclamoId, $user)
