@@ -10,9 +10,8 @@
 $db = $argv[1] ?? '';
 if ($db === '') { fwrite(STDERR, "Falta el nombre de la DB\n"); exit(1); }
 
-$m = new mysqli('mysql8', 'root', 'root', $db);
-if ($m->connect_errno) { fwrite(STDERR, "Conexión: {$m->connect_error}\n"); exit(1); }
-$m->set_charset('utf8mb4');
+require_once __DIR__ . '/_lib.php';
+$m = mig_connect($db);
 
 foreach (['motivo_reclamos', 'motivo_consultas'] as $tabla) {
     if ($m->query("SHOW TABLES LIKE '$tabla'")->num_rows === 0) {

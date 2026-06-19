@@ -7,8 +7,8 @@
 // Uso: docker exec -i atiende-app php /var/www/atiende/_docker/migrations/2026-06-12-bot-config-empresa.php <db>
 $db = $argv[1] ?? '';
 if ($db === '') { fwrite(STDERR, "Falta el nombre de la DB\n"); exit(1); }
-$m = new mysqli('mysql8', 'root', 'root', $db);
-if ($m->connect_errno) { fwrite(STDERR, "Conexión: {$m->connect_error}\n"); exit(1); }
+require_once __DIR__ . '/_lib.php';
+$m = mig_connect($db);
 
 if ($m->query("SHOW TABLES LIKE 'bot_config'")->num_rows === 0) {
     echo "[$db] sin tabla bot_config (nada que hacer)\n";

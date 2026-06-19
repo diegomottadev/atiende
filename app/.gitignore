@@ -5,6 +5,8 @@
 # Config generado localmente (copiar de *.docker.dev o *.docker.prod)
 config/global.php
 config/database.php
+# Credenciales del usuario migrador (DDL) — copiar de migrations.example.php
+config/migrations.php
 
 # Docker compose principal (generado por startup.sh o creado localmente)
 docker-compose.yml

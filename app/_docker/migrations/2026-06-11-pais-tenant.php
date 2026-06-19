@@ -3,8 +3,8 @@
 // Uso: docker exec -i atiende-app php /var/www/atiende/_docker/migrations/2026-06-11-pais-tenant.php <db>
 $db = $argv[1] ?? '';
 if ($db === '') { fwrite(STDERR, "Falta el nombre de la DB\n"); exit(1); }
-$m = new mysqli('mysql8', 'root', 'root', $db);
-if ($m->connect_errno) { fwrite(STDERR, "Conexión: {$m->connect_error}\n"); exit(1); }
+require_once __DIR__ . '/_lib.php';
+$m = mig_connect($db);
 
 // 1) bot_config.pais en la DB del tenant (si la tabla existe y la columna no)
 if ($m->query("SHOW TABLES LIKE 'bot_config'")->num_rows > 0) {
@@ -15,7 +15,7 @@ if ($m->query("SHOW TABLES LIKE 'bot_config'")->num_rows > 0) {
 } else { echo "[$db] sin tabla bot_config\n"; }
 
 // 2) tenants.pais en la DB central pedidos_platform (idempotente, una sola vez)
-$pp = new mysqli('mysql8', 'root', 'root', 'pedidos_platform');
+$pp = mig_connect('pedidos_platform');
 if (!$pp->connect_errno) {
     if ($pp->query("SHOW COLUMNS FROM `tenants` LIKE 'pais'")->num_rows === 0) {
         $pp->query("ALTER TABLE `tenants` ADD COLUMN `pais` VARCHAR(2) NOT NULL DEFAULT 'AR'");
