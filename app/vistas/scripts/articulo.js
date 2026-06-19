@@ -40,7 +40,7 @@ function init(){
       var titulo = [rubro, subrubro].filter(function (x) { return x && String(x).trim() !== ''; }).join(' - ');
       $('#modalImgTitulo').text(titulo || 'Artículo');
       $('#modalImgSub').text((codigo ? codigo : '') + (descripcion ? '  ·  ' + descripcion : ''));
-      $('#modalImgFoto').attr('src', '../files/articulos/' + codigo + '.jpg?im=' + (new Date()).getTime()).attr('alt', descripcion);
+      $('#modalImgFoto').attr('src', globalArticulosDir + codigo + '.jpg?im=' + (new Date()).getTime()).attr('alt', descripcion);
       bootstrap.Modal.getOrCreateInstance(document.getElementById('modalImgArticulo')).show();
    });
 
@@ -95,23 +95,25 @@ function mostrarform(flag){
 	if(flag){
 		$("#panelLista").hide();
 		$("#listadoregistros").hide();
-		$("#subirarchivo").hide();
 		$("#filtrosArticulo").hide();
 		$("#formularioregistros").show();
 		$("#btnGuardar").prop("disabled",true);
 		$('#formulario').off('input.gd change.gd').on('input.gd change.gd', 'input, select, textarea', function(){ $('#btnGuardar').prop('disabled', false); });
 		$("#btnagregar").hide();
 		$("#btnExportar").hide();
+		$("#btnAbrirImportar").hide();
+		$("#btnAbrirImportarImg").hide();
 		$('#btnCancel').show();
 	}else{
 		$('#btnCancel').hide();
 		$("#panelLista").show();
-		$("#subirarchivo").show();
 		$("#listadoregistros").show();
 		$("#filtrosArticulo").show();
 		$("#formularioregistros").hide();
 		$("#btnagregar").show();
 		$("#btnExportar").show();
+		$("#btnAbrirImportar").show();
+		$("#btnAbrirImportarImg").show();
 
 	}
 }
@@ -312,7 +314,7 @@ function mostrar(idarticulo){
 			$("#linea").val(data.linea);
 			$("#subrubro").val(data.subrubro);
 			$("#marca").val(data.marca);
-			$("#imagenmuestra").attr("src","../files/articulos/"+data.codigo+".jpg?im="+(new Date()).getTime()).show();
+			$("#imagenmuestra").attr("src",globalArticulosDir+data.codigo+".jpg?im="+(new Date()).getTime()).show();
 			$("#btnQuitarImagen").show();
 			try { bootstrap.Tooltip.getOrCreateInstance(document.getElementById('btnQuitarImagen'), {trigger:'hover', animation:false}); } catch(err){}
 			$("#imagenactual").val(data.imagen);
@@ -387,7 +389,7 @@ function limpiarImagen(){
 	var t = bootstrap.Tooltip.getInstance(document.getElementById('btnQuitarImagen')); if(t){ t.hide(); }
 	$('#imagen').val('');
 	var cod = $('#codigo').val();
-	if(cod){ $('#imagenmuestra').attr('src','../files/articulos/'+cod+'.jpg?im='+(new Date()).getTime()).show(); }
+	if(cod){ $('#imagenmuestra').attr('src',globalArticulosDir+cod+'.jpg?im='+(new Date()).getTime()).show(); }
 	else   { $('#imagenmuestra').hide().attr('src',''); }
 	$('#btnQuitarImagen').hide();
 }
@@ -430,6 +432,157 @@ $(function(){
 		}).catch(function (res) {
 			$("#mensaje").html('<div class="alert alert-danger" role="alert">El archivo importado contiene un formato incorrecto. Verifique con el ejemplo: <a href="../../public/examples/articulos-demostracion-exportacion.xlsx" target="_blank"> articulos-demostracion-exportacion.xlsx </a></div>');
 		});
+	});
+
+	// ===== Importación masiva de imágenes de artículos (carpeta + lotes) =====
+	// La carpeta puede traer cualquier archivo; nos quedamos solo con los JPG por extensión
+	// (el atributo accept no filtra en modo webkitdirectory).
+	var imgSeleccionadas = []; // lista filtrada de File a subir
+
+	function resetImgContadores() {
+		$("#imgOk").text(0);
+		$("#imgNomatch").text(0);
+		$("#imgErr").text(0);
+		$("#imgMensaje").empty();
+		$("#imgProgress").addClass("d-none");
+		$("#imgProgressBar").css("width", "0%").attr("aria-valuenow", 0);
+		$("#imgProgressText").text("0 / 0");
+	}
+
+	function limpiarSeleccionImg() {
+		imgSeleccionadas = [];
+		$("#imgFiles").val("");
+		$("#uploadFilenameImg").addClass("d-none").text("");
+		$("#uploadLabelImg").removeClass("d-none");
+		$("#uploadIconImg").attr("class", "mdi mdi-folder-image upload-zone__icon");
+		$("#uploadZoneImg").removeClass("has-file");
+		$("#uploadClearImg").addClass("d-none");
+		$("#imgDetectadas").text("0 imágenes detectadas");
+		$("#btnImportarImg").prop("disabled", true);
+		resetImgContadores();
+	}
+
+	$("#imgFiles").on("change", function(){
+		// Filtrar a JPG por extensión (accept no aplica en modo carpeta).
+		var files = this.files ? Array.prototype.slice.call(this.files) : [];
+		imgSeleccionadas = files.filter(function(f){ return /\.jpe?g$/i.test(f.name); });
+		var n = imgSeleccionadas.length;
+		$("#imgDetectadas").text(n + (n === 1 ? " imagen detectada" : " imágenes detectadas"));
+		if (n > 0) {
+			$("#uploadFilenameImg").text(n + (n === 1 ? " imagen lista para importar" : " imágenes listas para importar")).removeClass("d-none");
+			$("#uploadLabelImg").addClass("d-none");
+			$("#uploadIconImg").attr("class", "mdi mdi-folder-image-outline upload-zone__icon");
+			$("#uploadZoneImg").addClass("has-file");
+			$("#uploadClearImg").removeClass("d-none");
+			$("#btnImportarImg").prop("disabled", false);
+		} else {
+			// La carpeta no tenía JPG: limpiar y avisar.
+			limpiarSeleccionImg();
+			$("#imgMensaje").html('<div class="alert alert-warning mb-0" role="alert">La carpeta seleccionada no contiene imágenes JPG.</div>');
+		}
+	});
+
+	$("#uploadClearImg").on("click", function(e){
+		e.stopPropagation();
+		limpiarSeleccionImg();
+	});
+
+	// Arma lotes acumulando archivos hasta 40MB de bytes O 20 archivos (lo primero que se cumpla);
+	// nunca un lote vacío (un archivo solo > 40MB se manda solo).
+	function armarLotes(files) {
+		var MAX_BYTES = 40 * 1024 * 1024;
+		var MAX_COUNT = 20;
+		var lotes = [];
+		var actual = [];
+		var bytes = 0;
+		for (var i = 0; i < files.length; i++) {
+			var f = files[i];
+			if (actual.length > 0 && (bytes + f.size > MAX_BYTES || actual.length >= MAX_COUNT)) {
+				lotes.push(actual);
+				actual = [];
+				bytes = 0;
+			}
+			actual.push(f);
+			bytes += f.size;
+		}
+		if (actual.length > 0) lotes.push(actual);
+		return lotes;
+	}
+
+	$("#btnImportarImg").on("click", function(){
+		if (!imgSeleccionadas.length) return;
+		var btn = $(this);
+		var total = imgSeleccionadas.length;
+		var lotes = armarLotes(imgSeleccionadas);
+
+		var okCount = 0, nomatchCount = 0, errCount = 0, procesadas = 0;
+
+		btn.prop("disabled", true);
+		$("#uploadClearImg").prop("disabled", true);
+		resetImgContadores();
+		$("#imgProgress").removeClass("d-none");
+		$("#imgProgressText").text("0 / " + total);
+
+		function actualizarUI() {
+			$("#imgOk").text(okCount);
+			$("#imgNomatch").text(nomatchCount);
+			$("#imgErr").text(errCount);
+			var pct = total > 0 ? Math.round((procesadas / total) * 100) : 0;
+			$("#imgProgressBar").css("width", pct + "%").attr("aria-valuenow", pct);
+			$("#imgProgressText").text(procesadas + " / " + total);
+		}
+
+		function contarResultados(results) {
+			for (var i = 0; i < results.length; i++) {
+				var st = results[i].status;
+				if (st === "ok") okCount++;
+				else if (st === "nomatch") nomatchCount++;
+				else errCount++; // badformat | error → "con error"
+			}
+		}
+
+		// Subir lotes SECUENCIALMENTE.
+		(async function(){
+			for (var l = 0; l < lotes.length; l++) {
+				var lote = lotes[l];
+				var fd = new FormData();
+				for (var j = 0; j < lote.length; j++) {
+					fd.append("imagenes[]", lote[j], lote[j].name);
+				}
+				try {
+					var resp = await fetch("../ajax/subirimagenes.php", {
+						method: "POST",
+						body: fd,
+						// requireCsrf() acepta el header X-CSRF-Token (mismo que $.ajaxSetup global).
+						headers: { "X-CSRF-Token": (typeof globalCsrfToken !== "undefined" ? globalCsrfToken : "") }
+					});
+					var json = await resp.json();
+					var results = (json && json.results) ? json.results : [];
+					contarResultados(results);
+					// Si el server devolvió menos resultados que archivos del lote, contar el resto como error.
+					if (results.length < lote.length) errCount += (lote.length - results.length);
+				} catch (err) {
+					// Fallo de red / parseo: todo el lote cuenta como error y se sigue.
+					errCount += lote.length;
+				}
+				procesadas += lote.length;
+				actualizarUI();
+			}
+
+			// Resumen final: danger solo si nada se importó y hubo errores reales; success en el resto.
+			if (okCount === 0 && nomatchCount === 0 && errCount > 0) {
+				$("#imgMensaje").html('<div class="alert alert-danger mb-0" role="alert">No se pudo importar ninguna imagen.</div>');
+			} else {
+				$("#imgMensaje").html('<div class="alert alert-success mb-0" role="alert">' +
+					okCount + ' imágenes importadas, ' + nomatchCount + ' sin artículo, ' + errCount + ' con error.</div>');
+			}
+
+			// Recargar la tabla sin perder la página actual.
+			try { if (typeof tabla !== "undefined" && tabla.ajax) tabla.ajax.reload(null, false); } catch (e) {}
+
+			btn.prop("disabled", false);
+			$("#uploadClearImg").prop("disabled", false);
+		})();
 	});
 });
 

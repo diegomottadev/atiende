@@ -167,6 +167,7 @@
     <?php
     define('__ROOT__', dirname(dirname(__FILE__)));
     require (__ROOT__.'/config/global.php');
+    require_once (__ROOT__.'/config/Connection.php'); // Connection::rutaArticulos() (imágenes aisladas por tenant)
 
     // Costo de envío configurable por tenant (bot_config). Lectura aislada (conexión propia)
     // para no alterar el estado global de Connection que usa el resto de la página.
@@ -184,6 +185,8 @@
     }
     ?>
     <script>
+        // Dir de imágenes de artículos del tenant activo (aislado): ../files/articulos/{seg}/
+        const globalArticulosDir = '<?php echo Connection::rutaArticulos(); ?>';
 
         $(window).on('load', function(){
             $(".loader").fadeOut("slow");
@@ -310,7 +313,7 @@
 //$("#_promo").html(promo+" OFF");
             $("#myModal").modal();
 
-            $("#imgAmplia").html("  <img src='../files/articulos/"+valor+".jpg' width='auto' onerror=\"this.src='../files/articulos/camara.jpg';\" >");
+            $("#imgAmplia").html("  <img src='"+globalArticulosDir+valor+".jpg' width='auto' onerror=\"this.src='../files/articulos/camara.jpg';\" >");
 
             var array = new Array();
             if(getCookie("favorito")!=null)
@@ -1276,8 +1279,10 @@ if (isset($_GET["ped"])) {
 
                                     $imagen="";
 
-                                    if (file_exists("../files/articulos/".$row["codigo"].".jpg")) {
-                                        $imagen="../files/articulos/".$row["codigo"].".jpg?".date("YmdHis");
+                                    // Imagen aislada por tenant; el placeholder camara.jpg queda plano.
+                                    $dirArt = Connection::rutaArticulos();
+                                    if (file_exists($dirArt.$row["codigo"].".jpg")) {
+                                        $imagen=$dirArt.$row["codigo"].".jpg?".date("YmdHis");
                                     } else{
                                         $imagen="../files/articulos/camara.jpg";
                                     }

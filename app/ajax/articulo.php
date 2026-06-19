@@ -1,5 +1,6 @@
 <?php
 require_once '../config/auth.php';
+require_once '../config/Connection.php'; // Connection::rutaArticulos() (imágenes aisladas por tenant)
 require_once "../modelos/Articulo.php";
 
 $articulo=new Articulo();
@@ -33,7 +34,10 @@ switch ($_GET["op"]) {
 		$isImage  = @getimagesize($_FILES['imagen']['tmp_name']) !== false;
 		if ($isImage && isset($allowedImg[$realMime])) {
 			$imagen = $idarticulo.'.'.$allowedImg[$realMime];
-			move_uploaded_file($_FILES["imagen"]["tmp_name"], "../files/articulos/".$imagen);
+			// Imágenes aisladas por tenant: ../files/articulos/{seg}/{codigo}.jpg (camara.jpg sigue plano).
+			$dirArt = Connection::rutaArticulos();
+			if (!is_dir($dirArt)) { @mkdir($dirArt, 0775, true); }
+			move_uploaded_file($_FILES["imagen"]["tmp_name"], $dirArt.$imagen);
 		} else {
 			$imagen = $_POST["imagenactual"];
 		}
@@ -78,7 +82,7 @@ switch ($_GET["op"]) {
 		$data = array();
 		foreach ($res['rows'] as $row) {
 			$idart = $row[0];
-			$row[count($row)] = "<img src='../files/articulos/".$idart.".jpg?im=".rand()."' height='38px' width='38px' onerror=\"this.onerror=null;this.src='../files/articulos/camara.jpg';\">";
+			$row[count($row)] = "<img src='".Connection::rutaArticulos().$idart.".jpg?im=".rand()."' height='38px' width='38px' onerror=\"this.onerror=null;this.src='../files/articulos/camara.jpg';\">";
 			// Botón editar como PRIMERA columna, con tooltip (igual que las otras tablas)
 			array_unshift($row, '<button class="btn btn-warning btn-sm btn-icon-line" data-bs-toggle="tooltip" data-bs-trigger="hover" title="Editar" onclick="mostrar(\''.$idart.'\')"><i class="mdi mdi-lead-pencil m-n2"></i></button>');
 			$data[] = $row;

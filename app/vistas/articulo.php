@@ -60,6 +60,12 @@ if (!isset($_SESSION['nombre'])) {
                     <button class="btn btn-success rounded-pill pull-right sombra-logo"  id="btnExportar" onClick="exportarArticulos()">
                         <i class="mdi mdi-file-excel-outline me-1"></i> Exportar
                     </button>
+                    <button class="btn btn-info rounded-pill sombra-logo" id="btnAbrirImportar" type="button" data-bs-toggle="modal" data-bs-target="#modalImportar">
+                        <i class="mdi mdi-file-upload-outline me-1"></i> Importar
+                    </button>
+                    <button class="btn btn-primary rounded-pill sombra-logo" id="btnAbrirImportarImg" type="button" data-bs-toggle="modal" data-bs-target="#modalImportarImg">
+                        <i class="mdi mdi-image-multiple-outline me-1"></i> Importar imágenes
+                    </button>
                     <button class="btn btn-light rounded-pill sombra-logo" id="btnCancel" onclick="cancelarform()" type="button">
                         <i class="mdi mdi-arrow-left-circle me-1"></i> Volver
                     </button>
@@ -72,36 +78,6 @@ if (!isset($_SESSION['nombre'])) {
                 <div class="card sombra-panel" style="border-top:3px solid #727cf5;">
                     <div id="panelLista">
                     <div class="card-body pb-2">
-                        <div id="subirarchivo" class="mb-3">
-                            <form method="post" enctype="multipart/form-data" id="formUp" name="formUp">
-                                <div class="d-flex align-items-center gap-2 flex-wrap">
-                                    <div class="upload-zone" id="uploadZone" onclick="document.getElementById('articulos').click()">
-                                        <i class="uil uil-file-upload-alt upload-zone__icon" id="uploadIcon"></i>
-                                        <div>
-                                            <div class="upload-zone__label" id="uploadLabel">
-                                                Importar artículos desde Excel <span class="text-muted fw-normal">.xlsx / .xls / .csv</span>
-                                            </div>
-                                            <div class="upload-zone__filename d-none" id="uploadFilename"></div>
-                                        </div>
-                                        <button type="button" class="upload-zone__clear d-none" id="uploadClear" onclick="clearUpload(event)" title="Quitar archivo">
-                                            <i class="mdi mdi-close-circle"></i>
-                                        </button>
-                                        <input type="file" name="articulos" id="articulos" accept=".xlsx,.xls,.csv" class="d-none">
-                                    </div>
-                                    <button class="btn btn-sm btn-info rounded-pill sombra-logo" type="submit" id="btnImportar" disabled>
-                                        <i class="mdi mdi-cloud-upload me-1"></i> Importar
-                                    </button>
-                                </div>
-                                <div id="mensaje" class="mt-2"></div>
-                            </form>
-                        </div>
-                        <script>
-                        document.getElementById('articulos').addEventListener('change', function() {
-                            var z=document.getElementById('uploadZone'),i=document.getElementById('uploadIcon'),l=document.getElementById('uploadLabel'),f=document.getElementById('uploadFilename'),c=document.getElementById('uploadClear'),b=document.getElementById('btnImportar');
-                            if(this.files&&this.files[0]){f.textContent=this.files[0].name;f.classList.remove('d-none');l.classList.add('d-none');i.className='uil uil-check-circle upload-zone__icon';z.classList.add('has-file');c.classList.remove('d-none');b.disabled=false;}
-                        });
-                        function clearUpload(e){e.stopPropagation();document.getElementById('articulos').value='';document.getElementById('uploadFilename').classList.add('d-none');document.getElementById('uploadLabel').classList.remove('d-none');document.getElementById('uploadIcon').className='uil uil-file-upload-alt upload-zone__icon';document.getElementById('uploadZone').classList.remove('has-file');document.getElementById('uploadClear').classList.add('d-none');document.getElementById('btnImportar').disabled=true;}
-                        </script>
                         <?php
                             require_once "../modelos/Articulo.php";
                             $articulo = new Articulo();
@@ -248,6 +224,121 @@ if (!isset($_SESSION['nombre'])) {
                                     </div> 
                                 </form>
 
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal: importar artículos desde Excel -->
+        <div class="modal fade" id="modalImportar" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title mb-0"><i class="mdi mdi-file-upload-outline me-1"></i> Importar artículos</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div id="subirarchivo">
+                            <form method="post" enctype="multipart/form-data" id="formUp" name="formUp">
+                                <div class="d-flex flex-column gap-2">
+                                    <div class="upload-zone" id="uploadZone" onclick="document.getElementById('articulos').click()">
+                                        <i class="uil uil-file-upload-alt upload-zone__icon" id="uploadIcon"></i>
+                                        <div>
+                                            <div class="upload-zone__label" id="uploadLabel">
+                                                Importar artículos desde Excel <span class="text-muted fw-normal">.xlsx / .xls / .csv</span>
+                                            </div>
+                                            <div class="upload-zone__filename d-none" id="uploadFilename"></div>
+                                        </div>
+                                        <button type="button" class="upload-zone__clear d-none" id="uploadClear" onclick="clearUpload(event)" title="Quitar archivo">
+                                            <i class="mdi mdi-close-circle"></i>
+                                        </button>
+                                        <input type="file" name="articulos" id="articulos" accept=".xlsx,.xls,.csv" class="d-none">
+                                    </div>
+                                    <div id="mensaje"></div>
+                                </div>
+                                <div class="text-end mt-3">
+                                    <button class="btn btn-light rounded-pill sombra-logo" type="button" data-bs-dismiss="modal">
+                                        <i class="mdi mdi-close-circle me-1"></i> Cerrar
+                                    </button>
+                                    <button class="btn btn-info rounded-pill sombra-logo" type="submit" id="btnImportar" disabled>
+                                        <i class="mdi mdi-cloud-upload me-1"></i> Importar
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                        <script>
+                        document.getElementById('articulos').addEventListener('change', function() {
+                            var z=document.getElementById('uploadZone'),i=document.getElementById('uploadIcon'),l=document.getElementById('uploadLabel'),f=document.getElementById('uploadFilename'),c=document.getElementById('uploadClear'),b=document.getElementById('btnImportar');
+                            if(this.files&&this.files[0]){f.textContent=this.files[0].name;f.classList.remove('d-none');l.classList.add('d-none');i.className='uil uil-check-circle upload-zone__icon';z.classList.add('has-file');c.classList.remove('d-none');b.disabled=false;}
+                        });
+                        function clearUpload(e){e.stopPropagation();document.getElementById('articulos').value='';document.getElementById('uploadFilename').classList.add('d-none');document.getElementById('uploadLabel').classList.remove('d-none');document.getElementById('uploadIcon').className='uil uil-file-upload-alt upload-zone__icon';document.getElementById('uploadZone').classList.remove('has-file');document.getElementById('uploadClear').classList.add('d-none');document.getElementById('btnImportar').disabled=true;}
+                        </script>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal: importar imágenes de artículos (masivo, por carpeta) -->
+        <div class="modal fade" id="modalImportarImg" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title mb-0"><i class="mdi mdi-image-multiple-outline me-1"></i> Importar imágenes de artículos</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="d-flex flex-column gap-2">
+                            <div class="upload-zone" id="uploadZoneImg" onclick="document.getElementById('imgFiles').click()">
+                                <i class="mdi mdi-folder-image upload-zone__icon" id="uploadIconImg"></i>
+                                <div>
+                                    <div class="upload-zone__label" id="uploadLabelImg">
+                                        Seleccioná la <strong>carpeta</strong> con las fotos
+                                        <span class="text-muted fw-normal d-block">Cada archivo debe llamarse igual que el código del artículo · ej. <code>623.jpg</code></span>
+                                    </div>
+                                    <div class="upload-zone__filename d-none" id="uploadFilenameImg"></div>
+                                </div>
+                                <button type="button" class="upload-zone__clear d-none" id="uploadClearImg" title="Quitar selección">
+                                    <i class="mdi mdi-close-circle"></i>
+                                </button>
+                                <input type="file" id="imgFiles" webkitdirectory directory multiple accept=".jpg,.jpeg" class="d-none">
+                            </div>
+                            <div class="text-muted" style="font-size:.8rem;">
+                                <i class="mdi mdi-image-outline me-1"></i><span id="imgDetectadas">0 imágenes detectadas</span>
+                            </div>
+                            <div id="imgProgress" class="d-none">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span class="text-muted" style="font-size:.75rem;font-weight:600;">Procesando imágenes…</span>
+                                    <span class="text-muted" style="font-size:.75rem;" id="imgProgressText">0 / 0</span>
+                                </div>
+                                <div class="progress" style="height:8px;">
+                                    <div class="progress-bar progress-bar-striped progress-bar-animated bg-info" id="imgProgressBar" role="progressbar" style="width:0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                            </div>
+                            <div class="d-flex flex-wrap gap-2">
+                                <span class="badge bg-success" style="font-size:.78rem;font-weight:600;">
+                                    <i class="mdi mdi-check-circle me-1"></i> Importadas: <span id="imgOk">0</span>
+                                </span>
+                                <span class="badge bg-warning text-dark" style="font-size:.78rem;font-weight:600;">
+                                    <i class="mdi mdi-alert-circle me-1"></i> Sin artículo: <span id="imgNomatch">0</span>
+                                </span>
+                                <span class="badge bg-danger" style="font-size:.78rem;font-weight:600;">
+                                    <i class="mdi mdi-close-circle me-1"></i> Con error: <span id="imgErr">0</span>
+                                </span>
+                            </div>
+                            <div id="imgMensaje"></div>
+                            <div class="text-muted" style="font-size:.72rem;line-height:1.4;">
+                                <i class="mdi mdi-information-outline me-1"></i>
+                                El nombre de cada archivo debe coincidir con el <strong>código del artículo</strong> (formato <strong>JPG</strong>). Las imágenes que no coincidan con ningún artículo se saltean automáticamente.
+                            </div>
+                        </div>
+                        <div class="text-end mt-3">
+                            <button class="btn btn-light rounded-pill sombra-logo" type="button" data-bs-dismiss="modal">
+                                <i class="mdi mdi-close-circle me-1"></i> Cerrar
+                            </button>
+                            <button class="btn btn-info rounded-pill sombra-logo" type="button" id="btnImportarImg" disabled>
+                                <i class="mdi mdi-cloud-upload me-1"></i> Importar imágenes
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

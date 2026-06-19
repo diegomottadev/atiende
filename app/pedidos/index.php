@@ -142,6 +142,8 @@ try {
         img { max-width: none !important; max-height: none !important; padding: 0 !important; }
     </style>
     <script>
+        // Dir de imágenes de artículos del tenant activo (aislado): ../files/articulos/{seg}/
+        const globalArticulosDir = '<?php echo Connection::rutaArticulos(); ?>';
         $(window).on('load', function(){ $(".loader").fadeOut("slow"); });
         var intervalo;
         runCargar();
@@ -199,7 +201,7 @@ try {
         function MaysPrimera(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
         function verImagen(valor, desc, oferta) {
             document.getElementById("_producto").innerHTML = "(" + valor + ") " + desc;
-            document.getElementById("imgAmplia").innerHTML = "<img src='../files/articulos/" + valor + ".jpg' class='img-fluid' style='max-width:100%;max-height:300px;' onerror=\"this.src='../files/articulos/camara.jpg';\">";
+            document.getElementById("imgAmplia").innerHTML = "<img src='" + globalArticulosDir + valor + ".jpg' class='img-fluid' style='max-width:100%;max-height:300px;' onerror=\"this.src='../files/articulos/camara.jpg';\">";
             var arr = getFavs();
             var _fav = "<a onclick='favorito(\"" + valor + "\")'><img src='img/estrella.png' id='img" + valor + "' style='max-width:24px;max-height:24px;padding:0;'> Favorito</a>";
             if (arr.indexOf(valor) != -1) _fav = "<a onclick='favorito(\"" + valor + "\")'><img src='img/estrella_ok.png' id='img" + valor + "' style='max-width:24px;max-height:24px;padding:0;'> Favorito</a>";
@@ -584,8 +586,9 @@ if (isset($_GET["ped"])) {
                     if (is_null($row["deposito"]) || strlen(array_search($deposito, $d)) > 0) {
                         $img_favorito = "img/_estrella.png"; $fav = "c";
                         if ($row["oferta"] == "1") { $fav = "o"; }
-                        $imagen = file_exists("../files/articulos/".$row["codigo"].".jpg")
-                            ? "../files/articulos/".$row["codigo"].".jpg?".date("YmdHis")
+                        // Imagen aislada por tenant; el placeholder camara.jpg queda plano.
+                        $imagen = file_exists(Connection::rutaArticulos().$row["codigo"].".jpg")
+                            ? Connection::rutaArticulos().$row["codigo"].".jpg?".date("YmdHis")
                             : "../files/articulos/camara.jpg";
                         $row[$lista] += ($row[$lista] * $row["iva"] / 100) + $row["impInt"];
                         $codigo_js      .= "'".$row["codigo"]."',";

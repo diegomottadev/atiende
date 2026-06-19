@@ -1,5 +1,6 @@
 <?php
 require_once '../config/auth.php';
+require_once '../config/Connection.php'; // Connection::rutaArticulos() (imágenes aisladas por tenant)
 require_once "../modelos/Venta.php";
 require_once "../modelos/Vendedor.php";
 require_once "../modelos/Persona.php";
@@ -88,8 +89,10 @@ switch ($_GET["op"]) {
 	
 		while ($reg=$rspta->fetch_object()) {
 
-            if (file_exists("../files/articulos/".$reg->producto.".jpg")) {
-                $imagen="../files/articulos/".$reg->producto.".jpg?".date("YmdHis");
+            // Imagen aislada por tenant; el placeholder camara.jpg queda plano.
+            $dirArt = Connection::rutaArticulos();
+            if (file_exists($dirArt.$reg->producto.".jpg")) {
+                $imagen=$dirArt.$reg->producto.".jpg?".date("YmdHis");
             } else{
                 $imagen="../files/articulos/camara.jpg";
             }

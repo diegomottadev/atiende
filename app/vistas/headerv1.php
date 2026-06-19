@@ -10,6 +10,9 @@ require (__ROOT__.'/config/global.php');
 require_once (__ROOT__.'/config/csrf.php');
 ensureCsrfToken();
 
+// Connection::rutaArticulos() para emitir globalArticulosDir (imágenes aisladas por tenant).
+require_once (__ROOT__.'/config/Connection.php');
+
 ?>
 <!DOCTYPE html>
 <html>
@@ -326,6 +329,8 @@ ensureCsrfToken();
     // adjunta y el manejador global $(document).ajaxError viven en footerv1.php,
     // porque acá jQuery/SweetAlert todavía no están cargados (se cargan al pie).
     const globalCsrfToken = '<?php echo $_SESSION['csrf_token'] ?? ''; ?>';
+    // Dir de imágenes de artículos del tenant activo (aislado): ../files/articulos/{seg}/
+    const globalArticulosDir = '<?php echo Connection::rutaArticulos(); ?>';
 </script>
 
 

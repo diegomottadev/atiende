@@ -1,5 +1,6 @@
 <?php
 require_once '../config/auth.php';
+require_once '../config/Connection.php'; // Connection::rutaArticulos() (imágenes aisladas por tenant)
 require_once "../modelos/Reparto.php";
 
 $reparto = new Reparto();

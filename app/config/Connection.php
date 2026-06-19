@@ -15,6 +15,33 @@ class Connection
         return self::$dbOverride ?? DB_NAME;
     }
 
+    // Directorio relativo (con ../) de las imágenes de artículos del tenant activo:
+    // ../files/articulos/{seg}/ donde {seg} = nombre de DB saneado (allowlist anti-traversal).
+    // Aísla los {codigo}.jpg por tenant. El placeholder camara.jpg queda PLANO (no se aísla).
+    //
+    // Resuelve el tenant de forma uniforme para los dos ruteos de la app:
+    //  - Panel admin (vistas/, ajax/): el DB vive en $_SESSION['tenant_db'] (Conexion.php),
+    //    y muchos endpoints NO llaman setDatabase() → getDatabase() devolvería DB_NAME.
+    //  - Flujo pedidos (pedidos/index.php): el DB se fija con Connection::setDatabase()
+    //    desde el subdominio y NO hay $_SESSION['tenant_db'].
+    // Preferimos el override explícito si fue seteado; si no, la sesión; si no, DB_NAME.
+    public static function rutaArticulos()
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            @session_start();
+        }
+        if (self::$dbOverride !== null && self::$dbOverride !== '') {
+            $db = self::$dbOverride;
+        } elseif (!empty($_SESSION['tenant_db'])) {
+            $db = $_SESSION['tenant_db'];
+        } else {
+            $db = DB_NAME;
+        }
+        $seg = preg_replace('/[^A-Za-z0-9_]/', '', (string) $db);
+        // Fallback a la carpeta plana si el segmento queda vacío (no romper).
+        return '../files/articulos/' . ($seg !== '' ? $seg . '/' : '');
+    }
+
     private static function dbName()
     {
         return self::$dbOverride ?? DB_NAME;
