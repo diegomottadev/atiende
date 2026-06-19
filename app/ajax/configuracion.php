@@ -31,6 +31,7 @@ switch ($op) {
         $res  = ejecutarConsulta("SELECT m.id, m.opcionId, m.opcion, m.area, a.area AS areaNombre
                                   FROM motivo_reclamos m
                                   LEFT JOIN areas_consultas a ON a.id = m.area
+                                  WHERE m.estado = 1
                                   ORDER BY m.id");
         $data = [];
         while ($r = $res->fetch_assoc()) $data[] = $r;
@@ -41,6 +42,7 @@ switch ($op) {
         $res  = ejecutarConsulta("SELECT m.id, m.opcionId, m.opcion, m.area, a.area AS areaNombre
                                   FROM motivo_consultas m
                                   LEFT JOIN areas_consultas a ON a.id = m.area
+                                  WHERE m.estado = 1
                                   ORDER BY m.id");
         $data = [];
         while ($r = $res->fetch_assoc()) $data[] = $r;

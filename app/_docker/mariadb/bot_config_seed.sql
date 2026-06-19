@@ -44,10 +44,12 @@ CREATE TABLE IF NOT EXISTS `motivo_reclamos` (
   `menuId` varchar(20) CHARACTER SET utf8 COLLATE utf8_spanish_ci NOT NULL,
   `guardar` tinyint(1) NOT NULL,
   `area` varchar(20) CHARACTER SET utf8 COLLATE utf8_spanish_ci NOT NULL,
+  `estado` tinyint(1) NOT NULL DEFAULT 1,
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_spanish_ci ROW_FORMAT = Dynamic;
 
 -- Fila reservada (idempotente): se inserta solo si no existe ya el opcionId '99'.
-INSERT INTO `motivo_reclamos` (`opcionId`, `opcion`, `menuId`, `guardar`, `area`)
-SELECT '99', 'No recuerdo mi numero de cliente', '5', 0, '0'
+-- estado 0 → no se lista en el panel admin; el bot la usa igual.
+INSERT INTO `motivo_reclamos` (`opcionId`, `opcion`, `menuId`, `guardar`, `area`, `estado`)
+SELECT '99', 'No recuerdo mi numero de cliente', '5', 0, '0', 0
 WHERE NOT EXISTS (SELECT 1 FROM `motivo_reclamos` WHERE `opcionId` = '99');

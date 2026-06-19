@@ -456,16 +456,17 @@ CREATE TABLE `motivo_reclamos`  (
   `menuId` varchar(20) CHARACTER SET utf8 COLLATE utf8_spanish_ci NOT NULL,
   `guardar` tinyint(1) NOT NULL,
   `area` varchar(20) CHARACTER SET utf8 COLLATE utf8_spanish_ci NOT NULL,
+  `estado` tinyint(1) NOT NULL DEFAULT 1,
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 10 CHARACTER SET = utf8 COLLATE = utf8_spanish_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of motivo_reclamos
 -- ----------------------------
-INSERT INTO `motivo_reclamos` VALUES (1, 'A', 'Tu pedido aun no ha llegado?', '5', 0, '9');
-INSERT INTO `motivo_reclamos` VALUES (2, 'B', 'Te llego un producto equivocado?', '5', 0, '15');
-INSERT INTO `motivo_reclamos` VALUES (3, 'C', 'Tu pedido llego con otro importe?', '5', 0, '1');
-INSERT INTO `motivo_reclamos` VALUES (4, 'D', 'Tienes alguna sugerencia?', '5', 0, '13');
+INSERT INTO `motivo_reclamos` VALUES (1, 'A', 'Tu pedido aun no ha llegado?', '5', 0, '9', 1);
+INSERT INTO `motivo_reclamos` VALUES (2, 'B', 'Te llego un producto equivocado?', '5', 0, '15', 1);
+INSERT INTO `motivo_reclamos` VALUES (3, 'C', 'Tu pedido llego con otro importe?', '5', 0, '1', 1);
+INSERT INTO `motivo_reclamos` VALUES (4, 'D', 'Tienes alguna sugerencia?', '5', 0, '13', 1);
 
 -- ----------------------------
 -- Table structure for motivo_consultas
@@ -478,14 +479,15 @@ CREATE TABLE `motivo_consultas`  (
   `menuId` varchar(20) CHARACTER SET utf8 COLLATE utf8_spanish_ci NOT NULL,
   `guardar` tinyint(1) NOT NULL,
   `area` varchar(20) CHARACTER SET utf8 COLLATE utf8_spanish_ci NOT NULL,
+  `estado` tinyint(1) NOT NULL DEFAULT 1,
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 36 CHARACTER SET = utf8 COLLATE = utf8_spanish_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of motivo_consultas
 -- ----------------------------
-INSERT INTO `motivo_consultas` VALUES (34, 'A', 'Motivo VI', '15', 0, '1');
-INSERT INTO `motivo_consultas` VALUES (35, 'B', 'Motivo', '15', 0, '15');
+INSERT INTO `motivo_consultas` VALUES (34, 'A', 'Motivo VI', '15', 0, '1', 1);
+INSERT INTO `motivo_consultas` VALUES (35, 'B', 'Motivo', '15', 0, '15', 1);
 
 -- ----------------------------
 -- Table structure for msj_consultas
