@@ -266,6 +266,7 @@ CREATE TABLE `motivo_reclamos`  (
   `menuId` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `guardar` tinyint(1) NOT NULL,
   `area` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `estado` tinyint(1) NOT NULL DEFAULT 1,
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 10 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
@@ -276,6 +277,7 @@ CREATE TABLE `motivo_consultas`  (
   `menuId` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `guardar` tinyint(1) NOT NULL,
   `area` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `estado` tinyint(1) NOT NULL DEFAULT 1,
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 36 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
@@ -552,11 +554,14 @@ INSERT INTO `areas_consultas` (id, area, telefono, activo) VALUES
 (5,'Produccion','',1),(6,'Recursos humanos','',1),(7,'Finanzas','',1),(8,'CANCELACIONES','',1);
 
 -- Motivos de reclamo (submenú del bot — menuId 5)
-INSERT INTO `motivo_reclamos` (id, opcionId, opcion, menuId, guardar, area) VALUES
-(1,'1','Tu pedido aun no ha llegado?','5',0,'2'),
-(2,'2','Te llego un producto equivocado?','5',0,'4'),
-(3,'3','Tu pedido llego con otro importe?','5',0,'1'),
-(4,'4','Tienes alguna sugerencia?','5',0,'3');
+-- op99: motivo reservado del flujo "No recuerdo mi número de cliente".
+-- estado 0 → no se lista en el panel admin; el bot lo usa para el reclamo de olvido.
+INSERT INTO `motivo_reclamos` (id, opcionId, opcion, menuId, guardar, area, estado) VALUES
+(1,'1','Tu pedido aun no ha llegado?','5',0,'2',1),
+(2,'2','Te llego un producto equivocado?','5',0,'4',1),
+(3,'3','Tu pedido llego con otro importe?','5',0,'1',1),
+(4,'4','Tienes alguna sugerencia?','5',0,'3',1),
+(99,'99','No recuerdo mi numero de cliente','5',0,'0',0);
 
 -- Motivos de consulta (submenú del bot — menuId 15)
 INSERT INTO `motivo_consultas` (id, opcionId, opcion, menuId, guardar, area) VALUES

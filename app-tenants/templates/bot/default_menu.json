@@ -30,7 +30,8 @@
                 "opcion": "No recuerdo mi número de cliente",
                 "menuId": "103",
                 "guardar": "false",
-                "area": ""
+                "area": "",
+                "accion": "recuperarCodigoCliente"
             },
             {
                 "opcionId": "4",
@@ -58,16 +59,16 @@
     },
     {
         "menuId": "103",
-        "consigna": "Sin problema 🙂\n\nEscribime tu *nombre completo* y tu *dirección* así un agente identifica tu cuenta.\n\nRecordá que no puedo escuchar audios, ni ver fotos y videos.",
+        "consigna": "Para registrarte enviá en *un solo mensaje*:\n*Nombre/Razón Social:*\n*Localidad:*\n*Dirección/Dirección del negocio:*\n*DNI o CUIL:*",
         "finaliza": "false",
         "menuItem": [
             {
                 "opcionId": "",
                 "opcion": "",
-                "menuId": "104",
-                "guardar": "true",
+                "menuId": "3",
+                "guardar": "false",
                 "area": "",
-                "motivo": "Cliente no recuerda su código"
+                "accion": "registrarOlvidoReclamo"
             }
         ]
     },
