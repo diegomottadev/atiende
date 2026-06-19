@@ -57,12 +57,13 @@ switch ($_GET["op"]) {
         break;
 
     case 'editarEstado':
-        $rspta=$reparto->editarEstado($_GET["pedidoid"]);
+        $pedidoid = (int)($_GET["pedidoid"] ?? 0);
+        $rspta=$reparto->editarEstado($pedidoid);
         if ($rspta) {
-            $datos = $reparto->mostrar($_GET["pedidoid"]);
+            $datos = $reparto->mostrar($pedidoid);
             echo json_encode([
                 "ok"       => true,
-                "pedidoid" => $datos["pedidoid"]   ?? $_GET["pedidoid"],
+                "pedidoid" => $datos["pedidoid"]   ?? $pedidoid,
                 "fecha"    => $datos["fecha"]      ?? "",
                 "cliente"  => $datos["razonSocial"] ?? "",
                 "total"    => $datos["total"]      ?? ""
@@ -93,7 +94,7 @@ switch ($_GET["op"]) {
 
     case 'listarDetalle':
         //recibimos el idventa
-        $id=$_GET['id'];
+        $id=(int)($_GET['id'] ?? 0);
 
         $rspta=$reparto->listarDetalle($id);
         $total=0;
@@ -234,7 +235,7 @@ switch ($_GET["op"]) {
     //listarMensajes
     case 'listarMensajes':
 
-        $rspta=$reparto->listarMensajes($_GET["idventa"]);
+        $rspta=$reparto->listarMensajes((int)($_GET["idventa"] ?? 0));
 
         echo ' <thead style="background-color:#8b74d2c7;color:white">
         <th width="5%">ID</th>

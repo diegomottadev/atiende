@@ -789,7 +789,7 @@ function  procesarAccion($menuJson,$menu,$esperaRespuesta,$mensaje,$pushname,$us
                                             "*Fecha:* ".strftime( "%Y-%m-%d %H:%M:%S", time() )."\n".
                                             "*Tel:* ".substr($user, 3)."\n\n".
                                             //"*Responder:* ".__PROD__."/".$empresa."/ws/m/movil.php?id=".$numeroReclamo."\n";
-                                            "*Responder:* ".tenantUrl($empresa,'/responder/reclamo/'.$numeroReclamo)."\n";
+                                            "*Responder:* ".tenantUrl($empresa,'/responder/reclamo/'.intval($numeroReclamo).'/'.substr(hash_hmac('sha256', 'reclamo:'.intval($numeroReclamo), (defined('PLATFORM_ENCRYPTION_KEY') ? PLATFORM_ENCRYPTION_KEY : '')), 0, 32))."\n";
                                         echo sendChat(trim($telResponsable), $resultado );
                                     }
                                 }
@@ -1041,7 +1041,7 @@ function  procesarAccion($menuJson,$menu,$esperaRespuesta,$mensaje,$pushname,$us
                                             "*Fecha:* ".strftime( "%Y-%m-%d %H:%M:%S", time() )."\n".
                                             "*Tel:* ".substr($user, 3)."\n".
 //                                            "*Responder:* ".__PROD__."/".$empresa."/ws/m/movilc.php?id=".$numeroConsulta."\n";
-                                             "*Responder:* ".tenantUrl($empresa,'/responder/consulta/'.$numeroConsulta)."\n";
+                                             "*Responder:* ".tenantUrl($empresa,'/responder/consulta/'.intval($numeroConsulta).'/'.substr(hash_hmac('sha256', 'consulta:'.intval($numeroConsulta), (defined('PLATFORM_ENCRYPTION_KEY') ? PLATFORM_ENCRYPTION_KEY : '')), 0, 32))."\n";
 
                                         echo sendChat(trim($telResponsable), $resultado );
                                     }

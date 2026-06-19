@@ -27,16 +27,19 @@ class Reparto{
     }
 
     public function anular($idventa){
+        $idventa = (int)$idventa;
         $sql="UPDATE `pedidos` SET `flag`=3 WHERE `pedidoid` ='$idventa'";
         return ejecutarConsulta($sql);
     }
 
     public function editarEstado($idventa){
+        $idventa = (int)$idventa;
         $sql="UPDATE pedidos SET flag=2 WHERE pedidoid='$idventa'";
         return ejecutarConsulta($sql);
     }
 
     public function mostrar($idventa){
+        $idventa = (int)$idventa;
         $sql = null;
         if($this->responseWebMaster['data']['mix'] || $this->responseWebMaster['data']['b2c'] ){
             $sql="SELECT p.pedidoid,p.fecha AS fecha,p.clienteId,c.razonSocial,c.direccion,flag as estado, SUM(CAST(p.subtotal AS DECIMAL(25,2))) AS total, p.telefono FROM pedidos p INNER JOIN clientes c ON c.id=p.clienteId WHERE p.pedidoid='$idventa' GROUP BY p.pedidoid";
@@ -47,27 +50,32 @@ class Reparto{
     }
 
     public function traerTelefono($idventa){
+        $idventa = (int)$idventa;
         $sql="SELECT telefonos.telefono FROM `pedidos`,telefonos WHERE pedidos.clienteId=telefonos.clienteId and pedidos.pedidoid= $idventa LIMIT 1";
         return ejecutarConsultaSimpleFila($sql);
     }
 
     public function listarDetalle($idventa){
+        $idventa = (int)$idventa;
         $sql="SELECT p.pedidoid,p.producto,a.descripcion,p.cantidad,p.precio,p.descuento, p.subtotal FROM pedidos p INNER JOIN articulos a ON p.producto=a.codigo WHERE p.pedidoid='$idventa'";
         return ejecutarConsulta($sql) ;
     }
 
     public function listarMensajes($idventa){
+        $idventa = (int)$idventa;
         $sql="SELECT * FROM `fidelizar` WHERE `pedidoid` = $idventa order by id desc ";
         //return "SELECT * FROM `fidelizar` WHERE `pedidoid` = $idventa ";
         return ejecutarConsulta($sql) ;
     }
 
     public function listarMensajesNoLeidos($idventa){
+        $idventa = (int)$idventa;
         $sql="SELECT count(id) as noleidos FROM `fidelizar` WHERE `pedidoid` = $idventa AND `estado`=0 AND `tipo`=0 ";
         return ejecutarConsultaSimpleFila($sql) ;
     }
 
     public function marcarLeido($idventa){
+        $idventa = (int)$idventa;
         $sql="UPDATE fidelizar SET estado=1 WHERE pedidoid=$idventa and tipo =1";
         return "ok";// ejecutarConsulta($sql);
     }
@@ -115,6 +123,7 @@ class Reparto{
     }
 
     public function ventacabecera($idventa){
+        $idventa = (int)$idventa;
         $sql = null;
         if($this->responseWebMaster['data']['mix'] || $this->responseWebMaster['data']['b2c'] ){
             $sql= "SELECT v.pedidoid, v.clienteId, p.razonSocial AS cliente,p.direccion, p.localidad, p.telefono, v.pedidoid, v.pedidoid, v.fecha AS fecha, v.subtotal, p.codigo FROM pedidos v INNER JOIN clientes p ON p.id=v.clienteId WHERE v.pedidoid='$idventa'";
@@ -125,6 +134,7 @@ class Reparto{
     }
 
     public function ventadetalles($idventa){
+        $idventa = (int)$idventa;
         $sql="SELECT a.descripcion AS articulo, a.codigo, d.cantidad, d.precio, d.descuento, ROUND((d.cantidad*d.precio-d.descuento),2) AS subtotal , dato9 FROM pedidos d INNER JOIN articulos a ON d.producto=a.codigo WHERE d.pedidoid='$idventa'";
         return ejecutarConsulta($sql);
     }

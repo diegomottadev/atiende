@@ -72,6 +72,7 @@ class Usuario{
 
 	//metodo para listar permmisos marcados de un usuario especifico
 	public function listarmarcados($idusuario){
+		$idusuario = (int)$idusuario;
 		$sql="SELECT * FROM usuario_permiso WHERE idusuario='$idusuario'";
 		return ejecutarConsulta($sql);
 	}

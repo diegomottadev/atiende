@@ -102,7 +102,7 @@ return texto;
 		$.ajax({
 			type: "POST",
 			url: 'S_Respuesta.php',
-			data: "json="+JSON.stringify(json) ,
+			data: "json="+encodeURIComponent(JSON.stringify(json))+"&t="+encodeURIComponent(document.getElementById('tokenT').value),
 			success: function(data){
 				if(parseInt(data)>0){
 				   //  alert (data);
@@ -200,6 +200,13 @@ $(document).ready(function () {
         //$request=Connection::runQuery("SELECT reclamos.*,clientes.razonSocial,clientes.direccion,clientes.vendedor FROM `reclamos` LEFT JOIN clientes ON reclamos.clienteId = clientes.codigo WHERE reclamoId like '".$_GET["id"]."' and estado <> 'Finalizado' ");        
         $reclamo = new Reclamo();
         $idGet = intval($_GET["id"] ?? 0);
+        $tokGet = isset($_GET["t"]) ? $_GET["t"] : '';
+        $tokEsperado = substr(hash_hmac('sha256', 'reclamo:' . $idGet, (defined('PLATFORM_ENCRYPTION_KEY') ? PLATFORM_ENCRYPTION_KEY : '')), 0, 32);
+        if (!hash_equals($tokEsperado, $tokGet)) {
+            echo "<br><div class='alert alert-danger sombra'><strong>Enlace inválido o vencido</strong></div>";
+            echo "</div></body></html>";
+            exit;
+        }
         $request = $reclamo->listarRespReclamo($idGet);
         $resolucion="";
         if( mysqli_num_rows ($request )>0){
@@ -297,6 +304,7 @@ $(document).ready(function () {
                     <div class="card-footer text-muted " style="background: #a19e9e14;">
                         <form class="needs-validation mt-2" novalidate="" name="chat-form" id="form_01">
                             <input id="nick" type="hidden" value="<?php echo htmlspecialchars($row["nick"], ENT_QUOTES, 'UTF-8'); ?>">
+                            <input id="tokenT" type="hidden" value="<?php echo htmlspecialchars($_GET['t'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
                             <input id="reclamoId" type="hidden" value="<?php echo htmlspecialchars($row["reclamoId"], ENT_QUOTES, 'UTF-8'); ?>">
                             <input id="motivo" type="hidden" value="<?php echo htmlspecialchars($row["motivo"], ENT_QUOTES, 'UTF-8'); ?>">
                             <input id="fecha_hora" type="hidden" value="<?php echo htmlspecialchars($row["fecha_hora"], ENT_QUOTES, 'UTF-8'); ?>">

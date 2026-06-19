@@ -153,6 +153,7 @@ class Consulta{
     }
 
     public function listarRespCons($idConsulta){
+        $idConsulta = (int)$idConsulta;
         $sql = null;
 		if($this->responseWebMaster['data']['mix'] || $this->responseWebMaster['data']['b2c'] ){
             $sql = "SELECT consultas.*,clientes.razonSocial,clientes.direccion,clientes.vendedor FROM `consultas` LEFT JOIN clientes ON consultas.clienteId = clientes.id WHERE consultaId like '$idConsulta' and estado <> 'Finalizado'";            

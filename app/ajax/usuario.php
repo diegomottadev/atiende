@@ -124,7 +124,7 @@ switch ($_GET["op"]) {
 	require_once "../modelos/Permiso.php";
 	$permiso=new Permiso();
 	$rspta=$permiso->listar();
-	$id=$_GET['id'];
+	$id=(int)($_GET['id'] ?? 0);
 	$marcados=$usuario->listarmarcados($id);
 	$valores=array();
 	while ($per=$marcados->fetch_object()) {

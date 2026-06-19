@@ -12,118 +12,78 @@ $carpeta = "excel";
 if (!file_exists($carpeta)) {
     mkdir($carpeta, 0777, true);
 }
+
+// Valida extensión (whitelist) y que el nombre original empiece con $prefijo (case-insensitive),
+// mueve el upload a excel/<aleatorio>.<ext> y devuelve SOLO el nombre safe (sin carpeta) o null.
+// Mantiene la semántica original: cada chequeo fallido emite su JSON de error.
+function recibirArchivo($key, $prefijo, $carpeta) {
+    $orig = $_FILES[$key]['name'];
+    $ext  = strtolower(pathinfo($orig, PATHINFO_EXTENSION));
+    if (!in_array($ext, ['xls','xlsx','csv'], true)) {
+        echo json_encode(["error"=>"La extension archivos no es correcta","status"=>404]);
+        return null;
+    }
+    if (strncasecmp($orig, $prefijo, strlen($prefijo)) !== 0) {
+        echo json_encode(["error"=>'El nombre del archivo debe ser empezar con <b>'.$prefijo.'</b>',"status"=>404]);
+        return null;
+    }
+    $safe = bin2hex(random_bytes(16)) . '.' . $ext;
+    if (!move_uploaded_file($_FILES[$key]['tmp_name'], $carpeta . "/" . $safe)) {
+        echo json_encode(["error"=>'Ocurrio algun error al subir el fichero. No pudo guardarse.',"status"=>404]);
+        return null;
+    }
+    return $safe;
+}
+
 $error_1 = "";
 $error_2 = "";
 $error_3 = "";
 $error_4 = "";
 
 if (!empty($_FILES['clientes']['name'])) {
-
-    if (in_array(strtolower(pathinfo($_FILES['clientes']['name'], PATHINFO_EXTENSION)), ['xls','xlsx','csv'], true)) {
-
-        if (strncasecmp($_FILES['clientes']['name'], "clientes", 8) === 0) {
-
-            if (move_uploaded_file($_FILES['clientes']['tmp_name'], $carpeta . "/" . $_FILES['clientes']['name'])) {
-
-                 guardarClientes($_FILES['clientes']['name']);
-                //$info_1= "El archivo ha sido cargado correctamente.";
-            } else {
-                echo json_encode(["error"=>'Ocurrio algun error al subir el fichero. No pudo guardarse.',"status"=>404]);
-            }
-        } else {
-            echo json_encode(["error"=>'El nombre del archivo debe ser empezar con <b>clientes</b>',"status"=>404]);
-        }
-    } else {
-        echo json_encode(["error"=>"La extension archivos no es correcta","status"=>404]);
+    $safe = recibirArchivo('clientes', 'clientes', $carpeta);
+    if ($safe !== null) {
+        guardarClientes($safe);
+        @unlink($carpeta . '/' . $safe);
     }
-
 }
 
 if (!empty($_FILES['articulos']['name'])) {
-
-    if (in_array(strtolower(pathinfo($_FILES['articulos']['name'], PATHINFO_EXTENSION)), ['xls','xlsx','csv'], true)) {
-
-        if (strncasecmp($_FILES['articulos']['name'], "articulos", 9) === 0) {
-            if (move_uploaded_file($_FILES['articulos']['tmp_name'], $carpeta . "/" . $_FILES['articulos']['name'])) {
-
-                guardarArticulos($_FILES['articulos']['name']);
-            } else {
-                echo json_encode(["error"=>'Ocurrio algun error al subir el fichero. No pudo guardarse.',"status"=>404]);
-            }
-        } else {
-            echo json_encode(["error"=>'El nombre del archivo debe ser empezar con <b>articulos</b>',"status"=>404]);
-        }
-    } else {
-        echo json_encode(["error"=>"La extension archivos no es correcta","status"=>404]);
+    $safe = recibirArchivo('articulos', 'articulos', $carpeta);
+    if ($safe !== null) {
+        guardarArticulos($safe);
+        @unlink($carpeta . '/' . $safe);
     }
 }
 
 if (!empty($_FILES['vendedores']['name'])) {
-
-    if (in_array(strtolower(pathinfo($_FILES['vendedores']['name'], PATHINFO_EXTENSION)), ['xls','xlsx','csv'], true)) {
-
-        if (strncasecmp($_FILES['vendedores']['name'], "Vendedores", 9) === 0) {
-
-            if (move_uploaded_file($_FILES['vendedores']['tmp_name'], $carpeta . "/" . $_FILES['vendedores']['name'])) {
-
-                 guardarVendedor($_FILES['vendedores']['name']);
-            } else {
-                echo json_encode(["error"=>'Ocurrio algun error al subir el fichero. No pudo guardarse.',"status"=>404]);
-            }
-        } else {
-            echo json_encode(["error"=>'El nombre del archivo debe ser empezar con <b>vendedores</b>',"status"=>404]);
-        }
-    } else {
-        echo json_encode(["error"=>"La extension archivos no es correcta","status"=>404]);
+    $safe = recibirArchivo('vendedores', 'Vendedores', $carpeta);
+    if ($safe !== null) {
+        guardarVendedor($safe);
+        @unlink($carpeta . '/' . $safe);
     }
 }
 if (!empty($_FILES['mensajes']['name'])) {
-
-    if (in_array(strtolower(pathinfo($_FILES['mensajes']['name'], PATHINFO_EXTENSION)), ['xls','xlsx','csv'], true)) {
-
-        if (strncasecmp($_FILES['mensajes']['name'], "mensajes", 8) === 0) {
-
-            if (move_uploaded_file($_FILES['mensajes']['tmp_name'], $carpeta . "/" . $_FILES['mensajes']['name'])) {
-
-
-                if ($_POST['_id'] == "") {
-                    $info_1 = guardarMensajesConClientes($_FILES['mensajes']['name'], $_POST['titulo'], $_POST['mensaje']);
-                } else {
-                    $info_1 = editarMensajesConClientes($_FILES['mensajes']['name'], $_POST['_id'], $_POST['titulo'], $_POST['mensaje']);
-                }
-
-            } else {
-                echo json_encode(["error"=>'Ocurrio algun error al subir el fichero. No pudo guardarse.',"status"=>404]);
-            }
+    $safe = recibirArchivo('mensajes', 'mensajes', $carpeta);
+    if ($safe !== null) {
+        if ($_POST['_id'] == "") {
+            $info_1 = guardarMensajesConClientes($safe, $_POST['titulo'], $_POST['mensaje']);
         } else {
-            echo json_encode(["error"=>'El nombre del archivo debe ser empezar con <b>mensajes</b>',"status"=>404]);
+            $info_1 = editarMensajesConClientes($safe, $_POST['_id'], $_POST['titulo'], $_POST['mensaje']);
         }
-    } else {
-        echo json_encode(["error"=>"La extension archivos no es correcta","status"=>404]);
+        @unlink($carpeta . '/' . $safe);
     }
-    //echo "Archivo ".$_FILES['clientes']['name']."<br>";
-
 } else if (empty($_FILES['mensajes']['name']) && $_POST['_id'] != "") {
-    $info_1 = editarMensajesConClientes($_FILES['mensajes']['name'], $_POST['_id'], $_POST['titulo'], $_POST['mensaje']);
+    // edición SIN archivo: NO renombrar nada, $archivo = null (la función toma la rama else)
+    $info_1 = editarMensajesConClientes(null, $_POST['_id'], $_POST['titulo'], $_POST['mensaje']);
 }
 
 
 if (!empty($_FILES['repartidores']['name'])) {
-
-    if (in_array(strtolower(pathinfo($_FILES['repartidores']['name'], PATHINFO_EXTENSION)), ['xls','xlsx','csv'], true)) {
-
-        if (strncasecmp($_FILES['repartidores']['name'], "repartidores", 12) === 0) {
-
-            if (move_uploaded_file($_FILES['repartidores']['tmp_name'], $carpeta . "/" . $_FILES['repartidores']['name'])) {
-                 guardarRepartidor ($_FILES['repartidores']['name']);
-            } else {
-                echo json_encode(["error"=>'Ocurrio algun error al subir el fichero. No pudo guardarse.',"status"=>404]);
-            }
-        } else {
-            echo json_encode(["error"=>'El nombre del archivo debe ser empezar con <b>repartidores</b>',"status"=>404]);
-        }
-    } else {
-        echo json_encode(["error"=>"La extension archivos no es correcta","status"=>404]);
+    $safe = recibirArchivo('repartidores', 'repartidores', $carpeta);
+    if ($safe !== null) {
+        guardarRepartidor($safe);
+        @unlink($carpeta . '/' . $safe);
     }
 }
 

@@ -124,7 +124,7 @@ switch ($_GET["op"]) {
 
     case 'listarMensajes':
 
-        $rspta=$consulta->listarMensajes($_GET["idconsulta"]);
+        $rspta=$consulta->listarMensajes((int)($_GET["idconsulta"] ?? 0));
 
 
 

@@ -33,7 +33,7 @@ switch ($_GET["op"]) {
 	break;
 
 	case 'editarEstado':
-		$nuevo=$venta->editarEstado($_GET["pedidoid"]);
+		$nuevo=$venta->editarEstado((int)($_GET["pedidoid"] ?? 0));
 		if ($nuevo === null)            echo "No se pudo cambiar el estado";
 		elseif ((string)$nuevo === '2') echo "Pedido marcado como Entregado";
 		else                            echo "Pedido vuelto a Pendiente";
@@ -71,7 +71,7 @@ switch ($_GET["op"]) {
 		
 	case 'listarDetalle':
 		//recibimos el idventa
-		$id=$_GET['id'];
+		$id=(int)($_GET['id'] ?? 0);
 
 		$rspta=$venta->listarDetalle($id);
 		$total=0;
@@ -252,7 +252,7 @@ switch ($_GET["op"]) {
 	//listarMensajes	
 	case 'listarMensajes':
 			
-	$rspta=$venta->listarMensajes($_GET["idventa"]);
+	$rspta=$venta->listarMensajes((int)($_GET["idventa"] ?? 0));
 		
 	  echo ' <thead style="background-color:#8b74d2c7;color:white">
         <th width="5%">ID</th>

@@ -140,7 +140,7 @@ switch ($_GET["op"]) {
 
 	case 'listarMensajes':
 			
-		$rspta=$reclamo->listarMensajes($_GET["idreclamo"]);
+		$rspta=$reclamo->listarMensajes((int)($_GET["idreclamo"] ?? 0));
 		//style="background-color:#A9D0F5"
 		  echo ' <thead style="background-color:#8b74d2c7;color:white">
 			<th >ID</th>
