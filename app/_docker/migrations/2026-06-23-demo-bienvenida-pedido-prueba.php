@@ -5,8 +5,10 @@
 //     opción "1 - Ya soy Cliente" e ingrese el código de cliente 0001.
 //   - Nodo menuId 101 (pide el código de cliente): agrega el hint "(para la demo,
 //     ingresá 0001)".
-// Solo actúa sobre `atiende_demo`; en cualquier otro tenant es no-op (el runner la
-// corre sobre todos, pero el guard la saltea). Edita bot_config.menu_json sin tocar
+// Solo actúa sobre el tenant demo, cuya DB se resuelve por `slug='demo'` en
+// pedidos_platform.tenants (NO se hardcodea el nombre: difiere entre dev/prod —
+// dev usa `atiende_demo`). En cualquier otro tenant es no-op (el runner la corre
+// sobre todos, pero el guard la saltea). Edita bot_config.menu_json sin tocar
 // las opciones del menú (BotEngine las lista solo debajo de la consigna).
 // Idempotente: si la consigna ya está en el texto destino, no escribe nada.
 // UTF-8 vía PHP + JSON_UNESCAPED_UNICODE (menu_json NO se puede editar por mysql CLI:
@@ -15,12 +17,24 @@
 $db = $argv[1] ?? '';
 if ($db === '') { fwrite(STDERR, "Falta el nombre de la DB\n"); exit(1); }
 
-if ($db !== 'atiende_demo') {
-    echo "[$db] no es atiende_demo, salto (migración demo-only)\n";
+require_once __DIR__ . '/_lib.php';
+
+// Resolver la DB del tenant demo por slug (mismo origen que usa el runner para
+// descubrir tenants). Así no dependemos del nombre exacto de la DB en cada entorno.
+$pp = mig_connect('pedidos_platform');
+$res = $pp->query("SELECT db_name FROM tenants WHERE slug = 'demo' AND db_name <> '' LIMIT 1");
+$demoDb = ($res && $res->num_rows > 0) ? $res->fetch_assoc()['db_name'] : null;
+$pp->close();
+
+if ($demoDb === null) {
+    echo "[$db] no hay tenant slug='demo' en pedidos_platform, salto (migración demo-only)\n";
+    exit(0);
+}
+if ($db !== $demoDb) {
+    echo "[$db] no es la DB del tenant demo ($demoDb), salto (migración demo-only)\n";
     exit(0);
 }
 
-require_once __DIR__ . '/_lib.php';
 $m = mig_connect($db);
 
 // Consignas destino (clave = menuId).
