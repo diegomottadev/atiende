@@ -45,7 +45,7 @@ $targets = [
         . "1) Elegí la opción *1 - Ya soy Cliente*\n"
         . "2) Cuando te pida el código de cliente, ingresá *0001*\n\n"
         . "Vas a poder cargar productos al carrito y simular un pedido completo.\n\n"
-        . "Para comenzar, elegí una opción escribiendo solo el número:",
+        . "Para comenzar, elegí una opción escribiendo solo el número:\n",
     '101' =>
         "Por favor ingresa tu *código de cliente*:\n\n"
         . "_(Para la demo, ingresá *0001*)_",
