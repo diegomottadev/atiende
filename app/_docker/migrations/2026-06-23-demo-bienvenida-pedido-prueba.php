@@ -41,7 +41,7 @@ $m = mig_connect($db);
 $targets = [
     '100' =>
         "Bienvenido a *<empresa>*, *<nombre>*!! 👋\n\n"
-        . "🧪 Esto es una *demo*. Para hacer un *pedido de prueba*:\n"
+        . "🧪 Esto es una *demo*. Para hacer un *pedido de prueba*:\n\n"
         . "1) Elegí la opción *1 - Ya soy Cliente*\n"
         . "2) Cuando te pida el código de cliente, ingresá *0001*\n\n"
         . "Vas a poder cargar productos al carrito y simular un pedido completo.\n\n"
