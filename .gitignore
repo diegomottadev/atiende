@@ -3,3 +3,7 @@ doc-atiende-prod.md
 
 # Settings locales de Claude Code (por máquina)
 .claude/settings.local.json
+
+# Backups/respaldos locales — NO commitear (binarios grandes)
+*.tgz
+_backup_*
