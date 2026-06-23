@@ -136,7 +136,7 @@
     },
     {
         "menuId": "200",
-        "consigna": "<saludo> *<nombre>*! ¿En qué podemos ayudarte?\n",
+        "consigna": "<saludo> *<nombre>*! ¿En qué podemos ayudarte?\n\nElegí una opción ingresando solo el número:\n",
         "finaliza": "false",
         "menuItem": [
             {
