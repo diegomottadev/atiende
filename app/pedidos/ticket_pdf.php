@@ -83,27 +83,39 @@ function generarTicketPdf($pedidoId)
         if (trim((string) $row['descripcion']) !== '') $obs[] = $row['descripcion'];
     }
 
-    // ===== Datos de la empresa (tenant) — viven en bot_config (singleton id=1) =====
-    // bot_config sufre drift de schema entre tenants: los con seed mínimo solo tienen
-    // (id, menu_json, telefono, updated_at, pais) y NO las columnas de empresa. Sin este
-    // guard, el SELECT lanzaba RuntimeException y abortaba la generación del ticket (el
-    // vendedor/cliente nunca recibía el PDF). Degradamos a solo 'telefono' (siempre existe).
-    $empRow = null;
+    // ===== Datos de la empresa — fuente de verdad: pedidos_platform.tenants =====
+    // Igual que la vista web reportes/exTicket.php: nombre/razón/CUIT/teléfono salen de
+    // `tenants` (configurables en Configuración → Empresa o en el superadmin); el logo es
+    // un archivo local y vive en bot_config. ANTES salían de bot_config, que en muchos
+    // tenants (p.ej. demo) está en NULL → el PDF no mostraba CUIT/Tel aunque la web sí.
+    // El tenant se resuelve por Connection::getDatabase() (send_wa.php ya hizo setDatabase),
+    // no por $_SESSION (en el flujo del bot no hay sesión).
+    $empNombre = 'Atiende';
+    $empRazon = $empCuit = $empTel = '';
+    $tdb  = Connection::getDatabase();
+    $slug = (strncmp($tdb, 'atiende_', 8) === 0) ? substr($tdb, 8) : $tdb;
     try {
-        $empRow = mysqli_fetch_assoc(Connection::runQuery(
-            "SELECT nombre_empresa, razon_social, cuit, telefono, logo FROM bot_config LIMIT 1"
-        ));
+        $ppT = new PDO('mysql:host=' . DB_HOST . ';dbname=pedidos_platform;charset=utf8mb4', DB_USERNAME, DB_PASSWORD, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC]);
+        $stT = $ppT->prepare('SELECT nombre, razon_social, cuit, telefono FROM tenants WHERE slug = ? AND deleted_at IS NULL LIMIT 1');
+        $stT->execute([$slug]);
+        $tEmp = $stT->fetch();
+        if ($tEmp) {
+            if (trim((string) ($tEmp['nombre'] ?? '')) !== '') $empNombre = $tEmp['nombre'];
+            $empRazon = $tEmp['razon_social'] ?? '';
+            $empCuit  = $tEmp['cuit'] ?? '';
+            $empTel   = $tEmp['telefono'] ?? '';
+        }
     } catch (Throwable $e) {
-        error_log('[ticket_pdf] bot_config sin columnas de empresa, degradando: ' . $e->getMessage());
-        try {
-            $empRow = mysqli_fetch_assoc(Connection::runQuery("SELECT telefono FROM bot_config LIMIT 1"));
-        } catch (Throwable $e2) { $empRow = null; }
+        error_log('[ticket_pdf] no se pudo leer empresa de tenants: ' . $e->getMessage());
     }
-    $empNombre = ($empRow && trim($empRow['nombre_empresa'] ?? '') !== '') ? $empRow['nombre_empresa'] : 'Atiende';
-    $empRazon  = $empRow['razon_social'] ?? '';
-    $empCuit   = $empRow['cuit'] ?? '';
-    $empTel    = $empRow['telefono'] ?? '';
-    $empLogo   = $empRow['logo'] ?? '';
+
+    // Logo (opcional, centrado arriba) — sigue en bot_config (files/empresa/). Defensivo ante
+    // drift de schema: el seed mínimo no tiene la columna `logo` → degradar sin abortar el PDF.
+    $empLogo = '';
+    try {
+        $logoRow = mysqli_fetch_assoc(Connection::runQuery("SELECT logo FROM bot_config LIMIT 1"));
+        if ($logoRow) $empLogo = $logoRow['logo'] ?? '';
+    } catch (Throwable $e) { $empLogo = ''; }
 
     // Logo (opcional, centrado arriba). Mismo origen que la vista web (files/empresa).
     $logoPath = ($empLogo !== '') ? __ROOT__ . '/files/empresa/' . $empLogo : '';
