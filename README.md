@@ -1,90 +1,92 @@
 # Atiende
 
-> Tu WhatsApp atiende, toma pedidos y organiza tu negocio.
+> Your WhatsApp takes care of customers, takes orders and keeps your business organized.
 
-**Atiende** es una plataforma multi-tenant que convierte el WhatsApp de un negocio en un canal de atención y ventas automatizado: un bot conversa con los clientes, toma pedidos, reclamos y consultas, y todo queda registrado en un panel web de gestión.
+**Atiende** is a multi-tenant platform that turns a business's WhatsApp into an automated customer service and sales channel: a bot chats with customers, takes orders, complaints and inquiries, and everything is recorded in a web management dashboard.
 
-## Cómo nació
+## How it started
 
-Atiende surgió durante la pandemia de COVID-19, cuando nadie podía salir a hacer las compras. Los comercios necesitaban seguir vendiendo y sus clientes necesitaban seguir abasteciéndose sin moverse de su casa.
+Atiende was born during the COVID-19 pandemic, when nobody could go out to shop. Stores needed to keep selling, and their customers needed to keep getting supplies without leaving home.
 
-Junto con [Leandro Zacaria](https://www.linkedin.com/in/leandro-zacaria/) creamos este proyecto para **acercar las compras del supermercado a los clientes** de los negocios que contrataban el servicio. Lo ofrecíamos como una app: cada negocio tenía su propio catálogo, su canal de pedidos por WhatsApp y su panel para gestionar todo lo que entraba.
+Together with [Leandro Zacaria](https://www.linkedin.com/in/leandro-zacaria/), we built this project to **bring supermarket shopping closer to the customers** of the businesses that hired the service. We offered it as an app: each business had its own catalog, its own WhatsApp ordering channel and its own dashboard to manage everything coming in.
 
-Con el tiempo el proyecto creció de una herramienta de emergencia a una plataforma completa de atención, ventas y postventa para distintos rubros.
+Over time the project grew from an emergency tool into a complete customer service, sales and after-sales platform for many kinds of businesses.
 
-## Qué hace
+## What it does
 
-- **Centraliza consultas y pedidos.** Todas las conversaciones que llegan por WhatsApp se ordenan en un único lugar; cada cliente y cada pedido queda registrado.
-- **Atención automática 24/7.** El bot guía al cliente por un menú simple y toma pedidos, reclamos y consultas sin que el equipo tenga que estar conectado, en el mismo número de WhatsApp de siempre.
-- **Gestión de pedidos y reclamos.** Cada pedido y reclamo tiene su estado y se puede seguir desde que entra hasta la entrega.
-- **Asistencia al equipo de ventas.** Cada cliente puede asignarse a un vendedor, que recibe la información del pedido confirmado para avanzar con la venta.
-- **Automatización de tareas.** Registro de datos del cliente, actualización de estados y comprobante en PDF de cada operación.
-- **Panel web.** Pedidos, clientes, artículos, repartos, reportes y un mapa de clientes, todo a mano.
+- **Centralizes inquiries and orders.** Every conversation that arrives through WhatsApp is organized in one place; every customer and every order is recorded.
+- **24/7 automated service.** The bot guides customers through a simple menu and takes orders, complaints and inquiries without the team needing to be online, on the same WhatsApp number as always.
+- **Order and complaint management.** Every order and complaint has a status and can be tracked from the moment it arrives until delivery.
+- **Sales team support.** Each customer can be assigned to a salesperson, who receives the confirmed order details to move the sale forward.
+- **Task automation.** Customer data capture, status updates and a PDF receipt for every transaction.
+- **Web dashboard.** Orders, customers, products, deliveries, reports and a customer map, all at hand.
 
-## Estructura del repositorio
+## Repository structure
 
-| Carpeta | Qué contiene |
+| Folder | Contents |
 |---|---|
-| [`app/`](app/) | La aplicación principal: panel de gestión, bot de WhatsApp (`BotEngine`), página de pedidos para el cliente final (`pedidos/`), tickets PDF y reportes. |
-| [`app-tenants/`](app-tenants/) | Plataforma de tenants (`pedidos_platform`): alta y aprovisionamiento de negocios, superadmin, planes y suscripciones (webhooks de MercadoPago y Stripe). |
-| [`app-landing/`](app-landing/) | Landing pública del producto. |
-| `descripcion-atiende.html`, `onboarding-cliente.html` | Material comercial y de onboarding para clientes. |
+| [`app/`](app/) | The main application: management dashboard, WhatsApp bot (`BotEngine`), end-customer ordering page (`pedidos/`), PDF receipts and reports. |
+| [`app-tenants/`](app-tenants/) | Tenant platform (`pedidos_platform`): business onboarding and provisioning, superadmin, plans and subscriptions (MercadoPago and Stripe webhooks). |
+| [`app-landing/`](app-landing/) | Public product landing page. |
+| `descripcion-atiende.html`, `onboarding-cliente.html` | Sales and customer onboarding material (in Spanish). |
 
-Cada negocio (tenant) tiene su propia base de datos aislada; la plataforma de tenants autentica el login y define qué módulos tiene habilitados cada uno.
+Each business (tenant) has its own isolated database; the tenant platform handles login and defines which modules each one has enabled.
 
 ## Stack
 
-- **Backend:** PHP (PHP-FPM) con modelos propios, endpoints AJAX y vistas server-side.
-- **Base de datos:** MySQL / MariaDB, una base por tenant + `pedidos_platform`.
-- **Frontend:** Bootstrap 5 (tema Hyper), jQuery, DataTables, SweetAlert2, Mapbox GL.
-- **Integraciones:** WhatsApp Cloud API, MercadoPago, Stripe, PHPMailer.
-- **PDF / Excel:** FPDF y PHPExcel.
-- **Infraestructura:** Docker Compose (PHP-FPM + Nginx).
+- **Backend:** PHP (PHP-FPM) with custom models, AJAX endpoints and server-side views.
+- **Database:** MySQL / MariaDB, one database per tenant plus `pedidos_platform`.
+- **Frontend:** Bootstrap 5 (Hyper theme), jQuery, DataTables, SweetAlert2, Mapbox GL.
+- **Integrations:** WhatsApp Cloud API, MercadoPago, Stripe, PHPMailer.
+- **PDF / Excel:** FPDF and PHPExcel.
+- **Infrastructure:** Docker Compose (PHP-FPM + Nginx).
 
-## Puesta en marcha (desarrollo)
+## Getting started (development)
 
-Requisitos: Docker y Docker Compose. Todo se corre dentro de los containers (PHP, Composer, PHPUnit), no con un PHP local.
+Requirements: Docker and Docker Compose. Everything runs inside the containers (PHP, Composer, PHPUnit), not with a local PHP install.
 
 ```bash
 cd app
-cp .env.example .env     # ajustar HOST_IP si estás en Linux
-./startup.sh             # en Windows: .\startup.ps1
+cp .env.example .env     # adjust HOST_IP if you are on Linux
+./startup.sh             # on Windows: .\startup.ps1
 ```
 
-`startup.sh` construye las imágenes, levanta los containers, inicializa las bases de datos y aplica permisos.
+`startup.sh` builds the images, starts the containers, initializes the databases and sets permissions.
 
-Uso diario:
+Day-to-day usage:
 
 ```bash
-docker compose up -d     # levantar sin resetear la base
-docker compose down      # apagar
+docker compose up -d     # start without resetting the database
+docker compose down      # stop
 ```
 
-Los archivos `config/database.php` y `config/global.php` no se versionan (contienen secretos). Si faltan —por ejemplo después de un `git pull`— se regeneran a partir de los templates con:
+`config/database.php` and `config/global.php` are not versioned (they hold secrets). If they go missing, for example after a `git pull`, regenerate them from the templates with:
 
 ```bash
-./setup-config.sh        # en Windows: .\setup-config.ps1
+./setup-config.sh        # on Windows: .\setup-config.ps1
 ```
 
-La plataforma de tenants se levanta de la misma forma desde `app-tenants/` (`docker compose up -d`).
+The tenant platform is started the same way from `app-tenants/` (`docker compose up -d`).
 
 ## Tests
 
 ```bash
-# App principal: scripts PHP planos, uno por archivo
+# Main app: plain PHP scripts, one per file
 docker exec atiende-app php /var/www/atiende/tests/TelefonoNormalizarTest.php
 
-# Plataforma de tenants (PHPUnit)
+# Tenant platform (PHPUnit)
 cd app-tenants && docker compose exec pedidos-app vendor/bin/phpunit
 ```
 
-## Documentación
+## Documentation
 
-- [`app/CLAUDE.md`](app/CLAUDE.md): arquitectura, convenciones de UI y del bot.
-- [`app/docs/`](app/docs/): runbooks (migraciones, cambio de tenant de WhatsApp, eliminación de datos), mapa del menú del bot y notas de seguridad.
-- [`app-tenants/docs/`](app-tenants/docs/): specs y planes de la plataforma de tenants.
+The internal docs are written in Spanish.
 
-## Autores
+- [`app/CLAUDE.md`](app/CLAUDE.md): architecture, UI and bot conventions.
+- [`app/docs/`](app/docs/): runbooks (migrations, switching the WhatsApp tenant, data deletion), bot menu map and security notes.
+- [`app-tenants/docs/`](app-tenants/docs/): tenant platform specs and plans.
+
+## Authors
 
 - **Diego Motta** · [@diegomottadev](https://github.com/diegomottadev)
 - **Leandro Zacaria** · [LinkedIn](https://www.linkedin.com/in/leandro-zacaria/)
