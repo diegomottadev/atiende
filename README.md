@@ -22,6 +22,8 @@ We closed the project for a mix of reasons. We had less time for it, costs kept 
 
 The best part was the synergy we had with Leandro as a small venture. I'm proud of what we built together.
 
+After we shut it down, I kept working on the code on my own, just for fun. I used Claude Code to add features and fix old bugs, and also to surface the technical debt the project had built up over the years. It became my playground to try spec-driven development with AI: writing specs and plans first (you can see them in `app-tenants/docs/` and `app/CLAUDE.md`) and then letting the agent implement against them.
+
 ## What it does
 
 - **Centralizes inquiries and orders.** Every conversation that arrives through WhatsApp is organized in one place; every customer and every order is recorded.
