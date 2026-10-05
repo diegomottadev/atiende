@@ -12,6 +12,16 @@ Together with [Leandro Zacaria](https://www.linkedin.com/in/leandro-zacaria/), w
 
 Over time the project grew from an emergency tool into a complete customer service, sales and after-sales platform for many kinds of businesses.
 
+## Project status
+
+Atiende is no longer in production. The code stays here as a record of the work we did.
+
+These were my two most productive years as a developer. With Atiende I went through the whole software lifecycle: gathering requirements with each business, deciding priorities, building, testing and deploying to production.
+
+We closed the project for a mix of reasons. We had less time for it, costs kept going up and it took more energy than we could give. Each of us also made different personal decisions. In the end it wasn't sustainable anymore.
+
+The best part was the synergy we had with Leandro as a small venture. I'm proud of what we built together.
+
 ## What it does
 
 - **Centralizes inquiries and orders.** Every conversation that arrives through WhatsApp is organized in one place; every customer and every order is recorded.
